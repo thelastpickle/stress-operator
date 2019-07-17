@@ -16,7 +16,7 @@ spec:
       containers:
         - name: tlp-stress-operator
           # Replace this with the built image name
-          image: REPLACE_IMAGE
+          image: docker.io/jsanda/tlp-stress-operator:latest
           command:
           - tlp-stress-operator
           imagePullPolicy: Always
