@@ -101,6 +101,11 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
+	if updated := checkDefaults(tlpStress); updated {
+		err = r.client.Update(context.TODO(), tlpStress)
+		return reconcile.Result{Requeue: true}, err
+	}
+
 	// Check if the job already exists, if not create a new one
 	found := &v1batch.Job{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, found)
@@ -159,6 +164,27 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TL
 	}
 
 	return job
+}
+
+func checkDefaults(tlpStress *thelastpicklev1alpha1.TLPStress) bool {
+	updated := false
+
+	if len(tlpStress.Spec.Image) == 0 {
+		tlpStress.Spec.Image = "jsanda/tlp-stress:demo"
+		updated = true
+	}
+
+	if len(tlpStress.Spec.ImagePullPolicy) == 0 {
+		tlpStress.Spec.ImagePullPolicy = corev1.PullAlways
+		updated = true
+	}
+
+	if len(tlpStress.Spec.Workload) == 0 {
+		tlpStress.Spec.Workload = "KeyValue"
+		updated = true
+	}
+
+	return updated
 }
 
 func labelsForTLPStress(name string) map[string]string {
