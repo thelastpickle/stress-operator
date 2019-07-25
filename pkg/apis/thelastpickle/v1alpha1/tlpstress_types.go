@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -17,6 +18,10 @@ type TLPStressSpec struct {
 	Workload string `json:"workload"`
 
 	CassandraService string `json:"cassandraService"`
+
+	Image string `json:"image"`
+
+	ImagePullPolicy v1.PullPolicy `json:"imagePullPolicy"`
 }
 
 // TLPStressStatus defines the observed state of TLPStress

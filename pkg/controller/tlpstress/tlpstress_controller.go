@@ -142,10 +142,10 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TL
 					RestartPolicy: corev1.RestartPolicyOnFailure,
 					Containers: []corev1.Container{
 						{
-							Name: "tlp-stress",
-							Image: "docker.io/jsanda/tlp-stress:test",
-							ImagePullPolicy: corev1.PullIfNotPresent,
-							Args: []string {"run", "KeyValue"},
+							Name: tlpStress.Name,
+							Image: tlpStress.Spec.Image,
+							ImagePullPolicy: tlpStress.Spec.ImagePullPolicy,
+							Args: []string {"run", tlpStress.Spec.Workload},
 						},
 					},
 				},
