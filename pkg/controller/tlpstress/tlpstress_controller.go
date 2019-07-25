@@ -2,6 +2,8 @@ package tlpstress
 
 import (
 	"context"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	thelastpicklev1alpha1 "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	v1batch "k8s.io/api/batch/v1"
@@ -52,7 +54,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	// TODO(user): Modify this to be the types you create that are owned by the primary resource
 	// Watch for changes to secondary resource Pods and requeue the owner TLPStress
-	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
+	err = c.Watch(&source.Kind{Type: &v1batch.Job{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &thelastpicklev1alpha1.TLPStress{},
 	})
@@ -85,9 +87,9 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling TLPStress")
 
-	// Fetch the TLPStress instance
-	instance := &thelastpicklev1alpha1.TLPStress{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
+	// Fetch the TLPStress tlpStress
+	tlpStress := &thelastpicklev1alpha1.TLPStress{}
+	err := r.client.Get(context.TODO(), request.NamespacedName, tlpStress)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -99,87 +101,66 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
-	if instance.Status.Status == "" {
-		job := v1batch.Job{
-			TypeMeta: metav1.TypeMeta{
-				Kind: "Job",
-				APIVersion: "v1",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "tlp-stress",
-				Namespace: "default",
-			},
-			Spec: v1batch.JobSpec{
-				Template: corev1.PodTemplateSpec{
-					Spec: corev1.PodSpec{
-						RestartPolicy: corev1.RestartPolicyOnFailure,
-						Containers: []corev1.Container{
-							{
-								Name: "tlp-stress",
-								Image: "docker.io/jsanda/tlp-stress:demo",
-								ImagePullPolicy: corev1.PullIfNotPresent,
-								Args: []string {"run", "KeyValue"},
-							},
+	// Check if the job already exists, if not create a new one
+	found := &v1batch.Job{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, found)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new job
+		job := r.jobForTLPStress(tlpStress)
+		reqLogger.Info("Creating a new Job.", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
+		err = r.client.Create(context.TODO(), job)
+		if err != nil {
+			reqLogger.Error(err,"Failed to create new Job.", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
+			return reconcile.Result{}, err
+		}
+		// Job created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err,"Failed to get Job.")
+		return reconcile.Result{}, err
+	}
+
+	return reconcile.Result{Requeue: true}, nil
+}
+
+func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TLPStress) *v1batch.Job {
+	ls := labelsForTLPStress(tlpStress.Name)
+
+	job := &v1batch.Job{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "Job",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: tlpStress.Name,
+			Namespace: tlpStress.Namespace,
+			Labels: ls,
+		},
+		Spec: v1batch.JobSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					RestartPolicy: corev1.RestartPolicyOnFailure,
+					Containers: []corev1.Container{
+						{
+							Name: "tlp-stress",
+							Image: "docker.io/jsanda/tlp-stress:test",
+							ImagePullPolicy: corev1.PullIfNotPresent,
+							Args: []string {"run", "KeyValue"},
 						},
 					},
 				},
 			},
-		}
-		if err := r.client.Create(context.TODO(), &job); err != nil {
-			return reconcile.Result{}, err
-		}
+		},
+	}
+	// Set TLPStress as the owner and controller
+	if err := controllerutil.SetControllerReference(tlpStress, job, r.scheme); err != nil {
+		// TODO We probably want to return and handle this error
+		log.Error(err, "Failed to set owner for job")
 	}
 
-	return reconcile.Result{}, nil
-
-	// Define a new Pod object
-	//pod := newPodForCR(instance)
-
-	// Set TLPStress instance as the owner and controller
-	//if err := controllerutil.SetControllerReference(instance, pod, r.scheme); err != nil {
-	//	return reconcile.Result{}, err
-	//}
-	//
-	//// Check if this Pod already exists
-	//found := &corev1.Pod{}
-	//err = r.client.Get(context.TODO(), types.NamespacedName{Name: pod.Name, Namespace: pod.Namespace}, found)
-	//if err != nil && errors.IsNotFound(err) {
-	//	reqLogger.Info("Creating a new Pod", "Pod.Namespace", pod.Namespace, "Pod.Name", pod.Name)
-	//	err = r.client.Create(context.TODO(), pod)
-	//	if err != nil {
-	//		return reconcile.Result{}, err
-	//	}
-	//
-	//	// Pod created successfully - don't requeue
-	//	return reconcile.Result{}, nil
-	//} else if err != nil {
-	//	return reconcile.Result{}, err
-	//}
-	//
-	//// Pod already exists - don't requeue
-	//reqLogger.Info("Skip reconcile: Pod already exists", "Pod.Namespace", found.Namespace, "Pod.Name", found.Name)
-	//return reconcile.Result{}, nil
+	return job
 }
 
-// newPodForCR returns a busybox pod with the same name/namespace as the cr
-//func newPodForCR(cr *thelastpicklev1alpha1.TLPStress) *corev1.Pod {
-//	labels := map[string]string{
-//		"app": cr.Name,
-//	}
-//	return &corev1.Pod{
-//		ObjectMeta: metav1.ObjectMeta{
-//			Name:      cr.Name + "-pod",
-//			Namespace: cr.Namespace,
-//			Labels:    labels,
-//		},
-//		Spec: corev1.PodSpec{
-//			Containers: []corev1.Container{
-//				{
-//					Name:    "busybox",
-//					Image:   "busybox",
-//					Command: []string{"sleep", "3600"},
-//				},
-//			},
-//		},
-//	}
-//}
+func labelsForTLPStress(name string) map[string]string {
+	return map[string]string{"app": "TLPStress", "tlp-stress": name}
+}
