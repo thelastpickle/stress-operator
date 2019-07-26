@@ -2,6 +2,7 @@ package tlpstress
 
 import (
 	"context"
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
@@ -21,6 +22,13 @@ import (
 )
 
 var log = logf.Log.WithName("controller_tlpstress")
+
+const (
+	PhaseInitialize int = iota
+	PhaseJobCreate
+	PhaseJobRunning
+	PhaseJobDone
+)
 
 /**
 * USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
@@ -88,8 +96,8 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	reqLogger.Info("Reconciling TLPStress")
 
 	// Fetch the TLPStress tlpStress
-	tlpStress := &thelastpicklev1alpha1.TLPStress{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, tlpStress)
+	instance := &thelastpicklev1alpha1.TLPStress{}
+	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -101,31 +109,45 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
-	if updated := checkDefaults(tlpStress); updated {
-		err = r.client.Update(context.TODO(), tlpStress)
-		return reconcile.Result{Requeue: true}, err
-	}
+	tlpStress := instance.DeepCopy()
 
-	// Check if the job already exists, if not create a new one
-	found := &v1batch.Job{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		// Define a new job
-		job := r.jobForTLPStress(tlpStress)
-		reqLogger.Info("Creating a new Job.", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
-		err = r.client.Create(context.TODO(), job)
-		if err != nil {
-			reqLogger.Error(err,"Failed to create new Job.", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
-			return reconcile.Result{}, err
-		}
-		// Job created successfully - return and requeue
-		return reconcile.Result{Requeue: true}, nil
-	} else if err != nil {
-		reqLogger.Error(err,"Failed to get Job.")
-		return reconcile.Result{}, err
+	switch tlpStress.Status.Phase {
+	case PhaseInitialize:
+		return r.checkDefaults(tlpStress)
+	case PhaseJobCreate:
+		return r.createJobIfNecessary(tlpStress, reqLogger)
 	}
 
 	return reconcile.Result{Requeue: true}, nil
+}
+
+func (r *ReconcileTLPStress) checkDefaults(tlpStress *thelastpicklev1alpha1.TLPStress) (reconcile.Result, error) {
+	checkDefaults(tlpStress)
+	tlpStress.Status.Phase = PhaseJobCreate
+	err := r.client.Update(context.TODO(), tlpStress)
+	return reconcile.Result{Requeue: true}, err
+}
+
+func (r *ReconcileTLPStress) createJobIfNecessary(tlpStress *thelastpicklev1alpha1.TLPStress, logger logr.Logger) (reconcile.Result, error) {
+	// Check if the job already exists, if not create a new one
+	found := &v1batch.Job{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, found)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new job
+		job := r.jobForTLPStress(tlpStress)
+		logger.Info("Creating a new Job.", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
+		err = r.client.Create(context.TODO(), job)
+		if err != nil {
+			logger.Error(err,"Failed to create new Job.", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
+			return reconcile.Result{}, err
+		}
+		// Job created successfully - return and requeue
+		tlpStress.Status.Phase = PhaseJobRunning
+		return reconcile.Result{Requeue: true}, nil
+	} else {
+		logger.Error(err,"Failed to get Job.")
+		return reconcile.Result{}, err
+	}
 }
 
 func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TLPStress) *v1batch.Job {
@@ -189,4 +211,10 @@ func checkDefaults(tlpStress *thelastpicklev1alpha1.TLPStress) bool {
 
 func labelsForTLPStress(name string) map[string]string {
 	return map[string]string{"app": "TLPStress", "tlp-stress": name}
+}
+
+func (r *ReconcileTLPStress) updatePhase(cr *thelastpicklev1alpha1.TLPStress, phase int) (reconcile.Result, error) {
+	cr.Status.Phase = phase
+	err := r.client.Update(context.TODO(), cr)
+	return reconcile.Result{}, err
 }

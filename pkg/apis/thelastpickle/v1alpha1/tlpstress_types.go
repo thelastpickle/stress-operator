@@ -3,6 +3,7 @@ package v1alpha1
 import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	batchv1 "k8s.io/api/batch/v1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -32,6 +33,8 @@ type TLPStressStatus struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	Status string `json:"status,omitempty"`
+	Phase      int               `json:"phase"`
+	JobStatus  batchv1.JobStatus `joson:jobStatus,omitempty`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
