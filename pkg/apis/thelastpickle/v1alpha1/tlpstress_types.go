@@ -32,9 +32,7 @@ type TLPStressStatus struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	Status string `json:"status,omitempty"`
-	Phase      int               `json:"phase"`
-	JobStatus  batchv1.JobStatus `joson:jobStatus,omitempty`
+	JobStatus  *batchv1.JobStatus `joson:jobStatus,omitempty`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

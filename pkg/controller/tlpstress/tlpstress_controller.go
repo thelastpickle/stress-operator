@@ -2,8 +2,8 @@ package tlpstress
 
 import (
 	"context"
-	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	thelastpicklev1alpha1 "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
@@ -22,13 +22,6 @@ import (
 )
 
 var log = logf.Log.WithName("controller_tlpstress")
-
-const (
-	PhaseInitialize int = iota
-	PhaseJobCreate
-	PhaseJobRunning
-	PhaseJobDone
-)
 
 /**
 * USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
@@ -100,54 +93,51 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile request.
+			// Request object not job, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
 			return reconcile.Result{}, nil
 		}
+		reqLogger.Error(err, "Failed to get TLPStress object")
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
 
 	tlpStress := instance.DeepCopy()
 
-	switch tlpStress.Status.Phase {
-	case PhaseInitialize:
-		return r.checkDefaults(tlpStress)
-	case PhaseJobCreate:
-		return r.createJobIfNecessary(tlpStress, reqLogger)
+	if checkDefaults(tlpStress) {
+		return reconcile.Result{Requeue: true}, nil
 	}
 
-	return reconcile.Result{Requeue: true}, nil
-}
-
-func (r *ReconcileTLPStress) checkDefaults(tlpStress *thelastpicklev1alpha1.TLPStress) (reconcile.Result, error) {
-	checkDefaults(tlpStress)
-	tlpStress.Status.Phase = PhaseJobCreate
-	err := r.client.Update(context.TODO(), tlpStress)
-	return reconcile.Result{Requeue: true}, err
-}
-
-func (r *ReconcileTLPStress) createJobIfNecessary(tlpStress *thelastpicklev1alpha1.TLPStress, logger logr.Logger) (reconcile.Result, error) {
 	// Check if the job already exists, if not create a new one
-	found := &v1batch.Job{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, found)
+	job := &v1batch.Job{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, job)
 	if err != nil && errors.IsNotFound(err) {
-		// Define a new job
-		job := r.jobForTLPStress(tlpStress)
-		logger.Info("Creating a new Job.", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
-		err = r.client.Create(context.TODO(), job)
+		// Define a new newJob
+		newJob := r.jobForTLPStress(tlpStress)
+		reqLogger.Info("Creating a new Job.", "Job.Namespace", newJob.Namespace, "Job.Name", newJob.Name)
+		err = r.client.Create(context.TODO(), newJob)
 		if err != nil {
-			logger.Error(err,"Failed to create new Job.", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
+			reqLogger.Error(err,"Failed to create new Job.", "Job.Namespace", newJob.Namespace, "Job.Name", newJob.Name)
 			return reconcile.Result{}, err
 		}
-		// Job created successfully - return and requeue
-		tlpStress.Status.Phase = PhaseJobRunning
 		return reconcile.Result{Requeue: true}, nil
-	} else {
-		logger.Error(err,"Failed to get Job.")
+	} else if err != nil {
+		reqLogger.Error(err,"Failed to get Job.")
 		return reconcile.Result{}, err
 	}
+
+	// Check the status and update if it has changed
+	jobStatus := job.Status.DeepCopy()
+	if tlpStress.Status.JobStatus == nil || !reflect.DeepEqual(tlpStress.Status.JobStatus, jobStatus) {
+		tlpStress.Status.JobStatus = jobStatus
+		if err = r.client.Status().Update(context.TODO(), tlpStress); err != nil {
+			reqLogger.Error(err, "Failed to update status")
+			return reconcile.Result{}, err
+		}
+	}
+
+	return reconcile.Result{}, nil
 }
 
 func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TLPStress) *v1batch.Job {
@@ -211,10 +201,4 @@ func checkDefaults(tlpStress *thelastpicklev1alpha1.TLPStress) bool {
 
 func labelsForTLPStress(name string) map[string]string {
 	return map[string]string{"app": "TLPStress", "tlp-stress": name}
-}
-
-func (r *ReconcileTLPStress) updatePhase(cr *thelastpicklev1alpha1.TLPStress, phase int) (reconcile.Result, error) {
-	cr.Status.Phase = phase
-	err := r.client.Update(context.TODO(), cr)
-	return reconcile.Result{}, err
 }
