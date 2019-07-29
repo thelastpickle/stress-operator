@@ -5,6 +5,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"strconv"
 
 	thelastpicklev1alpha1 "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	v1batch "k8s.io/api/batch/v1"
@@ -162,7 +163,7 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TL
 							Name: tlpStress.Name,
 							Image: tlpStress.Spec.Image,
 							ImagePullPolicy: tlpStress.Spec.ImagePullPolicy,
-							Args: []string {"run", tlpStress.Spec.Workload},
+							Args: *buildCmdLineArgs(tlpStress),
 						},
 					},
 				},
@@ -176,6 +177,29 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TL
 	}
 
 	return job
+}
+
+func buildCmdLineArgs(tlpStress  *thelastpicklev1alpha1.TLPStress) *[]string {
+	args := make([]string, 0)
+
+	args = append(args, "run", tlpStress.Spec.Workload)
+
+	if len(tlpStress.Spec.ConsistencyLevel) > 0 {
+		args = append(args, "--cl")
+		args = append(args, tlpStress.Spec.ConsistencyLevel)
+	}
+
+	if tlpStress.Spec.Partitions != nil {
+		args = append(args, "-p")
+		args = append(args, strconv.FormatInt(*tlpStress.Spec.Partitions, 10))
+	}
+
+	if len(tlpStress.Spec.Duration) > 0 {
+		args = append(args, "-d")
+		args = append(args, tlpStress.Spec.Duration)
+	}
+
+	return &args
 }
 
 func checkDefaults(tlpStress *thelastpicklev1alpha1.TLPStress) bool {

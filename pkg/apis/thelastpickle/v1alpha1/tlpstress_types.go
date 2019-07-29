@@ -18,6 +18,12 @@ type TLPStressSpec struct {
 
 	Workload string `json:"workload"`
 
+	ConsistencyLevel string `json:"consistencyLevel,omitempty"`
+
+	Partitions *int64 `json:"partitions,omitempty"`
+
+	Duration string `json:"duration,omitempty"`
+
 	CassandraService string `json:"cassandraService"`
 
 	Image string `json:"image"`
