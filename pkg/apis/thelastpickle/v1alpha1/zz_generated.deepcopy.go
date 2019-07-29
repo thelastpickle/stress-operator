@@ -88,6 +88,16 @@ func (in *TLPStressSpec) DeepCopyInto(out *TLPStressSpec) {
 		*out = new(int64)
 		**out = **in
 	}
+	if in.Populate != nil {
+		in, out := &in.Populate, &out.Populate
+		*out = new(int64)
+		**out = **in
+	}
+	if in.Concurrency != nil {
+		in, out := &in.Concurrency, &out.Concurrency
+		*out = new(int32)
+		**out = **in
+	}
 	return
 }
 

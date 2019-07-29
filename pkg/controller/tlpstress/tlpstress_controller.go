@@ -213,6 +213,21 @@ func buildCmdLineArgs(tlpStress  *thelastpicklev1alpha1.TLPStress) *[]string {
 		args = append(args, tlpStress.Spec.ReadRate)
 	}
 
+	if tlpStress.Spec.Populate != nil && *tlpStress.Spec.Populate != 0 {
+		args = append(args, "--populate")
+		args = append(args, strconv.FormatInt(*tlpStress.Spec.Populate, 10))
+	}
+
+	if tlpStress.Spec.Concurrency != nil && *tlpStress.Spec.Concurrency != 100 {
+		args = append(args, "-c")
+		args = append(args, strconv.FormatInt(int64(*tlpStress.Spec.Concurrency), 10))
+	}
+
+	if len(tlpStress.Spec.PartitionGenerator) > 0 {
+		args = append(args, "--pg")
+		args = append(args, tlpStress.Spec.PartitionGenerator)
+	}
+
 	return &args
 }
 

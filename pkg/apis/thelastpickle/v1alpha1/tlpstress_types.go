@@ -30,6 +30,12 @@ type TLPStressSpec struct {
 
 	ReadRate  string `json:"readRate,omitempty"`
 
+	Populate *int64 `json:"populate,omitempty"`
+
+	Concurrency *int32 `json:"concurrency,omitempty"`
+
+	PartitionGenerator string `json:"partitionGenerator,omitempty"`
+
 	CassandraService string `json:"cassandraService"`
 
 	Image string `json:"image"`
