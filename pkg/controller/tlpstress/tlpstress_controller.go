@@ -199,6 +199,20 @@ func buildCmdLineArgs(tlpStress  *thelastpicklev1alpha1.TLPStress) *[]string {
 		args = append(args, tlpStress.Spec.Duration)
 	}
 
+	if tlpStress.Spec.DropKeyspace != nil && *tlpStress.Spec.DropKeyspace{
+		args = append(args, "--drop")
+	}
+
+	if tlpStress.Spec.Iterations != nil && *tlpStress.Spec.Iterations != 0 {
+		args = append(args, "-n")
+		args = append(args, strconv.FormatInt(*tlpStress.Spec.Iterations, 10))
+	}
+
+	if len(tlpStress.Spec.ReadRate) > 0 {
+		args = append(args, "-r")
+		args = append(args, tlpStress.Spec.ReadRate)
+	}
+
 	return &args
 }
 

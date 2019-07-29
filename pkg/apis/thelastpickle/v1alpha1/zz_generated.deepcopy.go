@@ -78,6 +78,16 @@ func (in *TLPStressSpec) DeepCopyInto(out *TLPStressSpec) {
 		*out = new(int64)
 		**out = **in
 	}
+	if in.DropKeyspace != nil {
+		in, out := &in.DropKeyspace, &out.DropKeyspace
+		*out = new(bool)
+		**out = **in
+	}
+	if in.Iterations != nil {
+		in, out := &in.Iterations, &out.Iterations
+		*out = new(int64)
+		**out = **in
+	}
 	return
 }
 

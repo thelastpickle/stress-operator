@@ -24,6 +24,12 @@ type TLPStressSpec struct {
 
 	Duration string `json:"duration,omitempty"`
 
+	DropKeyspace *bool `json:"dropKeyspace,omitempty"`
+
+	Iterations *int64 `json:"iterations,omitempty"`
+
+	ReadRate  string `json:"readRate,omitempty"`
+
 	CassandraService string `json:"cassandraService"`
 
 	Image string `json:"image"`
