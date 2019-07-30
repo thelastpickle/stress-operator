@@ -253,6 +253,10 @@ func buildCmdLineArgs(tlpStress  *thelastpicklev1alpha1.TLPStress, log logr.Logg
 		args = append(args, replication)
 	}
 
+	// TODO add validation check
+	args = append(args, "--host")
+	args = append(args, tlpStress.Spec.CassandraService)
+
 	return &args
 }
 
