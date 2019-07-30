@@ -2,10 +2,13 @@ package tlpstress
 
 import (
 	"context"
+	"fmt"
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"strconv"
+	"strings"
 
 	thelastpicklev1alpha1 "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	v1batch "k8s.io/api/batch/v1"
@@ -115,7 +118,7 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, job)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new newJob
-		newJob := r.jobForTLPStress(tlpStress)
+		newJob := r.jobForTLPStress(tlpStress, reqLogger)
 		reqLogger.Info("Creating a new Job.", "Job.Namespace", newJob.Namespace, "Job.Name", newJob.Name)
 		err = r.client.Create(context.TODO(), newJob)
 		if err != nil {
@@ -141,7 +144,7 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TLPStress) *v1batch.Job {
+func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TLPStress, log logr.Logger) *v1batch.Job {
 	ls := labelsForTLPStress(tlpStress.Name)
 
 	job := &v1batch.Job{
@@ -163,7 +166,7 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TL
 							Name: tlpStress.Name,
 							Image: tlpStress.Spec.Image,
 							ImagePullPolicy: tlpStress.Spec.ImagePullPolicy,
-							Args: *buildCmdLineArgs(tlpStress),
+							Args: *buildCmdLineArgs(tlpStress, log),
 						},
 					},
 				},
@@ -179,7 +182,7 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TL
 	return job
 }
 
-func buildCmdLineArgs(tlpStress  *thelastpicklev1alpha1.TLPStress) *[]string {
+func buildCmdLineArgs(tlpStress  *thelastpicklev1alpha1.TLPStress, log logr.Logger) *[]string {
 	args := make([]string, 0)
 
 	args = append(args, "run", tlpStress.Spec.Workload)
@@ -226,6 +229,28 @@ func buildCmdLineArgs(tlpStress  *thelastpicklev1alpha1.TLPStress) *[]string {
 	if len(tlpStress.Spec.PartitionGenerator) > 0 {
 		args = append(args, "--pg")
 		args = append(args, tlpStress.Spec.PartitionGenerator)
+	}
+
+	// TODO Need to make sure only one replication strategy is specified
+	if tlpStress.Spec.Replication.SimpleStrategy != nil {
+		replicationFactor := strconv.FormatInt(int64(*tlpStress.Spec.Replication.SimpleStrategy), 10)
+		replication := fmt.Sprintf(`{'class': 'SimpleStrategy', 'replication_factor': %s}`, replicationFactor)
+		args = append(args, "--replication")
+		args = append(args, replication)
+	} else if tlpStress.Spec.Replication.NetworkTopologyStrategy != nil {
+		var sb strings.Builder
+		dcs := make([]string, 0)
+		for k, v := range *tlpStress.Spec.Replication.NetworkTopologyStrategy {
+			sb.WriteString("'")
+			sb.WriteString(k)
+			sb.WriteString("': ")
+			sb.WriteString(strconv.FormatInt(int64(v), 10))
+			dcs = append(dcs, sb.String())
+			sb.Reset()
+		}
+		replication := fmt.Sprintf("{'class': 'NetworkTopologyStrategy', %s}", strings.Join(dcs, ", "))
+		args = append(args, "--replication")
+		args = append(args, replication)
 	}
 
 	return &args

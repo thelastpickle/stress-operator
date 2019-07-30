@@ -36,11 +36,19 @@ type TLPStressSpec struct {
 
 	PartitionGenerator string `json:"partitionGenerator,omitempty"`
 
+	Replication ReplicationConfig `json:"replication,omitempty"`
+
 	CassandraService string `json:"cassandraService"`
 
 	Image string `json:"image"`
 
 	ImagePullPolicy v1.PullPolicy `json:"imagePullPolicy"`
+}
+
+type ReplicationConfig struct {
+	SimpleStrategy *int32 `json:"simpleStrategy,omitempty"`
+
+	NetworkTopologyStrategy *map[string]int32 `json:"networkTopologyStrategy,omitempty"`
 }
 
 // TLPStressStatus defines the observed state of TLPStress

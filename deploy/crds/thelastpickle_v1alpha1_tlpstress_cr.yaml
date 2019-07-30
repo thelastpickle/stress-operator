@@ -9,6 +9,11 @@ spec:
   readRate: "0.3"
   populate: 30000000
   concurrency: 300
+  replication:
+    #simpleStrategy: 4
+    networkTopologyStrategy:
+      dc1: 3
+      dc2: 2
   partitionGenerator: sequence
   cassandraService: cassandra-demo
   image: jsanda/tlp-stress:demo
