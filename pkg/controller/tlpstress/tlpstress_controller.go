@@ -153,7 +153,7 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TL
 	job := &v1batch.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind: "Job",
-			APIVersion: "v1",
+			APIVersion: "batch/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: tlpStress.Name,

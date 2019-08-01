@@ -11,6 +11,7 @@ import (
 	"testing"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/api/core/v1"
+	v1batch "k8s.io/api/batch/v1"
 )
 
 func TestTLPStressControllerDefaultsSet(t *testing.T) {
@@ -138,6 +139,53 @@ func TestTLPStressControllerDefaultsNotSet(t *testing.T) {
 	}
 }
 
-//func TestTLPStressControllerJobCreate(t *testing.T) {
-//
-//}
+func TestTLPStressControllerJobCreate(t *testing.T) {
+	var (
+		name = "tlpstress-controller"
+		namespace = "tlpstress"
+	)
+
+	tlpStress := &v1alpha1.TLPStress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+			Namespace: namespace,
+		},
+		Spec: v1alpha1.TLPStressSpec{
+			CassandraService: "cassandra-service",
+			Workload: "KeyValue",
+			Image: "jsanda/tlp-stress:demo",
+			ImagePullPolicy: corev1.PullAlways,
+		},
+	}
+
+	objs := []runtime.Object{ tlpStress }
+
+	s := scheme.Scheme
+	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, tlpStress)
+
+	cl := fake.NewFakeClient(objs...)
+
+	r := &ReconcileTLPStress{client: cl, scheme: s}
+
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name: name,
+			Namespace: namespace,
+		},
+	}
+
+	res, err := r.Reconcile(req)
+	if err != nil {
+		t.Fatalf("reconcile: (%v)", err)
+	}
+	// Check the result of reconciliation to make sure it has the desired state.
+	if !res.Requeue {
+		t.Error("reconcile did not requeue request as expected")
+	}
+
+	job := &v1batch.Job{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, job)
+	if err != nil {
+		t.Fatalf("get job: (%v)", err)
+	}
+}
