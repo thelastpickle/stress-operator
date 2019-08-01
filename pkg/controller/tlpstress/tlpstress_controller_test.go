@@ -1,6 +1,7 @@
 package tlpstress
 
 import (
+	"context"
 	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -9,9 +10,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"testing"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
-func TestTLPStressControllerJobCreate(t *testing.T) {
+func TestTLPStressControllerDefaultsSet(t *testing.T) {
 	var (
 		name = "tlpstress-controller"
 		namespace = "tlpstress"
@@ -50,5 +52,24 @@ func TestTLPStressControllerJobCreate(t *testing.T) {
 	// Check the result of reconciliation to make sure it has the desired state.
 	if !res.Requeue {
 		t.Error("reconcile did not requeue request as expected")
+	}
+
+	// make sure defaults are assigned
+	instance := &v1alpha1.TLPStress{}
+	err = r.client.Get(context.TODO(), req.NamespacedName, instance)
+	if err != nil {
+		t.Fatalf("get TLPStress: (%v)", err)
+	}
+
+	if instance.Spec.Workload != "KeyValue" {
+		t.Errorf("Workload (%s) is not the expected value (%s)", instance.Spec.Workload, "KeyValue")
+	}
+
+	if instance.Spec.Image != "jsanda/tlp-stress:demo" {
+		t.Errorf("Image (%s) is not the expected value (%s)", instance.Spec.Image, "jsanda/tlp-stress:demo")
+	}
+
+	if instance.Spec.ImagePullPolicy != corev1.PullAlways {
+		t.Errorf("ImagePullPolicy (%s) is not the expected value (%s)", instance.Spec.ImagePullPolicy, corev1.PullAlways)
 	}
 }

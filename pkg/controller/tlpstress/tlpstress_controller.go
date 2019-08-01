@@ -110,6 +110,9 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	tlpStress := instance.DeepCopy()
 
 	if checkDefaults(tlpStress) {
+		if err = r.client.Status().Update(context.TODO(), tlpStress); err != nil {
+			return reconcile.Result{}, err
+		}
 		return reconcile.Result{Requeue: true}, nil
 	}
 
