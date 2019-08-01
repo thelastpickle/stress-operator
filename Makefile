@@ -26,3 +26,8 @@ image/build: code/compile
 .PHONY: image/push
 image/push:
 	docker push ${REG}/${ORG}/${PROJECT}:${TAG}
+
+.PHONY: test/unit
+test/unit:
+	@echo Running tests:
+	go test -v -race -cover ./pkg/...
