@@ -121,7 +121,7 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, job)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new newJob
-		newJob := r.jobForTLPStress(tlpStress, reqLogger)
+		newJob := r.jobForTLPStress(tlpStress, request.Namespace, reqLogger)
 		reqLogger.Info("Creating a new Job.", "Job.Namespace", newJob.Namespace, "Job.Name", newJob.Name)
 		err = r.client.Create(context.TODO(), newJob)
 		if err != nil {
@@ -147,7 +147,9 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TLPStress, log logr.Logger) *v1batch.Job {
+func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TLPStress, namespace string,
+	log logr.Logger) *v1batch.Job {
+
 	ls := labelsForTLPStress(tlpStress.Name)
 
 	job := &v1batch.Job{
@@ -169,7 +171,7 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TL
 							Name: tlpStress.Name,
 							Image: tlpStress.Spec.Image,
 							ImagePullPolicy: tlpStress.Spec.ImagePullPolicy,
-							Args: *buildCmdLineArgs(tlpStress, log),
+							Args: *buildCmdLineArgs(tlpStress, namespace, log),
 						},
 					},
 				},
@@ -185,7 +187,7 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TL
 	return job
 }
 
-func buildCmdLineArgs(tlpStress  *thelastpicklev1alpha1.TLPStress, log logr.Logger) *[]string {
+func buildCmdLineArgs(tlpStress *thelastpicklev1alpha1.TLPStress, namespace string, log logr.Logger) *[]string {
 	args := make([]string, 0)
 
 	args = append(args, "run", tlpStress.Spec.Workload)
@@ -256,9 +258,22 @@ func buildCmdLineArgs(tlpStress  *thelastpicklev1alpha1.TLPStress, log logr.Logg
 		args = append(args, replication)
 	}
 
-	// TODO add validation check
+	// TODO add validation check that either CassandraSerice or CassandraCluster is defined in the spec
+	svc := ""
+	if tlpStress.Spec.CassandraCluster != nil {
+		// The headless service for a CassandraCluster has the same name as the cluster
+		if tlpStress.Spec.CassandraCluster.Namespace == "" || tlpStress.Spec.CassandraCluster.Namespace == namespace {
+			svc = tlpStress.Spec.CassandraCluster.Name
+		} else {
+			// CassandraCluster service is in a different namespace
+			svc = fmt.Sprintf("%s.%s.svc.cluster.local", tlpStress.Spec.CassandraCluster.Name,
+				tlpStress.Spec.CassandraCluster.Name)
+		}
+	} else {
+		svc = tlpStress.Spec.CassandraService
+	}
 	args = append(args, "--host")
-	args = append(args, tlpStress.Spec.CassandraService)
+	args = append(args, svc)
 
 	return &args
 }

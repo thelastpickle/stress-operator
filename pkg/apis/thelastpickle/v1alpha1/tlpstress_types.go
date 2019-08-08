@@ -40,6 +40,8 @@ type TLPStressSpec struct {
 
 	CassandraService string `json:"cassandraService"`
 
+	CassandraCluster *CassandraCluster `json:"cassandraCluster,omitempty"`
+
 	Image string `json:"image"`
 
 	ImagePullPolicy v1.PullPolicy `json:"imagePullPolicy"`
@@ -81,6 +83,11 @@ type TLPStressList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []TLPStress `json:"items"`
+}
+
+type CassandraCluster struct {
+	Namespace string
+	Name      string
 }
 
 func init() {
