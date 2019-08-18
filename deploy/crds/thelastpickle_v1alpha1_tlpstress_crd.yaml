@@ -28,8 +28,87 @@ spec:
         metadata:
           type: object
         spec:
+          properties:
+            cassandraCluster:
+              type: object
+            cassandraService:
+              type: string
+            concurrency:
+              format: int32
+              minimum: 1
+              type: integer
+            consistencyLevel:
+              enum:
+              - ANY
+              - ONE
+              - TWO
+              - THREE
+              - QUORUM
+              - ALL
+              - LOCAL_QUORUM
+              - EACH_QUORUM
+              - SERIAL
+              - LOCAL_SERIAL
+              - LOCAL_ONE
+              type: string
+            dropKeyspace:
+              type: boolean
+            duration:
+              pattern: (\d+)([BbMmKk])?
+              type: string
+            image:
+              type: string
+            imagePullPolicy:
+              type: string
+            iterations:
+              format: int64
+              minimum: 0
+              type: integer
+            partitionGenerator:
+              type: string
+            partitions:
+              format: int64
+              minimum: 1
+              type: integer
+            populate:
+              format: int64
+              minimum: 0
+              type: integer
+            readRate:
+              type: string
+            replication:
+              properties:
+                networkTopologyStrategy:
+                  additionalProperties:
+                    format: int32
+                    type: integer
+                  type: object
+                simpleStrategy:
+                  format: int32
+                  type: integer
+              type: object
+            workload:
+              enum:
+              - KeyValue
+              - BasisTimeSeries
+              - CountersWide
+              - LWT
+              - Locking
+              - Maps
+              - MaterializedViews
+              - RandomPartitionAccess
+              - UdtTimeSeries
+              type: string
+          required:
+          - workload
+          - cassandraService
+          - image
+          - imagePullPolicy
           type: object
         status:
+          properties:
+            jobStatus:
+              type: object
           type: object
   version: v1alpha1
   versions:

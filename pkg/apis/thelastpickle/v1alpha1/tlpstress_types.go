@@ -16,22 +16,29 @@ type TLPStressSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
+	// +kubebuilder:validation:Enum=KeyValue,BasisTimeSeries,CountersWide,LWT,Locking,Maps,MaterializedViews,RandomPartitionAccess,UdtTimeSeries
 	Workload string `json:"workload"`
 
+	// +kubebuilder:validation:Enum=ANY,ONE,TWO,THREE,QUORUM,ALL,LOCAL_QUORUM,EACH_QUORUM,SERIAL,LOCAL_SERIAL,LOCAL_ONE
 	ConsistencyLevel string `json:"consistencyLevel,omitempty"`
 
+	// +kubebuilder:validation:Minimum=1
 	Partitions *int64 `json:"partitions,omitempty"`
 
+	// +kubebuilder:validation:Pattern=(\d+)([BbMmKk])?
 	Duration string `json:"duration,omitempty"`
 
 	DropKeyspace *bool `json:"dropKeyspace,omitempty"`
 
+	// +kubebuilder:validation:Minimum=0
 	Iterations *int64 `json:"iterations,omitempty"`
 
 	ReadRate  string `json:"readRate,omitempty"`
 
+	// +kubebuilder:validation:Minimum=0
 	Populate *int64 `json:"populate,omitempty"`
 
+	// +kubebuilder:validation:Minimum=1
 	Concurrency *int32 `json:"concurrency,omitempty"`
 
 	PartitionGenerator string `json:"partitionGenerator,omitempty"`
@@ -60,7 +67,7 @@ type TLPStressStatus struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	JobStatus  *batchv1.JobStatus `joson:jobStatus,omitempty`
+	JobStatus  *batchv1.JobStatus `json:"jobStatus,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
