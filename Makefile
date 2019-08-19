@@ -7,27 +7,27 @@ TAG?=latest
 PKG=github.com/jsanda/tlp-stress-operator
 COMPILE_TARGET=./tmp/_output/bin/$(PROJECT)
 
-.PHONY: code/run
+.PHONY: run
 code/run:
 	@operator-sdk up local --namespace=${NAMESPACE}
 
-.PHONY: code/compile
-code/compile:
+.PHONY: build
+build:
 	@GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -o=$(COMPILE_TARGET) ./cmd/manager
 
-.PHONY: code/gen
-code/gen:
+.PHONY: code-gen
+code-gen:
 	operator-sdk generate k8s
 
-.PHONY: image/build
-image/build: code/compile
+.PHONY: build-image
+build-image:
 	@operator-sdk build ${REG}/${ORG}/${PROJECT}:${TAG}
 
-.PHONY: image/push
-image/push:
+.PHONY: push-image
+push-image:
 	docker push ${REG}/${ORG}/${PROJECT}:${TAG}
 
-.PHONY: test/unit
-test/unit:
+.PHONY: unit-test
+unit-test:
 	@echo Running tests:
 	go test -v -race -cover ./pkg/...
