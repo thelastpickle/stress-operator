@@ -11,5 +11,34 @@ The operator runs tlp-stress as a [Kubernetes Job](https://kubernetes.io/docs/co
 You need to have the [Operator SDK](https://github.com/operator-framework/operator-sdk) installed in order to build this project.
 
 ## Usage
+Currently you need to clone the git repo in order to deploy the operator.
+
+**Clone the repo**
+
+```
+$ git clone https://github.com/jsanda/tlp-stress-operator
+$ cd tlp-stress-operator
+```
+
+**Deploy resources**
+
+```
+$ kubectl apply -f deploy/crds/thelastpickle_v1alpha1_tlpstress_crd.yaml
+customresourcedefinition.apiextensions.k8s.io/tlpstresses.thelastpickle.com created
+
+$ kubectl apply -f deploy/
+deployment.apps/tlp-stress-operator created
+role.rbac.authorization.k8s.io/tlp-stress-operator created
+rolebinding.rbac.authorization.k8s.io/tlp-stress-operator created
+serviceaccount/tlp-stress-operator created
+```
+
+**Verify that the operator is running**
+
+```
+$ kubectl get pods -l name=tlp-stress-operator
+NAME                                   READY   STATUS    RESTARTS   AGE
+tlp-stress-operator-65fbbbd9f8-9tbcl   1/1     Running   0          30s
+```
 
 ## TLPStress Custom Resource 
