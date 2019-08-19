@@ -123,22 +123,17 @@ func (in *TLPStressSpec) DeepCopyInto(out *TLPStressSpec) {
 	*out = *in
 	if in.Partitions != nil {
 		in, out := &in.Partitions, &out.Partitions
-		*out = new(int64)
-		**out = **in
-	}
-	if in.DropKeyspace != nil {
-		in, out := &in.DropKeyspace, &out.DropKeyspace
-		*out = new(bool)
+		*out = new(string)
 		**out = **in
 	}
 	if in.Iterations != nil {
 		in, out := &in.Iterations, &out.Iterations
-		*out = new(int64)
+		*out = new(string)
 		**out = **in
 	}
 	if in.Populate != nil {
 		in, out := &in.Populate, &out.Populate
-		*out = new(int64)
+		*out = new(string)
 		**out = **in
 	}
 	if in.Concurrency != nil {

@@ -5,7 +5,7 @@ metadata:
 spec:
   workload: KeyValue
   partitions: 50000000
-  duration: 5m
+  duration: "5x5"
   readRate: "0.3"
   populate: 30000000
   concurrency: 300

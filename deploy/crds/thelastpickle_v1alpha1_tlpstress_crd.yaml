@@ -54,7 +54,8 @@ spec:
             dropKeyspace:
               type: boolean
             duration:
-              pattern: (\d+)([BbMmKk])?
+              pattern: (\d+)([BbMmKk]?)
+#              pattern: [0-9]+[BbMmKk]?
               type: string
             image:
               type: string

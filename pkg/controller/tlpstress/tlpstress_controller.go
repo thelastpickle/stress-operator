@@ -199,7 +199,7 @@ func buildCmdLineArgs(tlpStress *thelastpicklev1alpha1.TLPStress, namespace stri
 
 	if tlpStress.Spec.Partitions != nil {
 		args = append(args, "-p")
-		args = append(args, strconv.FormatInt(*tlpStress.Spec.Partitions, 10))
+		args = append(args, *tlpStress.Spec.Partitions)
 	}
 
 	if len(tlpStress.Spec.Duration) > 0 {
@@ -207,13 +207,13 @@ func buildCmdLineArgs(tlpStress *thelastpicklev1alpha1.TLPStress, namespace stri
 		args = append(args, tlpStress.Spec.Duration)
 	}
 
-	if tlpStress.Spec.DropKeyspace != nil && *tlpStress.Spec.DropKeyspace{
+	if tlpStress.Spec.DropKeyspace {
 		args = append(args, "--drop")
 	}
 
-	if tlpStress.Spec.Iterations != nil && *tlpStress.Spec.Iterations != 0 {
+	if tlpStress.Spec.Iterations != nil {
 		args = append(args, "-n")
-		args = append(args, strconv.FormatInt(*tlpStress.Spec.Iterations, 10))
+		args = append(args, *tlpStress.Spec.Iterations)
 	}
 
 	if len(tlpStress.Spec.ReadRate) > 0 {
@@ -221,9 +221,9 @@ func buildCmdLineArgs(tlpStress *thelastpicklev1alpha1.TLPStress, namespace stri
 		args = append(args, tlpStress.Spec.ReadRate)
 	}
 
-	if tlpStress.Spec.Populate != nil && *tlpStress.Spec.Populate != 0 {
+	if tlpStress.Spec.Populate != nil {
 		args = append(args, "--populate")
-		args = append(args, strconv.FormatInt(*tlpStress.Spec.Populate, 10))
+		args = append(args, *tlpStress.Spec.Populate)
 	}
 
 	if tlpStress.Spec.Concurrency != nil && *tlpStress.Spec.Concurrency != 100 {
@@ -234,6 +234,11 @@ func buildCmdLineArgs(tlpStress *thelastpicklev1alpha1.TLPStress, namespace stri
 	if len(tlpStress.Spec.PartitionGenerator) > 0 {
 		args = append(args, "--pg")
 		args = append(args, tlpStress.Spec.PartitionGenerator)
+	}
+
+	if len(tlpStress.Spec.DataCenter) > 0 {
+		args = append(args, "--dc")
+		args = append(args, tlpStress.Spec.DataCenter)
 	}
 
 	// TODO Need to make sure only one replication strategy is specified

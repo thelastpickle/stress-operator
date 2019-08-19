@@ -22,23 +22,23 @@ type TLPStressSpec struct {
 	// +kubebuilder:validation:Enum=ANY,ONE,TWO,THREE,QUORUM,ALL,LOCAL_QUORUM,EACH_QUORUM,SERIAL,LOCAL_SERIAL,LOCAL_ONE
 	ConsistencyLevel string `json:"consistencyLevel,omitempty"`
 
-	// +kubebuilder:validation:Minimum=1
-	Partitions *int64 `json:"partitions,omitempty"`
+	// +kubebuilder:validation:Pattern=^(\d+)([BbMmKk]?$)
+	Partitions *string `json:"partitions,omitempty"`
 
-	// +kubebuilder:validation:Pattern=(\d+)([BbMmKk])?
+	DataCenter string `json:"dataCenter,omitempty"`
+
 	Duration string `json:"duration,omitempty"`
 
-	DropKeyspace *bool `json:"dropKeyspace,omitempty"`
+	DropKeyspace bool `json:"dropKeyspace,omitempty"`
 
-	// +kubebuilder:validation:Minimum=0
-	Iterations *int64 `json:"iterations,omitempty"`
+	// +kubebuilder:validation:Pattern=^(\d+)([BbMmKk]?$)
+	Iterations *string `json:"iterations,omitempty"`
 
-	ReadRate  string `json:"readRate,omitempty"`
+	ReadRate string `json:"readRate,omitempty"`
 
-	// +kubebuilder:validation:Minimum=0
-	Populate *int64 `json:"populate,omitempty"`
+	// +kubebuilder:validation:Pattern=^(\d+)([BbMmKk]?$)
+	Populate *string `json:"populate,omitempty"`
 
-	// +kubebuilder:validation:Minimum=1
 	Concurrency *int32 `json:"concurrency,omitempty"`
 
 	PartitionGenerator string `json:"partitionGenerator,omitempty"`
