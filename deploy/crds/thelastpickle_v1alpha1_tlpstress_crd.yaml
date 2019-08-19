@@ -35,7 +35,6 @@ spec:
               type: string
             concurrency:
               format: int32
-              minimum: 1
               type: integer
             consistencyLevel:
               enum:
@@ -51,30 +50,27 @@ spec:
               - LOCAL_SERIAL
               - LOCAL_ONE
               type: string
+            dataCenter:
+              type: string
             dropKeyspace:
               type: boolean
             duration:
-              pattern: (\d+)([BbMmKk]?)
-#              pattern: [0-9]+[BbMmKk]?
               type: string
             image:
               type: string
             imagePullPolicy:
               type: string
             iterations:
-              format: int64
-              minimum: 0
-              type: integer
+              pattern: ^(\d+)([BbMmKk]?$)
+              type: string
             partitionGenerator:
               type: string
             partitions:
-              format: int64
-              minimum: 1
-              type: integer
+              pattern: ^(\d+)([BbMmKk]?$)
+              type: string
             populate:
-              format: int64
-              minimum: 0
-              type: integer
+              pattern: ^(\d+)([BbMmKk]?$)
+              type: string
             readRate:
               type: string
             replication:

@@ -80,8 +80,14 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref common.ReferenceCa
 					},
 					"partitions": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"integer"},
-							Format: "int64",
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"dataCenter": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 					"duration": {
@@ -98,8 +104,8 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref common.ReferenceCa
 					},
 					"iterations": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"integer"},
-							Format: "int64",
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 					"readRate": {
@@ -110,8 +116,8 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref common.ReferenceCa
 					},
 					"populate": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"integer"},
-							Format: "int64",
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 					"concurrency": {

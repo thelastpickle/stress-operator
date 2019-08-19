@@ -6,8 +6,35 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+type Workload string
+
+const (
+	KeyValueWorkload             Workload = "KeyValue"
+	BasicTimeSeriesWorkload      Workload = "BasicTimeSeries"
+	CountersWideWorkload         Workload = "CountersWide"
+	LWTWorkload                  Workload = "LWT"
+	LockingWorkload              Workload = "Locking"
+	MapsWorkload                 Workload = "Maps"
+	MaterializedViewsWorkload    Workload = "MaterializedViews"
+	RandomParitionAccessWorkload Workload = "RandomPartitionAccess"
+	UdtTimeSeriesWorkload        Workload = "UdtTimeSeries"
+)
+
+type ConsistencyLevel string
+
+const (
+	CL_ANY          ConsistencyLevel = "ANY"
+	CL_ONE          ConsistencyLevel = "ONE"
+	CL_TWO          ConsistencyLevel = "TWO"
+	CL_THREE        ConsistencyLevel = "THREE"
+	CL_QUORUM       ConsistencyLevel = "QUORUM"
+	CL_ALL          ConsistencyLevel = "ALL"
+	CL_LOCAL_QUORUM ConsistencyLevel = "LOCAL_QUORUM"
+	CL_EACH_QUORUM  ConsistencyLevel = "EACH_QUORUM"
+	CL_LOCAL_ONE    ConsistencyLevel = "LOCAL_ONE"
+	CL_SERIAL       ConsistencyLevel = "SERIAL"
+	CL_LOCAL_SERIAL ConsistencyLevel = "LOCAL_SERIAL"
+)
 
 // TLPStressSpec defines the desired state of TLPStress
 // +k8s:openapi-gen=true
@@ -17,10 +44,10 @@ type TLPStressSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// +kubebuilder:validation:Enum=KeyValue,BasisTimeSeries,CountersWide,LWT,Locking,Maps,MaterializedViews,RandomPartitionAccess,UdtTimeSeries
-	Workload string `json:"workload"`
+	Workload Workload `json:"workload"`
 
 	// +kubebuilder:validation:Enum=ANY,ONE,TWO,THREE,QUORUM,ALL,LOCAL_QUORUM,EACH_QUORUM,SERIAL,LOCAL_SERIAL,LOCAL_ONE
-	ConsistencyLevel string `json:"consistencyLevel,omitempty"`
+	ConsistencyLevel ConsistencyLevel `json:"consistencyLevel,omitempty"`
 
 	// +kubebuilder:validation:Pattern=^(\d+)([BbMmKk]?$)
 	Partitions *string `json:"partitions,omitempty"`

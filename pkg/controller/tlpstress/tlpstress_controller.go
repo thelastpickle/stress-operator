@@ -190,11 +190,11 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TL
 func buildCmdLineArgs(tlpStress *thelastpicklev1alpha1.TLPStress, namespace string, log logr.Logger) *[]string {
 	args := make([]string, 0)
 
-	args = append(args, "run", tlpStress.Spec.Workload)
+	args = append(args, "run", string(tlpStress.Spec.Workload))
 
 	if len(tlpStress.Spec.ConsistencyLevel) > 0 {
 		args = append(args, "--cl")
-		args = append(args, tlpStress.Spec.ConsistencyLevel)
+		args = append(args, string(tlpStress.Spec.ConsistencyLevel))
 	}
 
 	if tlpStress.Spec.Partitions != nil {

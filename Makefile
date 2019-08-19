@@ -19,6 +19,10 @@ build:
 code-gen:
 	operator-sdk generate k8s
 
+.PHONE: openapi-gen
+openapi-gen:
+	operator-sdk generate openapi
+
 .PHONY: build-image
 build-image:
 	@operator-sdk build ${REG}/${ORG}/${PROJECT}:${TAG}
