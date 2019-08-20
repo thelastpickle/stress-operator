@@ -288,7 +288,7 @@ func checkDefaults(tlpStress *thelastpicklev1alpha1.TLPStress) bool {
 	updated := false
 
 	if len(tlpStress.Spec.Image) == 0 {
-		tlpStress.Spec.Image = "jsanda/tlp-stress:demo"
+		tlpStress.Spec.Image = "jsanda/tlp-stress:2.0.0"
 		updated = true
 	}
 
