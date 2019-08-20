@@ -64,16 +64,16 @@ func TestTLPStressControllerDefaultsSet(t *testing.T) {
 		t.Fatalf("get TLPStress: (%v)", err)
 	}
 
-	if instance.Spec.StressConfig.Workload != "KeyValue" {
-		t.Errorf("Workload (%s) is not the expected value (%s)", instance.Spec.StressConfig.Workload, "KeyValue")
+	if instance.Spec.StressConfig.Workload != DefaultWorkload {
+		t.Errorf("Workload (%s) is not the expected value (%s)", instance.Spec.StressConfig.Workload, DefaultWorkload)
 	}
 
-	if instance.Spec.Image != "jsanda/tlp-stress:demo" {
-		t.Errorf("Image (%s) is not the expected value (%s)", instance.Spec.Image, "jsanda/tlp-stress:demo")
+	if instance.Spec.Image != DefaultImage {
+		t.Errorf("Image (%s) is not the expected value (%s)", instance.Spec.Image, DefaultImage)
 	}
 
-	if instance.Spec.ImagePullPolicy != corev1.PullAlways {
-		t.Errorf("ImagePullPolicy (%s) is not the expected value (%s)", instance.Spec.ImagePullPolicy, corev1.PullAlways)
+	if instance.Spec.ImagePullPolicy != DefaultImagePullPolicy {
+		t.Errorf("ImagePullPolicy (%s) is not the expected value (%s)", instance.Spec.ImagePullPolicy, DefaultImagePullPolicy)
 	}
 }
 
@@ -279,3 +279,4 @@ func TestTLPStressControllerSetStatus(t *testing.T) {
 		t.Errorf("actual.Status.JobStatus (%v) does not match the expected value (%+v)", actual.Status.JobStatus, job.Status)
 	}
 }
+

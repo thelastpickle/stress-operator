@@ -27,6 +27,12 @@ import (
 
 var log = logf.Log.WithName("controller_tlpstress")
 
+const (
+	DefaultImage           = "jsanda/tlp-stress:2.0.0"
+	DefaultImagePullPolicy = corev1.PullAlways
+	DefaultWorkload        = thelastpicklev1alpha1.KeyValueWorkload
+)
+
 /**
 * USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
 * business logic.  Delete these comments after modifying this file.*
@@ -290,17 +296,17 @@ func checkDefaults(tlpStress *thelastpicklev1alpha1.TLPStress) bool {
 	updated := false
 
 	if len(tlpStress.Spec.Image) == 0 {
-		tlpStress.Spec.Image = "jsanda/tlp-stress:2.0.0"
+		tlpStress.Spec.Image = DefaultImage
 		updated = true
 	}
 
 	if len(tlpStress.Spec.ImagePullPolicy) == 0 {
-		tlpStress.Spec.ImagePullPolicy = corev1.PullAlways
+		tlpStress.Spec.ImagePullPolicy = DefaultImagePullPolicy
 		updated = true
 	}
 
 	if len(tlpStress.Spec.StressConfig.Workload) == 0 {
-		tlpStress.Spec.StressConfig.Workload = "KeyValue"
+		tlpStress.Spec.StressConfig.Workload = DefaultWorkload
 		updated = true
 	}
 
