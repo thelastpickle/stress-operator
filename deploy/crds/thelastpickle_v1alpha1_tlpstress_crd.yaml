@@ -30,6 +30,11 @@ spec:
         spec:
           properties:
             cassandraCluster:
+              properties:
+                name:
+                  type: string
+                namespace:
+                  type: string
               type: object
             cassandraService:
               type: string
@@ -116,7 +121,6 @@ spec:
                   type: string
               type: object
           required:
-          - cassandraService
           - image
           - imagePullPolicy
           type: object

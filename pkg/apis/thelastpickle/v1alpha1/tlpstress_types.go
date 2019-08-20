@@ -90,7 +90,7 @@ type TLPStressSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	CassandraService string `json:"cassandraService"`
+	CassandraService string `json:"cassandraService,omitempty"`
 
 	CassandraCluster *CassandraCluster `json:"cassandraCluster,omitempty"`
 
@@ -142,8 +142,8 @@ type TLPStressList struct {
 }
 
 type CassandraCluster struct {
-	Namespace string
-	Name      string
+	Namespace string `json:"namespace,omitempty"`
+	Name      string `json:"name,omitempty"`
 }
 
 func init() {

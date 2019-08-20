@@ -100,7 +100,7 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref common.ReferenceCa
 						},
 					},
 				},
-				Required: []string{"cassandraService", "image", "imagePullPolicy"},
+				Required: []string{"image", "imagePullPolicy"},
 			},
 		},
 		Dependencies: []string{
