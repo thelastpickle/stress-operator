@@ -163,6 +163,8 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TL
 			Labels: ls,
 		},
 		Spec: v1batch.JobSpec{
+			BackoffLimit: tlpStress.Spec.JobConfig.BackoffLimit,
+			Parallelism: tlpStress.Spec.JobConfig.Parallelism,
 			Template: corev1.PodTemplateSpec{
 				Spec: corev1.PodSpec{
 					RestartPolicy: corev1.RestartPolicyOnFailure,
