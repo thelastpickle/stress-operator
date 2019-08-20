@@ -1,0 +1,21 @@
+apiVersion: thelastpickle.com/v1alpha1
+kind: TLPStress
+metadata:
+  name: stress-demo
+spec:
+  stressConfig:
+    workload: KeyValue
+    partitions: 50000000
+    duration: 5m
+    readRate: "0.3"
+    populate: 30000000
+    replication:
+      networkTopologyStrategy:
+        dc1: 2
+    partitionGenerator: sequence
+  jobConfig:
+    parallelism: 2
+  cassandraCluster: 
+    name: cassandra-demo
+  image: jsanda/tlp-stress:2.0.0
+  imagePullPolicy: IfNotPresent
