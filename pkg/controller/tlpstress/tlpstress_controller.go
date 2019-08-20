@@ -189,68 +189,69 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TL
 
 func buildCmdLineArgs(tlpStress *thelastpicklev1alpha1.TLPStress, namespace string, log logr.Logger) *[]string {
 	args := make([]string, 0)
+	cfg := tlpStress.Spec.StressConfig
 
-	args = append(args, "run", string(tlpStress.Spec.Workload))
+	args = append(args, "run", string(cfg.Workload))
 
-	if len(tlpStress.Spec.ConsistencyLevel) > 0 {
+	if len(cfg.ConsistencyLevel) > 0 {
 		args = append(args, "--cl")
-		args = append(args, string(tlpStress.Spec.ConsistencyLevel))
+		args = append(args, string(cfg.ConsistencyLevel))
 	}
 
-	if tlpStress.Spec.Partitions != nil {
+	if cfg.Partitions != nil {
 		args = append(args, "-p")
-		args = append(args, *tlpStress.Spec.Partitions)
+		args = append(args, *cfg.Partitions)
 	}
 
-	if len(tlpStress.Spec.Duration) > 0 {
+	if len(cfg.Duration) > 0 {
 		args = append(args, "-d")
-		args = append(args, tlpStress.Spec.Duration)
+		args = append(args, cfg.Duration)
 	}
 
-	if tlpStress.Spec.DropKeyspace {
+	if cfg.DropKeyspace {
 		args = append(args, "--drop")
 	}
 
-	if tlpStress.Spec.Iterations != nil {
+	if cfg.Iterations != nil {
 		args = append(args, "-n")
-		args = append(args, *tlpStress.Spec.Iterations)
+		args = append(args, *cfg.Iterations)
 	}
 
-	if len(tlpStress.Spec.ReadRate) > 0 {
+	if len(cfg.ReadRate) > 0 {
 		args = append(args, "-r")
-		args = append(args, tlpStress.Spec.ReadRate)
+		args = append(args, cfg.ReadRate)
 	}
 
-	if tlpStress.Spec.Populate != nil {
+	if cfg.Populate != nil {
 		args = append(args, "--populate")
-		args = append(args, *tlpStress.Spec.Populate)
+		args = append(args, *cfg.Populate)
 	}
 
-	if tlpStress.Spec.Concurrency != nil && *tlpStress.Spec.Concurrency != 100 {
+	if cfg.Concurrency != nil && *cfg.Concurrency != 100 {
 		args = append(args, "-c")
-		args = append(args, strconv.FormatInt(int64(*tlpStress.Spec.Concurrency), 10))
+		args = append(args, strconv.FormatInt(int64(*cfg.Concurrency), 10))
 	}
 
-	if len(tlpStress.Spec.PartitionGenerator) > 0 {
+	if len(cfg.PartitionGenerator) > 0 {
 		args = append(args, "--pg")
-		args = append(args, tlpStress.Spec.PartitionGenerator)
+		args = append(args, cfg.PartitionGenerator)
 	}
 
-	if len(tlpStress.Spec.DataCenter) > 0 {
+	if len(cfg.DataCenter) > 0 {
 		args = append(args, "--dc")
-		args = append(args, tlpStress.Spec.DataCenter)
+		args = append(args, cfg.DataCenter)
 	}
 
 	// TODO Need to make sure only one replication strategy is specified
-	if tlpStress.Spec.Replication.SimpleStrategy != nil {
-		replicationFactor := strconv.FormatInt(int64(*tlpStress.Spec.Replication.SimpleStrategy), 10)
+	if cfg.Replication.SimpleStrategy != nil {
+		replicationFactor := strconv.FormatInt(int64(*cfg.Replication.SimpleStrategy), 10)
 		replication := fmt.Sprintf(`{'class': 'SimpleStrategy', 'replication_factor': %s}`, replicationFactor)
 		args = append(args, "--replication")
 		args = append(args, replication)
-	} else if tlpStress.Spec.Replication.NetworkTopologyStrategy != nil {
+	} else if cfg.Replication.NetworkTopologyStrategy != nil {
 		var sb strings.Builder
 		dcs := make([]string, 0)
-		for k, v := range *tlpStress.Spec.Replication.NetworkTopologyStrategy {
+		for k, v := range *cfg.Replication.NetworkTopologyStrategy {
 			sb.WriteString("'")
 			sb.WriteString(k)
 			sb.WriteString("': ")
@@ -296,8 +297,8 @@ func checkDefaults(tlpStress *thelastpicklev1alpha1.TLPStress) bool {
 		updated = true
 	}
 
-	if len(tlpStress.Spec.Workload) == 0 {
-		tlpStress.Spec.Workload = "KeyValue"
+	if len(tlpStress.Spec.StressConfig.Workload) == 0 {
+		tlpStress.Spec.StressConfig.Workload = "KeyValue"
 		updated = true
 	}
 

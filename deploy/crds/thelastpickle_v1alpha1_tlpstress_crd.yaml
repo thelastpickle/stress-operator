@@ -33,71 +33,89 @@ spec:
               type: object
             cassandraService:
               type: string
-            concurrency:
-              format: int32
-              type: integer
-            consistencyLevel:
-              enum:
-              - ANY
-              - ONE
-              - TWO
-              - THREE
-              - QUORUM
-              - ALL
-              - LOCAL_QUORUM
-              - EACH_QUORUM
-              - SERIAL
-              - LOCAL_SERIAL
-              - LOCAL_ONE
-              type: string
-            dataCenter:
-              type: string
-            dropKeyspace:
-              type: boolean
-            duration:
-              type: string
             image:
               type: string
             imagePullPolicy:
               type: string
-            iterations:
-              pattern: ^(\d+)([BbMmKk]?$)
-              type: string
-            partitionGenerator:
-              type: string
-            partitions:
-              pattern: ^(\d+)([BbMmKk]?$)
-              type: string
-            populate:
-              pattern: ^(\d+)([BbMmKk]?$)
-              type: string
-            readRate:
-              type: string
-            replication:
+            jobConfig:
               properties:
-                networkTopologyStrategy:
-                  additionalProperties:
-                    format: int32
-                    type: integer
-                  type: object
-                simpleStrategy:
+                backoffLimit:
+                  description: Specifies the number of retries before marking this
+                    job failed. Defaults to 6
+                  format: int32
+                  type: integer
+                parallelism:
+                  description: 'Specifies the maximum desired number of pods the job
+                    should run at any given time. The actual number of pods running
+                    in steady state will be less than this number when ((.spec.completions
+                    - .status.successful) < .spec.parallelism), i.e. when the work
+                    left to do is less than max parallelism. More info: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/'
                   format: int32
                   type: integer
               type: object
-            workload:
-              enum:
-              - KeyValue
-              - BasisTimeSeries
-              - CountersWide
-              - LWT
-              - Locking
-              - Maps
-              - MaterializedViews
-              - RandomPartitionAccess
-              - UdtTimeSeries
-              type: string
+            stressConfig:
+              properties:
+                concurrency:
+                  format: int32
+                  type: integer
+                consistencyLevel:
+                  enum:
+                  - ANY
+                  - ONE
+                  - TWO
+                  - THREE
+                  - QUORUM
+                  - ALL
+                  - LOCAL_QUORUM
+                  - EACH_QUORUM
+                  - SERIAL
+                  - LOCAL_SERIAL
+                  - LOCAL_ONE
+                  type: string
+                dataCenter:
+                  type: string
+                dropKeyspace:
+                  type: boolean
+                duration:
+                  type: string
+                iterations:
+                  pattern: ^(\d+)([BbMmKk]?$)
+                  type: string
+                partitionGenerator:
+                  type: string
+                partitions:
+                  pattern: ^(\d+)([BbMmKk]?$)
+                  type: string
+                populate:
+                  pattern: ^(\d+)([BbMmKk]?$)
+                  type: string
+                readRate:
+                  type: string
+                replication:
+                  properties:
+                    networkTopologyStrategy:
+                      additionalProperties:
+                        format: int32
+                        type: integer
+                      type: object
+                    simpleStrategy:
+                      format: int32
+                      type: integer
+                  type: object
+                workload:
+                  enum:
+                  - KeyValue
+                  - BasisTimeSeries
+                  - CountersWide
+                  - LWT
+                  - Locking
+                  - Maps
+                  - MaterializedViews
+                  - RandomPartitionAccess
+                  - UdtTimeSeries
+                  type: string
+              type: object
           required:
-          - workload
           - cassandraService
           - image
           - imagePullPolicy

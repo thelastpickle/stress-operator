@@ -66,77 +66,6 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref common.ReferenceCa
 			SchemaProps: spec.SchemaProps{
 				Description: "TLPStressSpec defines the desired state of TLPStress",
 				Properties: map[string]spec.Schema{
-					"workload": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"consistencyLevel": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"partitions": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"dataCenter": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"duration": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"dropKeyspace": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"boolean"},
-							Format: "",
-						},
-					},
-					"iterations": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"readRate": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"populate": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"concurrency": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"integer"},
-							Format: "int32",
-						},
-					},
-					"partitionGenerator": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"replication": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.ReplicationConfig"),
-						},
-					},
 					"cassandraService": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -160,12 +89,22 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref common.ReferenceCa
 							Format: "",
 						},
 					},
+					"stressConfig": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressConfig"),
+						},
+					},
+					"jobConfig": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.JobConfig"),
+						},
+					},
 				},
-				Required: []string{"workload", "cassandraService", "image", "imagePullPolicy"},
+				Required: []string{"cassandraService", "image", "imagePullPolicy"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.CassandraCluster", "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.ReplicationConfig"},
+			"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.CassandraCluster", "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.JobConfig", "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressConfig"},
 	}
 }
 

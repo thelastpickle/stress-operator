@@ -64,8 +64,8 @@ func TestTLPStressControllerDefaultsSet(t *testing.T) {
 		t.Fatalf("get TLPStress: (%v)", err)
 	}
 
-	if instance.Spec.Workload != "KeyValue" {
-		t.Errorf("Workload (%s) is not the expected value (%s)", instance.Spec.Workload, "KeyValue")
+	if instance.Spec.StressConfig.Workload != "KeyValue" {
+		t.Errorf("Workload (%s) is not the expected value (%s)", instance.Spec.StressConfig.Workload, "KeyValue")
 	}
 
 	if instance.Spec.Image != "jsanda/tlp-stress:demo" {
@@ -90,7 +90,9 @@ func TestTLPStressControllerDefaultsNotSet(t *testing.T) {
 		},
 		Spec: v1alpha1.TLPStressSpec{
 			CassandraService: "cassandra-service",
-			Workload: "BasicTimeSeries",
+			StressConfig: v1alpha1.TLPStressConfig{
+				Workload: v1alpha1.BasicTimeSeriesWorkload,
+			},
 			Image: "jsanda/tlp-stress:test",
 			ImagePullPolicy: corev1.PullIfNotPresent,
 		},
@@ -128,8 +130,9 @@ func TestTLPStressControllerDefaultsNotSet(t *testing.T) {
 		t.Fatalf("get TLPStress: (%v)", err)
 	}
 
-	if instance.Spec.Workload != tlpStress.Spec.Workload {
-		t.Errorf("Workload (%s) is not the expected value (%s)", instance.Spec.Workload, tlpStress.Spec.Workload)
+	if instance.Spec.StressConfig.Workload != tlpStress.Spec.StressConfig.Workload {
+		t.Errorf("Workload (%s) is not the expected value (%s)", instance.Spec.StressConfig.Workload, 
+			tlpStress.Spec.StressConfig.Workload)
 	}
 
 	if instance.Spec.Image != tlpStress.Spec.Image {
@@ -154,7 +157,9 @@ func TestTLPStressControllerJobCreate(t *testing.T) {
 		},
 		Spec: v1alpha1.TLPStressSpec{
 			CassandraService: "cassandra-service",
-			Workload: "KeyValue",
+			StressConfig: v1alpha1.TLPStressConfig{
+				Workload: v1alpha1.KeyValueWorkload,
+			},
 			Image: "jsanda/tlp-stress:demo",
 			ImagePullPolicy: corev1.PullAlways,
 		},
@@ -205,7 +210,9 @@ func TestTLPStressControllerSetStatus(t *testing.T) {
 		},
 		Spec: v1alpha1.TLPStressSpec{
 			CassandraService: "cassandra-service",
-			Workload: "KeyValue",
+			StressConfig: v1alpha1.TLPStressConfig{
+				Workload: v1alpha1.KeyValueWorkload,
+			},
 			Image: "jsanda/tlp-stress:demo",
 			ImagePullPolicy: corev1.PullAlways,
 		},

@@ -36,15 +36,25 @@ const (
 	CL_LOCAL_SERIAL ConsistencyLevel = "LOCAL_SERIAL"
 )
 
-// TLPStressSpec defines the desired state of TLPStress
-// +k8s:openapi-gen=true
-type TLPStressSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+// Describes the data the the job should have
+type JobConfig struct {
+	// Specifies the number of retries before marking this job failed.
+	// Defaults to 6
+	// +optional
+	BackoffLimit *int32 `json:"backoffLimit,omitempty" protobuf:"varint,7,opt,name=backoffLimit"`
 
+	// Specifies the maximum desired number of pods the job should
+	// run at any given time. The actual number of pods running in steady state will
+	// be less than this number when ((.spec.completions - .status.successful) < .spec.parallelism),
+	// i.e. when the work left to do is less than max parallelism.
+	// More info: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/
+	// +optional
+	Parallelism *int32 `json:"parallelism,omitempty" protobuf:"varint,1,opt,name=parallelism"`
+}
+
+type TLPStressConfig struct {
 	// +kubebuilder:validation:Enum=KeyValue,BasisTimeSeries,CountersWide,LWT,Locking,Maps,MaterializedViews,RandomPartitionAccess,UdtTimeSeries
-	Workload Workload `json:"workload"`
+	Workload Workload `json:"workload,omitempty"`
 
 	// +kubebuilder:validation:Enum=ANY,ONE,TWO,THREE,QUORUM,ALL,LOCAL_QUORUM,EACH_QUORUM,SERIAL,LOCAL_SERIAL,LOCAL_ONE
 	ConsistencyLevel ConsistencyLevel `json:"consistencyLevel,omitempty"`
@@ -71,6 +81,14 @@ type TLPStressSpec struct {
 	PartitionGenerator string `json:"partitionGenerator,omitempty"`
 
 	Replication ReplicationConfig `json:"replication,omitempty"`
+}
+
+// TLPStressSpec defines the desired state of TLPStress
+// +k8s:openapi-gen=true
+type TLPStressSpec struct {
+	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
+	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	CassandraService string `json:"cassandraService"`
 
@@ -79,6 +97,10 @@ type TLPStressSpec struct {
 	Image string `json:"image"`
 
 	ImagePullPolicy v1.PullPolicy `json:"imagePullPolicy"`
+
+	StressConfig TLPStressConfig `json:"stressConfig,omitempty"`
+
+	JobConfig JobConfig `json:"jobConfig,omitempty"`
 }
 
 type ReplicationConfig struct {
