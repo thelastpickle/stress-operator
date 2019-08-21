@@ -96,7 +96,7 @@ func CreateCommandLineArgs(stressCfg *v1alpha1.TLPStressConfig, cassandraCfg *v1
 		} else {
 			// CassandraCluster service is in a different namespace
 			svc = fmt.Sprintf("%s.%s.svc.cluster.local", cassandraCfg.CassandraCluster.Name,
-				cassandraCfg.CassandraCluster.Name)
+				cassandraCfg.CassandraCluster.Namespace)
 		}
 	} else {
 		svc = cassandraCfg.CassandraService
