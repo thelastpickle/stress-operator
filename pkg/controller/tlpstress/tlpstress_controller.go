@@ -2,22 +2,19 @@ package tlpstress
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-logr/logr"
-	"k8s.io/apimachinery/pkg/types"
-	"reflect"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"strconv"
-	"strings"
-
 	thelastpicklev1alpha1 "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/tlp-stress-operator/pkg/tlpstress"
 	v1batch "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -195,101 +192,10 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TL
 	return job
 }
 
-func buildCmdLineArgs(tlpStress *thelastpicklev1alpha1.TLPStress, namespace string, log logr.Logger) *[]string {
-	args := make([]string, 0)
-	cfg := tlpStress.Spec.StressConfig
-
-	args = append(args, "run", string(cfg.Workload))
-
-	if len(cfg.ConsistencyLevel) > 0 {
-		args = append(args, "--cl")
-		args = append(args, string(cfg.ConsistencyLevel))
-	}
-
-	if cfg.Partitions != nil {
-		args = append(args, "-p")
-		args = append(args, *cfg.Partitions)
-	}
-
-	if len(cfg.Duration) > 0 {
-		args = append(args, "-d")
-		args = append(args, cfg.Duration)
-	}
-
-	if cfg.DropKeyspace {
-		args = append(args, "--drop")
-	}
-
-	if cfg.Iterations != nil {
-		args = append(args, "-n")
-		args = append(args, *cfg.Iterations)
-	}
-
-	if len(cfg.ReadRate) > 0 {
-		args = append(args, "-r")
-		args = append(args, cfg.ReadRate)
-	}
-
-	if cfg.Populate != nil {
-		args = append(args, "--populate")
-		args = append(args, *cfg.Populate)
-	}
-
-	if cfg.Concurrency != nil && *cfg.Concurrency != 100 {
-		args = append(args, "-c")
-		args = append(args, strconv.FormatInt(int64(*cfg.Concurrency), 10))
-	}
-
-	if len(cfg.PartitionGenerator) > 0 {
-		args = append(args, "--pg")
-		args = append(args, cfg.PartitionGenerator)
-	}
-
-	if len(cfg.DataCenter) > 0 {
-		args = append(args, "--dc")
-		args = append(args, cfg.DataCenter)
-	}
-
-	// TODO Need to make sure only one replication strategy is specified
-	if cfg.Replication.SimpleStrategy != nil {
-		replicationFactor := strconv.FormatInt(int64(*cfg.Replication.SimpleStrategy), 10)
-		replication := fmt.Sprintf(`{'class': 'SimpleStrategy', 'replication_factor': %s}`, replicationFactor)
-		args = append(args, "--replication")
-		args = append(args, replication)
-	} else if cfg.Replication.NetworkTopologyStrategy != nil {
-		var sb strings.Builder
-		dcs := make([]string, 0)
-		for k, v := range *cfg.Replication.NetworkTopologyStrategy {
-			sb.WriteString("'")
-			sb.WriteString(k)
-			sb.WriteString("': ")
-			sb.WriteString(strconv.FormatInt(int64(v), 10))
-			dcs = append(dcs, sb.String())
-			sb.Reset()
-		}
-		replication := fmt.Sprintf("{'class': 'NetworkTopologyStrategy', %s}", strings.Join(dcs, ", "))
-		args = append(args, "--replication")
-		args = append(args, replication)
-	}
-
-	// TODO add validation check that either CassandraSerice or CassandraCluster is defined in the spec
-	svc := ""
-	if tlpStress.Spec.CassandraCluster != nil {
-		// The headless service for a CassandraCluster has the same name as the cluster
-		if tlpStress.Spec.CassandraCluster.Namespace == "" || tlpStress.Spec.CassandraCluster.Namespace == namespace {
-			svc = tlpStress.Spec.CassandraCluster.Name
-		} else {
-			// CassandraCluster service is in a different namespace
-			svc = fmt.Sprintf("%s.%s.svc.cluster.local", tlpStress.Spec.CassandraCluster.Name,
-				tlpStress.Spec.CassandraCluster.Name)
-		}
-	} else {
-		svc = tlpStress.Spec.CassandraService
-	}
-	args = append(args, "--host")
-	args = append(args, svc)
-
-	return &args
+func buildCmdLineArgs(instance *thelastpicklev1alpha1.TLPStress, namespace string, log logr.Logger) *[]string {
+	cmdLineArgs := tlpstress.CreateCommandLineArgs(instance, namespace)
+	log.Info("Creating tlp-stress arguments", "commandLineArgs", cmdLineArgs)
+	return cmdLineArgs.GetArgs()
 }
 
 func checkDefaults(tlpStress *thelastpicklev1alpha1.TLPStress) bool {
