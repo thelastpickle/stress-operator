@@ -193,7 +193,7 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TL
 }
 
 func buildCmdLineArgs(instance *thelastpicklev1alpha1.TLPStress, namespace string, log logr.Logger) *[]string {
-	cmdLineArgs := tlpstress.CreateCommandLineArgs(instance, namespace)
+	cmdLineArgs := tlpstress.CreateCommandLineArgs(&instance.Spec.StressConfig, &instance.Spec.CassandraConfig, namespace)
 	log.Info("Creating tlp-stress arguments", "commandLineArgs", cmdLineArgs)
 	return cmdLineArgs.GetArgs()
 }

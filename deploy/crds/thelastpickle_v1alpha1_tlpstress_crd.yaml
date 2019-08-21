@@ -29,15 +29,18 @@ spec:
           type: object
         spec:
           properties:
-            cassandraCluster:
+            cassandraConfig:
               properties:
-                name:
-                  type: string
-                namespace:
+                cassandraCluster:
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                  type: object
+                cassandraService:
                   type: string
               type: object
-            cassandraService:
-              type: string
             image:
               type: string
             imagePullPolicy:

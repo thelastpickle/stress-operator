@@ -28,7 +28,9 @@ func TestTLPStressControllerDefaultsSet(t *testing.T) {
 			Namespace: namespace,
 		},
 		Spec: v1alpha1.TLPStressSpec{
-			CassandraService: "cassandra-service",
+			CassandraConfig: v1alpha1.CassandraConfig{
+				CassandraService: "cassandra-service",
+			},
 		},
 	}
 
@@ -89,7 +91,9 @@ func TestTLPStressControllerDefaultsNotSet(t *testing.T) {
 			Namespace: namespace,
 		},
 		Spec: v1alpha1.TLPStressSpec{
-			CassandraService: "cassandra-service",
+			CassandraConfig: v1alpha1.CassandraConfig{
+				CassandraService: "cassandra-service",
+			},
 			StressConfig: v1alpha1.TLPStressConfig{
 				Workload: v1alpha1.BasicTimeSeriesWorkload,
 			},
@@ -156,7 +160,9 @@ func TestTLPStressControllerJobCreate(t *testing.T) {
 			Namespace: namespace,
 		},
 		Spec: v1alpha1.TLPStressSpec{
-			CassandraService: "cassandra-service",
+			CassandraConfig: v1alpha1.CassandraConfig{
+				CassandraService: "cassandra-service",
+			},
 			StressConfig: v1alpha1.TLPStressConfig{
 				Workload: v1alpha1.KeyValueWorkload,
 			},
@@ -209,7 +215,9 @@ func TestTLPStressControllerSetStatus(t *testing.T) {
 			Namespace: namespace,
 		},
 		Spec: v1alpha1.TLPStressSpec{
-			CassandraService: "cassandra-service",
+			CassandraConfig: v1alpha1.CassandraConfig{
+				CassandraService: "cassandra-service",
+			},
 			StressConfig: v1alpha1.TLPStressConfig{
 				Workload: v1alpha1.KeyValueWorkload,
 			},

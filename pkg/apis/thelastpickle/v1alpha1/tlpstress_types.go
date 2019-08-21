@@ -83,6 +83,12 @@ type TLPStressConfig struct {
 	Replication ReplicationConfig `json:"replication,omitempty"`
 }
 
+type CassandraConfig struct {
+	CassandraService string `json:"cassandraService,omitempty"`
+
+	CassandraCluster *CassandraCluster `json:"cassandraCluster,omitempty"`
+}
+
 // TLPStressSpec defines the desired state of TLPStress
 // +k8s:openapi-gen=true
 type TLPStressSpec struct {
@@ -90,9 +96,7 @@ type TLPStressSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	CassandraService string `json:"cassandraService,omitempty"`
-
-	CassandraCluster *CassandraCluster `json:"cassandraCluster,omitempty"`
+	CassandraConfig CassandraConfig `json:"cassandraConfig,omitempty"`
 
 	Image string `json:"image"`
 

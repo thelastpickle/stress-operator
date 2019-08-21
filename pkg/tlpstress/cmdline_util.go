@@ -8,80 +8,71 @@ import (
 )
 
 type CommandLineArgs struct {
-	args *[]string
+	args map[string]string
+
+	argsSlice *[]string
 }
 
 func (c *CommandLineArgs) GetArgs() *[]string {
-	return c.args
+	empty := make([]string, 0)
+	return &empty
 }
 
 func (c *CommandLineArgs) String() string {
-	return strings.Join(*c.args, " ")
+	return strings.Join(*c.argsSlice, " ")
 }
 
 // Generates the arguments that are passed to the tlp-stress executable
-func CreateCommandLineArgs(instance *v1alpha1.TLPStress, namespace string) *CommandLineArgs {
-	cfg := instance.Spec.StressConfig
-	args:= make([]string, 0)
+func CreateCommandLineArgs(cfg *v1alpha1.TLPStressConfig, cassandraCfg *v1alpha1.CassandraConfig, namespace string) *CommandLineArgs {
+	args:= make(map[string]string)
 
-	args = append(args,"run")
-	args = append(args, string(cfg.Workload))
+	args["run"] = string(cfg.Workload)
 
 	if len(cfg.ConsistencyLevel) > 0 {
-		args = append(args, "--cl")
-		args = append(args, string(cfg.ConsistencyLevel))
+		args["--cl"] = string(cfg.ConsistencyLevel)
 	}
 
 	if cfg.Partitions != nil {
-		args = append(args, "-p")
-		args = append(args, *cfg.Partitions)
+		args["--partitions"] = *cfg.Partitions
 	}
 
 	if len(cfg.Duration) > 0 {
-		args = append(args, "-d")
-		args = append(args, cfg.Duration)
+		args["--duration"] = cfg.Duration
 	}
 
 	if cfg.DropKeyspace {
-		args = append(args, "--drop")
+		args["--drop"] = ""
 	}
 
 	if cfg.Iterations != nil {
-		args = append(args, "-n")
-		args = append(args, *cfg.Iterations)
+		args["--iterations"] = *cfg.Iterations
 	}
 
 	if len(cfg.ReadRate) > 0 {
-		args = append(args, "-r")
-		args = append(args, cfg.ReadRate)
+		args["--readrate"] = cfg.ReadRate
 	}
 
 	if cfg.Populate != nil {
-		args = append(args, "--populate")
-		args = append(args, *cfg.Populate)
+		args["--populate"] = *cfg.Populate
 	}
 
 	if cfg.Concurrency != nil && *cfg.Concurrency != 100 {
-		args = append(args, "-c")
-		args = append(args, strconv.FormatInt(int64(*cfg.Concurrency), 10))
+		args["--concurrency"] = strconv.FormatInt(int64(*cfg.Concurrency), 10)
 	}
 
 	if len(cfg.PartitionGenerator) > 0 {
-		args = append(args, "--pg")
-		args = append(args, cfg.PartitionGenerator)
+		args["--partitiongenerator"] = cfg.PartitionGenerator
 	}
 
 	if len(cfg.DataCenter) > 0 {
-		args = append(args, "--dc")
-		args = append(args, cfg.DataCenter)
+		args["--dc"] = cfg.DataCenter
 	}
 
 	// TODO Need to make sure only one replication strategy is specified
 	if cfg.Replication.SimpleStrategy != nil {
 		replicationFactor := strconv.FormatInt(int64(*cfg.Replication.SimpleStrategy), 10)
 		replication := fmt.Sprintf(`{'class': 'SimpleStrategy', 'replication_factor': %s}`, replicationFactor)
-		args = append(args, "--replication")
-		args = append(args, replication)
+		args["--replication"] = replication
 	} else if cfg.Replication.NetworkTopologyStrategy != nil {
 		var sb strings.Builder
 		dcs := make([]string, 0)
@@ -94,26 +85,24 @@ func CreateCommandLineArgs(instance *v1alpha1.TLPStress, namespace string) *Comm
 			sb.Reset()
 		}
 		replication := fmt.Sprintf("{'class': 'NetworkTopologyStrategy', %s}", strings.Join(dcs, ", "))
-		args = append(args, "--replication")
-		args = append(args, replication)
+		args["--replication"] = replication
 	}
 
 	// TODO add validation check that either CassandraService or CassandraCluster is defined in the spec
 	svc := ""
-	if instance.Spec.CassandraCluster != nil {
+	if cassandraCfg.CassandraCluster != nil {
 		// The headless service for a CassandraCluster has the same name as the cluster
-		if instance.Spec.CassandraCluster.Namespace == "" || instance.Spec.CassandraCluster.Namespace == namespace {
-			svc = instance.Spec.CassandraCluster.Name
+		if cassandraCfg.CassandraCluster.Namespace == "" || cassandraCfg.CassandraCluster.Namespace == namespace {
+			svc = cassandraCfg.CassandraCluster.Name
 		} else {
 			// CassandraCluster service is in a different namespace
-			svc = fmt.Sprintf("%s.%s.svc.cluster.local", instance.Spec.CassandraCluster.Name,
-				instance.Spec.CassandraCluster.Name)
+			svc = fmt.Sprintf("%s.%s.svc.cluster.local", cassandraCfg.CassandraCluster.Name,
+				cassandraCfg.CassandraCluster.Name)
 		}
 	} else {
-		svc = instance.Spec.CassandraService
+		svc = cassandraCfg.CassandraService
 	}
-	args = append(args, "--host")
-	args = append(args, svc)
+	args["--host"] = svc
 
-	return &CommandLineArgs{args: &args}
+	return &CommandLineArgs{args: args}
 }

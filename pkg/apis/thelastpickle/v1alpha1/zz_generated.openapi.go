@@ -66,15 +66,9 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref common.ReferenceCa
 			SchemaProps: spec.SchemaProps{
 				Description: "TLPStressSpec defines the desired state of TLPStress",
 				Properties: map[string]spec.Schema{
-					"cassandraService": {
+					"cassandraConfig": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"cassandraCluster": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.CassandraCluster"),
+							Ref: ref("github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.CassandraConfig"),
 						},
 					},
 					"image": {
@@ -104,7 +98,7 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref common.ReferenceCa
 			},
 		},
 		Dependencies: []string{
-			"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.CassandraCluster", "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.JobConfig", "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressConfig"},
+			"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.CassandraConfig", "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.JobConfig", "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressConfig"},
 	}
 }
 
