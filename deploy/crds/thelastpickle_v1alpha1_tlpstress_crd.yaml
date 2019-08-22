@@ -32,13 +32,26 @@ spec:
             cassandraConfig:
               properties:
                 cassandraCluster:
+                  description: The name of a casskop-generated Cassandra cluster to
+                    which tlp-stress will connect. Note that will only be used when
+                    CassandraClusterTemplate is not specified.
                   properties:
                     name:
                       type: string
                     namespace:
                       type: string
                   type: object
+                cassandraClusterTemplate:
+                  description: Describes a casskop CassandraCluster that will be created
+                    and to which tlp-stress will connect.
+                  properties:
+                    metadata:
+                      type: object
+                  type: object
                 cassandraService:
+                  description: The headless service for the Cassandra cluster to which
+                    tlp-stress will connect. Note that this will only be used when
+                    neither CassandraCluster nor CassandraClusterTemplate is specified.
                   type: string
               type: object
             image:

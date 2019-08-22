@@ -5,10 +5,10 @@ metadata:
 spec:
   stressConfig:
     workload: KeyValue
-    partitions: 50000000
-    duration: 5m
+    partitions: 25m
+    duration: 60m
     readRate: "0.3"
-    populate: 30000000
+    #populate: 10m
     replication:
       networkTopologyStrategy:
         dc1: 2

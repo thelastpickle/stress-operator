@@ -4,6 +4,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	batchv1 "k8s.io/api/batch/v1"
+	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
 )
 
 type Workload string
@@ -83,10 +84,31 @@ type TLPStressConfig struct {
 	Replication ReplicationConfig `json:"replication,omitempty"`
 }
 
+type CassandraCluster struct {
+	Namespace string `json:"namespace,omitempty"`
+	Name      string `json:"name,omitempty"`
+}
+
+type CassandraClusterTemplate struct {
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec casskop.CassandraClusterSpec
+}
+
+// Provides connection details about the cluster to which tlp-stress will run against.
 type CassandraConfig struct {
+	// The headless service for the Cassandra cluster to which tlp-stress will connect.
+	// Note that this will only be used when neither CassandraCluster nor
+	// CassandraClusterTemplate is specified.
 	CassandraService string `json:"cassandraService,omitempty"`
 
+	// The name of a casskop-generated Cassandra cluster to which tlp-stress will connect.
+	// Note that will only be used when CassandraClusterTemplate is not specified.
 	CassandraCluster *CassandraCluster `json:"cassandraCluster,omitempty"`
+
+	// Describes a casskop CassandraCluster that will be created and to which tlp-stress
+	// will connect. 
+	CassandraClusterTemplate CassandraClusterTemplate `json:"cassandraClusterTemplate,omitempty"`
 }
 
 // TLPStressSpec defines the desired state of TLPStress
@@ -143,11 +165,6 @@ type TLPStressList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []TLPStress `json:"items"`
-}
-
-type CassandraCluster struct {
-	Namespace string `json:"namespace,omitempty"`
-	Name      string `json:"name,omitempty"`
 }
 
 func init() {
