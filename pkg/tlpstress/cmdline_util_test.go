@@ -39,20 +39,19 @@ func TestCreateCommandLineArgs(t *testing.T) {
 				namespace: "default",
 			},
 			want: &CommandLineArgs{
-				args: map[string]string{
-					"run": string(v1alpha1.BasicTimeSeriesWorkload),
-					"--host": "cassandra-test",
-					"--cl": string(v1alpha1.CL_LOCAL_QUORUM),
-					"--partitions": "3m",
-					"--duration": "2h",
-					"--drop": "",
-					"--iterations": "10b",
-					"--dc": "dc1",
-					"--readrate": "0.25",
-					"--populate": "10m",
-					"--concurrency": "250",
-					"--partitiongenerator": "random",
-
+				args: []string{
+					"run", string(v1alpha1.BasicTimeSeriesWorkload),
+					"--cl", string(v1alpha1.CL_LOCAL_QUORUM),
+					"--partitions", "3m",
+					"--duration", "2h",
+					"--drop", "",
+					"--iterations", "10b",
+					"--readrate", "0.25",
+					"--populate", "10m",
+					"--concurrency", "250",
+					"--partitiongenerator", "random",
+					"--dc", "dc1",
+					"--host", "cassandra-test",
 				},
 			},
 		},
@@ -71,10 +70,10 @@ func TestCreateCommandLineArgs(t *testing.T) {
 				namespace: "default",
 			},
 			want: &CommandLineArgs{
-				args: map[string]string{
-					"run": string(v1alpha1.KeyValueWorkload),
-					"--host": "cassandra-test",
-					"--replication": "{'class': 'SimpleStrategy', 'replication_factor': 3}",
+				args: []string{
+					"run", string(v1alpha1.KeyValueWorkload),
+					"--replication", "{'class': 'SimpleStrategy', 'replication_factor': 3}",
+					"--host", "cassandra-test",
 				},
 			},
 		},
@@ -95,15 +94,15 @@ func TestCreateCommandLineArgs(t *testing.T) {
 				namespace: "default",
 			},
 			want: &CommandLineArgs{
-				args: map[string]string{
-					"run": string(v1alpha1.KeyValueWorkload),
-					"--host": "cassandra-test",
-					"--replication": "{'class': 'NetworkTopologyStrategy', 'dc1': 2}",
+				args: []string{
+					"run", string(v1alpha1.KeyValueWorkload),
+					"--replication", "{'class': 'NetworkTopologyStrategy', 'dc1': 2}",
+					"--host", "cassandra-test",
 				},
 			},
 		},
 		{
-			name: "WorkloadWithCassandraServiceWithoutNamespace",
+			name: "WorkloadWithCassandraClusterWithoutNamespace",
 			args: args{
 				stressCfg: &v1alpha1.TLPStressConfig{
 					Workload: v1alpha1.MapsWorkload,
@@ -115,9 +114,9 @@ func TestCreateCommandLineArgs(t *testing.T) {
 				},
 			},
 			want: &CommandLineArgs{
-				args: map[string]string{
-					"run": string(v1alpha1.MapsWorkload),
-					"--host": "cassandra-test",
+				args: []string{
+					"run", string(v1alpha1.MapsWorkload),
+					"--host", "cassandra-test",
 				},
 			},
 		},
@@ -135,9 +134,9 @@ func TestCreateCommandLineArgs(t *testing.T) {
 				},
 			},
 			want: &CommandLineArgs{
-				args: map[string]string{
-					"run": string(v1alpha1.CountersWideWorkload),
-					"--host": "cassandra-test.dev.svc.cluster.local",
+				args: []string{
+					"run", string(v1alpha1.CountersWideWorkload),
+					"--host", "cassandra-test.dev.svc.cluster.local",
 				},
 			},
 		},
