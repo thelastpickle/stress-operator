@@ -28,7 +28,7 @@ import (
 var log = logf.Log.WithName("controller_tlpstress")
 
 const (
-	DefaultImage           = "jsanda/tlp-stress:2.0.0"
+	DefaultImage           = "thelastpickle/tlp-stress:3.0.0"
 	DefaultImagePullPolicy = corev1.PullAlways
 	DefaultWorkload        = thelastpicklev1alpha1.KeyValueWorkload
 )
