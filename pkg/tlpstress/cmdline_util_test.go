@@ -162,6 +162,28 @@ func TestCreateCommandLineArgs(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "WorkloadWithCassandraClusterTemplateWithNamespace",
+			args: args{
+				stressCfg: &v1alpha1.TLPStressConfig{
+					Workload: v1alpha1.UdtTimeSeriesWorkload,
+				},
+				cassandraCfg: &v1alpha1.CassandraConfig{
+					CassandraClusterTemplate: &v1alpha1.CassandraClusterTemplate{
+						ObjectMeta: metav1.ObjectMeta{
+							Name: "cassandra-test",
+							Namespace: "dev",
+						},
+					},
+				},
+			},
+			want: &CommandLineArgs{
+				args: []string{
+					"run", string(v1alpha1.UdtTimeSeriesWorkload),
+					"--host", "cassandra-test.dev.svc.cluster.local",
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
