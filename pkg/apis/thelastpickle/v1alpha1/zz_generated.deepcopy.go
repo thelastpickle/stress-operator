@@ -51,7 +51,11 @@ func (in *CassandraConfig) DeepCopyInto(out *CassandraConfig) {
 		*out = new(CassandraCluster)
 		**out = **in
 	}
-	in.CassandraClusterTemplate.DeepCopyInto(&out.CassandraClusterTemplate)
+	if in.CassandraClusterTemplate != nil {
+		in, out := &in.CassandraClusterTemplate, &out.CassandraClusterTemplate
+		*out = new(CassandraClusterTemplate)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 

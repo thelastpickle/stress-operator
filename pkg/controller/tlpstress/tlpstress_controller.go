@@ -20,6 +20,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
+	"time"
 )
 
 var log = logf.Log.WithName("controller_tlpstress")
@@ -117,6 +119,35 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 			return reconcile.Result{}, err
 		}
 		return reconcile.Result{Requeue: true}, nil
+	}
+
+	// If a CassandraClusterTemplate is defined then make sure that:
+	//    1) A CassandraCluster matching the template exists
+	//    2) Create the CassandraCluster if it does not exist
+	//    3) CassandraCluster.status.phase == Running
+	if tlpStress.Spec.CassandraConfig.CassandraClusterTemplate != nil {
+		template := tlpStress.Spec.CassandraConfig.CassandraClusterTemplate
+		cc := &casskop.CassandraCluster{}
+		if err = r.client.Get(context.TODO(), types.NamespacedName{Name: template.Name, Namespace: template.Namespace}, cc); err != nil {
+			if !errors.IsNotFound(err) {
+				return reconcile.Result{RequeueAfter: 5 * time.Second}, err
+			}
+			cc.ObjectMeta = template.ObjectMeta
+			cc.Spec = template.Spec
+			reqLogger.Info("Creating a new CassandraCluster.", "CassandraCluster.Namespace",
+				cc.Namespace, "CassandraCluster.Name", cc.Name)
+			if err = r.client.Create(context.TODO(), cc); err != nil {
+				return reconcile.Result{RequeueAfter: 5 * time.Second}, err
+			} else {
+				return reconcile.Result{Requeue: true}, nil
+			}
+		} else {
+			if cc.Status.Phase != "Running" {
+				reqLogger.Info("Waiting for CassandraCluster to be ready.", "CassandraCluster.Name",
+					cc.Name, "CassandraCluster.Status.Phase", cc.Status.Phase)
+				return reconcile.Result{RequeueAfter: 30 * time.Second}, nil
+			}
+		}
 	}
 
 	// Check if the job already exists, if not create a new one

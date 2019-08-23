@@ -107,8 +107,8 @@ type CassandraConfig struct {
 	CassandraCluster *CassandraCluster `json:"cassandraCluster,omitempty"`
 
 	// Describes a casskop CassandraCluster that will be created and to which tlp-stress
-	// will connect. 
-	CassandraClusterTemplate CassandraClusterTemplate `json:"cassandraClusterTemplate,omitempty"`
+	// will connect.
+	CassandraClusterTemplate *CassandraClusterTemplate `json:"cassandraClusterTemplate,omitempty"`
 }
 
 // TLPStressSpec defines the desired state of TLPStress
