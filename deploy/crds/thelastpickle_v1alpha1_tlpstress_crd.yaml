@@ -47,6 +47,8 @@ spec:
                   properties:
                     metadata:
                       type: object
+                    typeMeta:
+                      type: object
                   type: object
                 cassandraService:
                   description: The headless service for the Cassandra cluster to which

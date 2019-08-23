@@ -90,6 +90,8 @@ type CassandraCluster struct {
 }
 
 type CassandraClusterTemplate struct {
+	metav1.TypeMeta `json:"typeMeta,omitempty"`
+
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	Spec casskop.CassandraClusterSpec

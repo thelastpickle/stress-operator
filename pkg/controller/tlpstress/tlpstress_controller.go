@@ -10,6 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -72,6 +73,11 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	mgr.GetScheme().AddKnownTypes(schema.GroupVersion{Group: "db.orange.com", Version: "v1alpha1"},
+		&casskop.CassandraCluster{},
+		&casskop.CassandraClusterList{},
+	)
+
 	return nil
 }
 
@@ -133,6 +139,7 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 				return reconcile.Result{RequeueAfter: 5 * time.Second}, err
 			}
 			cc.ObjectMeta = template.ObjectMeta
+			cc.TypeMeta = template.TypeMeta
 			cc.Spec = template.Spec
 			reqLogger.Info("Creating a new CassandraCluster.", "CassandraCluster.Namespace",
 				cc.Namespace, "CassandraCluster.Name", cc.Name)
