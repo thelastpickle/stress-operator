@@ -76,6 +76,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	mgr.GetScheme().AddKnownTypes(schema.GroupVersion{Group: "db.orange.com", Version: "v1alpha1"},
 		&casskop.CassandraCluster{},
 		&casskop.CassandraClusterList{},
+		&metav1.ListOptions{},
 	)
 
 	return nil
@@ -133,14 +134,21 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	//    3) CassandraCluster.status.phase == Running
 	if tlpStress.Spec.CassandraConfig.CassandraClusterTemplate != nil {
 		template := tlpStress.Spec.CassandraConfig.CassandraClusterTemplate
+
+		if len(template.Namespace) == 0 {
+			template.Namespace = request.Namespace
+		}
+
 		cc := &casskop.CassandraCluster{}
 		if err = r.client.Get(context.TODO(), types.NamespacedName{Name: template.Name, Namespace: template.Namespace}, cc); err != nil {
 			if !errors.IsNotFound(err) {
 				return reconcile.Result{RequeueAfter: 5 * time.Second}, err
 			}
+
 			cc.ObjectMeta = template.ObjectMeta
 			cc.TypeMeta = template.TypeMeta
 			cc.Spec = template.Spec
+
 			reqLogger.Info("Creating a new CassandraCluster.", "CassandraCluster.Namespace",
 				cc.Namespace, "CassandraCluster.Name", cc.Name)
 			if err = r.client.Create(context.TODO(), cc); err != nil {
