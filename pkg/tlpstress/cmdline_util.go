@@ -110,7 +110,14 @@ func CreateCommandLineArgs(stressCfg *v1alpha1.TLPStressConfig, cassandraCfg *v1
 
 	// TODO add validation check that either CassandraService or CassandraCluster is defined in the spec
 	svc := ""
-	if cassandraCfg.CassandraCluster != nil {
+	if cassandraCfg.CassandraClusterTemplate != nil {
+		if cassandraCfg.CassandraClusterTemplate.Namespace == namespace {
+			svc = cassandraCfg.CassandraClusterTemplate.Name
+		} else {
+			svc = fmt.Sprintf("%s.%s.svc.cluster.local", cassandraCfg.CassandraClusterTemplate.Name,
+				cassandraCfg.CassandraClusterTemplate.Namespace)
+		}
+	} else if cassandraCfg.CassandraCluster != nil {
 		// The headless service for a CassandraCluster has the same name as the cluster
 		if cassandraCfg.CassandraCluster.Namespace == "" || cassandraCfg.CassandraCluster.Namespace == namespace {
 			svc = cassandraCfg.CassandraCluster.Name
