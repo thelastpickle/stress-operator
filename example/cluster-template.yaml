@@ -1,0 +1,45 @@
+apiVersion: thelastpickle.com/v1alpha1
+kind: TLPStress
+metadata:
+  name: stress-demo
+spec:
+  stressConfig:
+    workload: KeyValue
+    partitions: 25m
+    duration: 60m
+    readRate: "0.3"
+    #populate: 10m
+    replication:
+      networkTopologyStrategy:
+        dc1: 2
+    partitionGenerator: sequence
+  jobConfig:
+    parallelism: 2
+  cassandraConfig:
+    cassandraClusterTemplate:
+      apiVersion: "db.orange.com/v1alpha"
+      kind: "CassandraCluster"
+      metadata:
+        name: stress-demo
+      spec:
+        baseImage: orangeopensource/cassandra-image
+        version: 3.11.4-8u212-0.3.2-release-cqlsh
+        dataCapacity: 20Gi
+        imagePullPolicy: ifNotPresent
+        gcStdout: false
+        runAsUser: 1000
+        nodesPerRack: 2
+        resources:
+          requests:
+            cpu: '1'
+            memory: 2Gi
+          limits:
+            cpu: '1'
+            memory: 2Gi
+        topology:
+          dc:
+            - name: dc1
+              rack:
+                - name: rack1
+  image: jsanda/tlp-stress:2.0.0
+  imagePullPolicy: IfNotPresent
