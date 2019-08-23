@@ -4,6 +4,7 @@ import (
 	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"reflect"
 	"testing"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestCreateCommandLineArgs(t *testing.T) {
@@ -137,6 +138,27 @@ func TestCreateCommandLineArgs(t *testing.T) {
 				args: []string{
 					"run", string(v1alpha1.CountersWideWorkload),
 					"--host", "cassandra-test.dev.svc.cluster.local",
+				},
+			},
+		},
+		{
+			name: "WorkloadWithCassandraClusterTemplateWithoutNamespace",
+			args: args{
+				stressCfg: &v1alpha1.TLPStressConfig{
+					Workload: v1alpha1.LWTWorkload,
+				},
+				cassandraCfg: &v1alpha1.CassandraConfig{
+					CassandraClusterTemplate: &v1alpha1.CassandraClusterTemplate{
+						ObjectMeta: metav1.ObjectMeta{
+							Name: "cassandra-test",
+						},
+					},
+				},
+			},
+			want: &CommandLineArgs{
+				args: []string{
+					"run", string(v1alpha1.LWTWorkload),
+					"--host", "cassandra-test",
 				},
 			},
 		},
