@@ -6,9 +6,10 @@ SHELL=/bin/bash
 TAG?=latest
 PKG=github.com/jsanda/tlp-stress-operator
 COMPILE_TARGET=./tmp/_output/bin/$(PROJECT)
+E2E_NAMESPACE?=tlpstress-e2e
 
 .PHONY: run
-code/run:
+run:
 	@operator-sdk up local --namespace=${NAMESPACE}
 
 .PHONY: build
@@ -35,3 +36,8 @@ push-image:
 unit-test:
 	@echo Running tests:
 	go test -v -race -cover ./pkg/...
+
+.PHONY: e2e-test
+e2e-test:
+	@echo Running e2e tests
+	operator-sdk test local ./test/e2e --namespace $(E2E_NAMESPACE)
