@@ -6,7 +6,10 @@ SHELL=/bin/bash
 TAG?=latest
 PKG=github.com/jsanda/tlp-stress-operator
 COMPILE_TARGET=./tmp/_output/bin/$(PROJECT)
-E2E_NAMESPACE?=tlpstress-e2e
+
+# This currently has to be set to tlpstress-e2e. The manifest files in test/manifests
+# declare the namespace to be tlpstresss-e2e
+E2E_NAMESPACE=tlpstress-e2e
 
 .PHONY: run
 run:
@@ -37,7 +40,11 @@ unit-test:
 	@echo Running tests:
 	go test -v -race -cover ./pkg/...
 
+.PHONY: e2e-setup
+e2e-setup:
+	kubectl apply -f test/manifests
+
 .PHONY: e2e-test
-e2e-test:
+e2e-test: e2e-setup
 	@echo Running e2e tests
 	operator-sdk test local ./test/e2e --namespace $(E2E_NAMESPACE)
