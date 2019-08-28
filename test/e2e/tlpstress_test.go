@@ -1,16 +1,16 @@
 package e2e
 
 import (
+	goctx "context"
+	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
 	"github.com/jsanda/tlp-stress-operator/pkg/apis"
-	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
-	"k8s.io/kubernetes/pkg/apis/apps"
+	tlp "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/tlp-stress-operator/test/e2eutil"
+	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"testing"
 	"time"
-	tlp "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	appsv1 "k8s.io/api/apps/v1"
 )
 
 var (
@@ -20,12 +20,21 @@ var (
 	cleanupTimeout       = time.Second * 5
 )
 
+func noCleanup() *framework.CleanupOptions {
+	return &framework.CleanupOptions{}
+}
+
 func TestTLPStress(t *testing.T) {
 	tlpStressList := &tlp.TLPStressList{}
 	err := framework.AddToFrameworkScheme(apis.AddToScheme, tlpStressList)
 	if err != nil {
 		t.Fatalf("failed to add custom resource scheme to framework: %v", err)
 	}
+	framework.Global.Scheme.AddKnownTypes(schema.GroupVersion{Group: "db.orange.com", Version: "v1alpha1"},
+		&casskop.CassandraCluster{},
+		&casskop.CassandraClusterList{},
+		&metav1.ListOptions{},
+	)
 	// run subtests
 	t.Run("tlpstress-group", func(t *testing.T) {
 		t.Run("RunOneTLPStress", runOneTLPStress)
@@ -48,69 +57,44 @@ func runOneTLPStress(t *testing.T) {
 	// get global framework variables
 	f := framework.Global
 	// wait for tlp-stress-operator to be ready
-	err = e2eutil.WaitForDeployment(t, f.KubeClient, namespace, "tlp-stress-operator", 1, retryInterval, timeout)
+	err = e2eutil.WaitForOperatorDeployment(t, f, namespace, "tlp-stress-operator", retryInterval, timeout)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Failed waiting for tlp-stress operator deployment: %s\n", err)
+	}
+
+	if err = createCassandraCluster(t, f, ctx); err != nil {
+		t.Fatalf("Failed to create CassandraCluster: %s", err)
+	}
+
+	if err = e2eutil.WaitForCassKopCluster(t, f, namespace, "tlp-stress-test", 10 * time.Second, 3 * time.Minute); err != nil {
+		t.Fatalf("Failed waiting for CassandraCluster to become ready: %s\n", err)
 	}
 }
 
-func createCassandraCluster(t *testing.T, f *framework.Framework) {
-	createHeadlessService(t, f)
-	createCassandraCluster(t, f)
-}
-
-func createHeadlessService(t *testing.T, f *framework.Framework) {
-	_, err := f.KubeClient.CoreV1().Services(f.Namespace).Create(&corev1.Service{
+func createCassandraCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
+	cc := casskop.CassandraCluster{
+		TypeMeta:   metav1.TypeMeta{
+			Kind: "CassandraCluster",
+			APIVersion: "db.orange.com/v1alpha",
+		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "cassandra",
+			Name: "tlp-stress-test",
 			Namespace: f.Namespace,
-			Labels: map[string]string{
-				"app": "cassandra",
-			},
 		},
-		Spec: corev1.ServiceSpec{
-			ClusterIP: "None",
-			Ports: []corev1.ServicePort{
-				{Port: 9042},
-			},
-			Selector: map[string]string{
-				"app": "cassandra",
-			},
-		},
-	})
-	if err != nil {
-		t.Fatalf("Failed to create Cassandra service: %s", err)
-	}
-}
-
-func createStatefulSet(t *testing.T, f *framework.Framework) {
-	_, err := f.KubeClient.AppsV1().StatefulSets(f.Namespace).Create(&appsv1.StatefulSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "cassandra",
-			Namespace: f.Namespace,
-			Labels: map[string]string{
-				"app": "cassandra",
-			},
-		},
-		Spec: appsv1.StatefulSetSpec{
-			ServiceName: "cassandra",
-			Replicas: int32Ptr(1),
-			Selector: &metav1.LabelSelector{
-				MatchExpressions: []metav1.LabelSelectorRequirement{
-					{
-						Key:      "app",
-						Operator: metav1.LabelSelectorOpIn,
-						Values:   []string{"cassandra"},
-					},
+		Spec: casskop.CassandraClusterSpec{
+			DeletePVC: true,
+			DataCapacity: "5Gi",
+			Resources: casskop.CassandraResources{
+				Requests: casskop.CPUAndMem{
+					CPU: "500m",
+					Memory: "1Gi",
+				},
+				Limits: casskop.CPUAndMem{
+					CPU: "500m",
+					Memory: "1Gi",
 				},
 			},
 		},
-	})
-	if err != nil {
-		t.Fatalf("Failed to create Cassandra statefulset: %s", err)
 	}
-}
-
-func int32Ptr(n int32) *int32 {
-	return &n
+	return f.Client.Create(goctx.TODO(), &cc, noCleanup())
 }
