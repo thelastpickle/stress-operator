@@ -3,14 +3,14 @@ package e2eutil
 import (
 	goctx "context"
 	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
+	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"testing"
 	"time"
-	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
-	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 )
 
 func WaitForCassKopCluster(
@@ -89,8 +89,10 @@ func WaitForTLPStressToFinish(t *testing.T,
 			t.Log("TLPStress.Status.JobStatus is nil")
 			return false, nil
 		}
-		if tlpStress.Status.JobStatus.Succeeded > 0 || tlpStress.Status.JobStatus.Failed > 0 {
-			t.Logf("Waiting for TLPStress %s to start\n", name)
+
+		if tlpStress.Status.JobStatus.Succeeded == 0 && tlpStress.Status.JobStatus.Failed == 0 {
+			t.Logf("Waiting for TLPStress %s to finish, succeeded(%d), failed(%d)\n", name,
+				tlpStress.Status.JobStatus.Succeeded, tlpStress.Status.JobStatus.Failed)
 			return false, nil
 		}
 		return true, nil
