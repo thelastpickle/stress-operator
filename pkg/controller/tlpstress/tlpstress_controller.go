@@ -122,7 +122,7 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	tlpStress := instance.DeepCopy()
 
 	if checkDefaults(tlpStress) {
-		if err = r.client.Status().Update(context.TODO(), tlpStress); err != nil {
+		if err = r.client.Update(context.TODO(), tlpStress); err != nil {
 			return reconcile.Result{}, err
 		}
 		return reconcile.Result{Requeue: true}, nil
@@ -165,6 +165,8 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 		}
 	}
 
+	reqLogger.Info("CHECK FOR JOB")
+
 	// Check if the job already exists, if not create a new one
 	job := &v1batch.Job{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, job)
@@ -187,6 +189,7 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	jobStatus := job.Status.DeepCopy()
 	if tlpStress.Status.JobStatus == nil || !reflect.DeepEqual(tlpStress.Status.JobStatus, jobStatus) {
 		tlpStress.Status.JobStatus = jobStatus
+		reqLogger.Info("UPDATE STATUS")
 		if err = r.client.Status().Update(context.TODO(), tlpStress); err != nil {
 			reqLogger.Error(err, "Failed to update status")
 			return reconcile.Result{}, err
