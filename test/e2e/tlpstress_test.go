@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"testing"
 	"time"
+	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 )
 
 var (
@@ -66,9 +67,42 @@ func runOneTLPStress(t *testing.T) {
 		t.Fatalf("Failed to create CassandraCluster: %s", err)
 	}
 
+	if err = createTLPStress(t, f); err != nil {
+		t.Fatalf("Failed to create TLPStress: %s", err)
+	}
+
 	if err = e2eutil.WaitForCassKopCluster(t, f, namespace, "tlp-stress-test", 10 * time.Second, 3 * time.Minute); err != nil {
 		t.Fatalf("Failed waiting for CassandraCluster to become ready: %s\n", err)
 	}
+
+	if err = e2eutil.WaitForTLPStressToStart(t, f, namespace, "tlp-stress-test", 10 * time.Second, 60 * time.Second); err != nil {
+		t.Errorf("Failed waiting for TLPStress to start: %s\n", err)
+	}
+
+	if err = e2eutil.WaitForTLPStressToFinish(t, f, namespace, "tlp-stress-test", 10 * time.Second, 60 * time.Second); err != nil {
+		t.Errorf("Failed waiting for TLPStress to finish: %s\n", err)
+	}
+}
+
+func createTLPStress(t *testing.T, f *framework.Framework) error {
+	tlpStress := v1alpha1.TLPStress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "tlp-stress-test",
+			Namespace: f.Namespace,
+		},
+		Spec: v1alpha1.TLPStressSpec{
+			StressConfig: v1alpha1.TLPStressConfig{
+				Workload: v1alpha1.KeyValueWorkload,
+				Duration: "20s",
+			},
+			CassandraConfig: v1alpha1.CassandraConfig{
+				CassandraCluster:&v1alpha1.CassandraCluster{
+					Name: "tlp-stress-test",
+				},
+			},
+		},
+	}
+	return f.Client.Create(goctx.TODO(), &tlpStress, noCleanup())
 }
 
 func createCassandraCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {

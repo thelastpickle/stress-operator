@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
+	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 )
 
 func WaitForCassKopCluster(
@@ -20,21 +21,78 @@ func WaitForCassKopCluster(
 	retryInterval time.Duration,
 	timeout time.Duration,) error {
 
-	return wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+	return wait.Poll(retryInterval, timeout, func() (bool, error) {
 		cc := &casskop.CassandraCluster{}
-		getErr := f.Client.Get(goctx.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, cc)
-		if getErr != nil {
-			if apierrors.IsNotFound(getErr) {
+		err := f.Client.Get(goctx.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, cc)
+		if err != nil {
+			if apierrors.IsNotFound(err) {
 				t.Logf("Waiting for availability of CassandraCluster %s\n", name)
 				return false, nil
 			}
-			return false, getErr
+			return false, err
 		}
 		if (cc.Status.Phase != "Running") {
 			t.Logf("Waiting for CassandraCassandra %s (%s)\n", name, cc.Status.Phase)
 			return false, nil
 		}
+		return true, nil
+	})
+}
 
+func WaitForTLPStressToStart(t *testing.T,
+	f *framework.Framework,
+	namespace string,
+	name string,
+	retryInterval time.Duration,
+	timeout time.Duration,) error {
+
+	return wait.Poll(retryInterval, timeout, func() (bool, error) {
+		tlpStress := &v1alpha1.TLPStress{}
+		err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, tlpStress)
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				t.Logf("Waiting for availability of TLPStress %s\n", name)
+				return false, nil
+			}
+			return false, err
+		}
+		if tlpStress.Status.JobStatus == nil {
+			t.Log("TLPStress.Status.JobStatus is nil")
+			return false, nil
+		}
+		if tlpStress.Status.JobStatus.Active == 0 {
+			t.Logf("Waiting for TLPStress %s to start\n", name)
+			return false, nil
+		}
+		return true, nil
+	})
+}
+
+func WaitForTLPStressToFinish(t *testing.T,
+	f *framework.Framework,
+	namespace string,
+	name string,
+	retryInterval time.Duration,
+	timeout time.Duration,) error {
+
+	return wait.Poll(retryInterval, timeout, func() (bool, error) {
+		tlpStress := &v1alpha1.TLPStress{}
+		err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, tlpStress)
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				t.Logf("Waiting for availability of TLPStress %s\n", name)
+				return false, nil
+			}
+			return false, err
+		}
+		if tlpStress.Status.JobStatus == nil {
+			t.Log("TLPStress.Status.JobStatus is nil")
+			return false, nil
+		}
+		if tlpStress.Status.JobStatus.Succeeded > 0 || tlpStress.Status.JobStatus.Failed > 0 {
+			t.Logf("Waiting for TLPStress %s to start\n", name)
+			return false, nil
+		}
 		return true, nil
 	})
 }
