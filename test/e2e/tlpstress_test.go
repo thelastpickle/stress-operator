@@ -4,6 +4,7 @@ import (
 	goctx "context"
 	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
 	"github.com/jsanda/tlp-stress-operator/pkg/apis"
+	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	tlp "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"github.com/jsanda/tlp-stress-operator/test/e2eutil"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
@@ -11,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"testing"
 	"time"
-	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 var (
@@ -22,7 +23,8 @@ var (
 )
 
 func noCleanup() *framework.CleanupOptions {
-	return &framework.CleanupOptions{}
+	//return &framework.CleanupOptions{}
+	return nil
 }
 
 func TestTLPStress(t *testing.T) {
@@ -46,7 +48,8 @@ func runOneTLPStress(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 
-	err := ctx.InitializeClusterResources(&framework.CleanupOptions{TestContext: ctx, Timeout: cleanupTimeout, RetryInterval: cleanupRetryInterval})
+	//err := ctx.InitializeClusterResources(&framework.CleanupOptions{TestContext: ctx, Timeout: cleanupTimeout, RetryInterval: cleanupRetryInterval})
+	err := ctx.InitializeClusterResources(noCleanup())
 	if err != nil {
 		t.Fatalf("failed to initialize cluster resources: %v", err)
 	}
@@ -63,31 +66,48 @@ func runOneTLPStress(t *testing.T) {
 		t.Fatalf("Failed waiting for tlp-stress operator deployment: %s\n", err)
 	}
 
-	if err = createCassandraCluster(t, f, ctx); err != nil {
+	name := "tlpstress-test"
+
+	if err = createCassandraCluster(name, t, f, ctx); err != nil {
 		t.Fatalf("Failed to create CassandraCluster: %s", err)
 	}
 
-	if err = e2eutil.WaitForCassKopCluster(t, f, namespace, "tlp-stress-test", 10 * time.Second, 3 * time.Minute); err != nil {
+	if err = e2eutil.WaitForCassKopCluster(t, f, namespace, name, 10 * time.Second, 3 * time.Minute); err != nil {
 		t.Fatalf("Failed waiting for CassandraCluster to become ready: %s\n", err)
 	}
 
-	if err = createTLPStress(t, f); err != nil {
+	if err = createTLPStress(name, t, f); err != nil {
 		t.Fatalf("Failed to create TLPStress: %s", err)
 	}
 
-	if err = e2eutil.WaitForTLPStressToStart(t, f, namespace, "tlp-stress-test", 10 * time.Second, 10 * time.Minute); err != nil {
+	if err = e2eutil.WaitForTLPStressToStart(t, f, namespace, name, 10 * time.Second, 1 * time.Minute); err != nil {
 		t.Errorf("Failed waiting for TLPStress to start: %s\n", err)
 	}
 
-	if err = e2eutil.WaitForTLPStressToFinish(t, f, namespace, "tlp-stress-test", 10 * time.Second, 60 * time.Second); err != nil {
+	if err = e2eutil.WaitForTLPStressToFinish(t, f, namespace, name, 10 * time.Second, 3 * time.Minute); err != nil {
 		t.Errorf("Failed waiting for TLPStress to finish: %s\n", err)
+	}
+
+	tlpStress := &v1alpha1.TLPStress{}
+	if err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, tlpStress); err != nil {
+		t.Fatal("Failed to get TLPStress instance")
+	}
+
+	jobStatus := tlpStress.Status.JobStatus
+	if jobStatus == nil {
+		t.Fatal("job status should not be nil")
+	}
+
+	if jobStatus.Succeeded != 1 || jobStatus.Failed != 0 {
+		t.Fatalf("Expected succeeded(1) and failed(0) but got succeeded(%d) and failed(%d)", jobStatus.Succeeded,
+			jobStatus.Failed)
 	}
 }
 
-func createTLPStress(t *testing.T, f *framework.Framework) error {
+func createTLPStress(name string, t *testing.T, f *framework.Framework) error {
 	tlpStress := v1alpha1.TLPStress{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "tlp-stress-test",
+			Name: name,
 			Namespace: f.Namespace,
 		},
 		Spec: v1alpha1.TLPStressSpec{
@@ -97,7 +117,7 @@ func createTLPStress(t *testing.T, f *framework.Framework) error {
 			},
 			CassandraConfig: v1alpha1.CassandraConfig{
 				CassandraCluster:&v1alpha1.CassandraCluster{
-					Name: "tlp-stress-test",
+					Name: name,
 				},
 			},
 		},
@@ -105,14 +125,14 @@ func createTLPStress(t *testing.T, f *framework.Framework) error {
 	return f.Client.Create(goctx.TODO(), &tlpStress, noCleanup())
 }
 
-func createCassandraCluster(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
+func createCassandraCluster(name string, t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
 	cc := casskop.CassandraCluster{
 		TypeMeta:   metav1.TypeMeta{
 			Kind: "CassandraCluster",
 			APIVersion: "db.orange.com/v1alpha",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "tlp-stress-test",
+			Name: name,
 			Namespace: f.Namespace,
 		},
 		Spec: casskop.CassandraClusterSpec{

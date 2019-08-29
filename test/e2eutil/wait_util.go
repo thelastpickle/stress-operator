@@ -13,6 +13,8 @@ import (
 	"time"
 )
 
+// Waits for the CassandraCluster with namespace/name to be ready. Specifically, this
+// function checks for CassandraCluster.State.Phase == Running.
 func WaitForCassKopCluster(
 	t *testing.T,
 	f *framework.Framework,
@@ -39,6 +41,8 @@ func WaitForCassKopCluster(
 	})
 }
 
+// Waits for the TLPStress instance specified by namespace/name to start. Specifically this
+// functions blocks until TLPStress.Status.JobStatus.Active > 0.
 func WaitForTLPStressToStart(t *testing.T,
 	f *framework.Framework,
 	namespace string,
@@ -68,6 +72,10 @@ func WaitForTLPStressToStart(t *testing.T,
 	})
 }
 
+// Waits for the TLPStress instance specified by namespace/name to finish. Specifically this
+// function blocks until either TLPStress.Status.JobStatus.Succeeded > 0 or
+// TLPStress.Status.JobStatus.Failed > 0. Note that this function currently assumes a single
+// job instance is run.
 func WaitForTLPStressToFinish(t *testing.T,
 	f *framework.Framework,
 	namespace string,
