@@ -91,7 +91,7 @@ func runOneTLPStress(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 		t.Errorf("Failed waiting for TLPStress to start: %s\n", err)
 	}
 
-	if err := e2eutil.WaitForTLPStressToFinish(t, f, namespace, name, 10 * time.Second, 3 * time.Minute); err != nil {
+	if err := e2eutil.WaitForTLPStressToFinish(t, f, namespace, name, 1, 10 * time.Second, 3 * time.Minute); err != nil {
 		t.Errorf("Failed waiting for TLPStress to finish: %s\n", err)
 	}
 
@@ -114,7 +114,7 @@ func runOneTLPStress(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 func runTwoTLPStress(t *testing.T,  f *framework.Framework, ctx *framework.TestCtx) {
 	name := "tlpstress-test-two"
 
-	tlpStress := v1alpha1.TLPStress{
+	tlpStress := &v1alpha1.TLPStress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 			Namespace: f.Namespace,
@@ -134,8 +134,31 @@ func runTwoTLPStress(t *testing.T,  f *framework.Framework, ctx *framework.TestC
 			},
 		},
 	}
-	if err := f.Client.Create(goctx.TODO(), &tlpStress, cleanupWithPolling(ctx)); err != nil {
+	if err := f.Client.Create(goctx.TODO(), tlpStress, cleanupWithPolling(ctx)); err != nil {
 		t.Fatalf("Failed to create TLPStress (%s): %s", name, err)
+	}
+
+	if err := e2eutil.WaitForTLPStressToStart(t, f, f.Namespace, name, 10 * time.Second, 1 * time.Minute); err != nil {
+		t.Errorf("Failed waiting for TLPStress (%s) to start: %s\n", name, err)
+	}
+
+	if err := e2eutil.WaitForTLPStressToFinish(t, f, f.Namespace, name, 2, 10 * time.Second, 3 * time.Minute); err != nil {
+		t.Errorf("Failed waiting for TLPStress (%s) to finish: %s\n", name, err)
+	}
+
+	tlpStress = &v1alpha1.TLPStress{}
+	if err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: f.Namespace, Name: name}, tlpStress); err != nil {
+		t.Fatalf("Failed to get TLPStress instance (%s): %s", name, err)
+	}
+
+	jobStatus := tlpStress.Status.JobStatus
+	if jobStatus == nil {
+		t.Fatal("job status should not be nil")
+	}
+
+	if jobStatus.Succeeded != 2 || jobStatus.Failed != 0 {
+		t.Fatalf("Expected succeeded(2) and failed(0) but got succeeded(%d) and failed(%d)", jobStatus.Succeeded,
+			jobStatus.Failed)
 	}
 }
 

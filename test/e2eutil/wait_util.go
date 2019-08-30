@@ -73,13 +73,12 @@ func WaitForTLPStressToStart(t *testing.T,
 }
 
 // Waits for the TLPStress instance specified by namespace/name to finish. Specifically this
-// function blocks until either TLPStress.Status.JobStatus.Succeeded > 0 or
-// TLPStress.Status.JobStatus.Failed > 0. Note that this function currently assumes a single
-// job instance is run.
+// function blocks until the succeeded + failed job runs equals completions.
 func WaitForTLPStressToFinish(t *testing.T,
 	f *framework.Framework,
 	namespace string,
 	name string,
+	completions int32,
 	retryInterval time.Duration,
 	timeout time.Duration,) error {
 
@@ -98,9 +97,9 @@ func WaitForTLPStressToFinish(t *testing.T,
 			return false, nil
 		}
 
-		if tlpStress.Status.JobStatus.Succeeded == 0 && tlpStress.Status.JobStatus.Failed == 0 {
-			t.Logf("Waiting for TLPStress %s to finish, succeeded(%d), failed(%d)\n", name,
-				tlpStress.Status.JobStatus.Succeeded, tlpStress.Status.JobStatus.Failed)
+		if (tlpStress.Status.JobStatus.Succeeded + tlpStress.Status.JobStatus.Failed) != completions {
+			t.Logf("Waiting for TLPStress (%s) to complete (%d). There are: succeeded(%d), failed(%d)\n", name,
+				completions, tlpStress.Status.JobStatus.Succeeded, tlpStress.Status.JobStatus.Failed)
 			return false, nil
 		}
 		return true, nil
