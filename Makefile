@@ -11,6 +11,10 @@ COMPILE_TARGET=./tmp/_output/bin/$(PROJECT)
 # declare the namespace to be tlpstresss-e2e
 E2E_NAMESPACE=tlpstress-e2e
 
+.PHONY: clean
+clean:
+	rm -rf build/_output
+
 .PHONY: run
 run:
 	@operator-sdk up local --namespace=${NAMESPACE}
@@ -48,3 +52,12 @@ e2e-setup:
 e2e-test: e2e-setup
 	@echo Running e2e tests
 	operator-sdk test local ./test/e2e --namespace $(E2E_NAMESPACE)
+
+.PHONY: e2e-cleanup
+e2e-cleanup:
+#	kubectl -n $(E2E_NAMESPACE) delete tlpstress --all
+	kubectl -n $(E2E_NAMESPACE) delete cassandracluster --all
+	kubectl -n $(E2E_NAMESPACE) delete sa tlp-stress-operator
+	kubectl -n $(E2E_NAMESPACE) delete role tlp-stress-operator
+	kubectl -n $(E2E_NAMESPACE) delete rolebinding tlp-stress-operator
+	kubectl -n $(E2E_NAMESPACE) delete deployment tlp-stress-operator
