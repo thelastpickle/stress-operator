@@ -10,9 +10,9 @@ import (
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"testing"
 	"time"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 var (
@@ -25,6 +25,16 @@ var (
 func noCleanup() *framework.CleanupOptions {
 	//return &framework.CleanupOptions{}
 	return nil
+}
+
+type TestFunc func(t *testing.T, f *framework.Framework, ctx *framework.TestCtx)
+
+func e2eTest(fn TestFunc) func(t *testing.T) {
+	return func(t *testing.T) {
+		ctx, f := e2eutil.InitOperator(t)
+		defer ctx.Cleanup()
+		fn(t, f, ctx)
+	}
 }
 
 func TestTLPStress(t *testing.T) {
@@ -40,56 +50,36 @@ func TestTLPStress(t *testing.T) {
 	)
 	// run subtests
 	t.Run("tlpstress-group", func(t *testing.T) {
-		t.Run("RunOneTLPStress", runOneTLPStress)
+		t.Run("RunOneTLPStress", e2eTest(runOneTLPStress))
 	})
 }
 
-func runOneTLPStress(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
-
-	//err := ctx.InitializeClusterResources(&framework.CleanupOptions{TestContext: ctx, Timeout: cleanupTimeout, RetryInterval: cleanupRetryInterval})
-	err := ctx.InitializeClusterResources(noCleanup())
-	if err != nil {
-		t.Fatalf("failed to initialize cluster resources: %v", err)
-	}
-	t.Log("Initialized cluster resources")
-	namespace, err := ctx.GetNamespace()
-	if err != nil {
-		t.Fatal(err)
-	}
-	// get global framework variables
-	f := framework.Global
-	// wait for tlp-stress-operator to be ready
-	err = e2eutil.WaitForOperatorDeployment(t, f, namespace, "tlp-stress-operator", retryInterval, timeout)
-	if err != nil {
-		t.Fatalf("Failed waiting for tlp-stress operator deployment: %s\n", err)
-	}
-
+func runOneTLPStress(t *testing.T,  f *framework.Framework, ctx *framework.TestCtx) {
+	namespace := f.Namespace
 	name := "tlpstress-test"
 
-	if err = createCassandraCluster(name, t, f, ctx); err != nil {
+	if err := createCassandraCluster(name, t, f, ctx); err != nil {
 		t.Fatalf("Failed to create CassandraCluster: %s", err)
 	}
 
-	if err = e2eutil.WaitForCassKopCluster(t, f, namespace, name, 10 * time.Second, 3 * time.Minute); err != nil {
+	if err := e2eutil.WaitForCassKopCluster(t, f, namespace, name, 10 * time.Second, 3 * time.Minute); err != nil {
 		t.Fatalf("Failed waiting for CassandraCluster to become ready: %s\n", err)
 	}
 
-	if err = createTLPStress(name, t, f); err != nil {
+	if err := createTLPStress(name, t, f); err != nil {
 		t.Fatalf("Failed to create TLPStress: %s", err)
 	}
 
-	if err = e2eutil.WaitForTLPStressToStart(t, f, namespace, name, 10 * time.Second, 1 * time.Minute); err != nil {
+	if err := e2eutil.WaitForTLPStressToStart(t, f, namespace, name, 10 * time.Second, 1 * time.Minute); err != nil {
 		t.Errorf("Failed waiting for TLPStress to start: %s\n", err)
 	}
 
-	if err = e2eutil.WaitForTLPStressToFinish(t, f, namespace, name, 10 * time.Second, 3 * time.Minute); err != nil {
+	if err := e2eutil.WaitForTLPStressToFinish(t, f, namespace, name, 10 * time.Second, 3 * time.Minute); err != nil {
 		t.Errorf("Failed waiting for TLPStress to finish: %s\n", err)
 	}
 
 	tlpStress := &v1alpha1.TLPStress{}
-	if err = f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, tlpStress); err != nil {
+	if err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, tlpStress); err != nil {
 		t.Fatal("Failed to get TLPStress instance")
 	}
 
