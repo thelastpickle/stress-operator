@@ -19,7 +19,11 @@ var (
 	retryInterval        = time.Second * 5
 	timeout              = time.Second * 60
 	cleanupRetryInterval = time.Second * 1
-	cleanupTimeout       = time.Second * 5
+	cleanupTimeout       = time.Second * 60
+)
+
+const (
+	cassandraClusterName = "tlpstress-cluster"
 )
 
 func noCleanup() *framework.CleanupOptions {
@@ -27,17 +31,26 @@ func noCleanup() *framework.CleanupOptions {
 	return nil
 }
 
+func cleanupWithPolling(ctx *framework.TestCtx) *framework.CleanupOptions {
+	return &framework.CleanupOptions{
+		TestContext:   ctx,
+		Timeout:       cleanupTimeout,
+		RetryInterval: cleanupRetryInterval,
+	}
+}
+
 type TestFunc func(t *testing.T, f *framework.Framework, ctx *framework.TestCtx)
 
-func e2eTest(fn TestFunc) func(t *testing.T) {
+func e2eTest(fn TestFunc, t *testing.T, f *framework.Framework, ctx *framework.TestCtx) func(t *testing.T) {
 	return func(t *testing.T) {
-		ctx, f := e2eutil.InitOperator(t)
-		defer ctx.Cleanup()
 		fn(t, f, ctx)
 	}
 }
 
-func TestTLPStress(t *testing.T) {
+// This test actually does create a Cassandra cluster, but it does so independent of the
+// tlp-stress-operator. When each of the subtest runs, there will already be a cluster
+// available.
+func TestTLPStressWithExistingCluster(t *testing.T) {
 	tlpStressList := &tlp.TLPStressList{}
 	err := framework.AddToFrameworkScheme(apis.AddToScheme, tlpStressList)
 	if err != nil {
@@ -48,25 +61,29 @@ func TestTLPStress(t *testing.T) {
 		&casskop.CassandraClusterList{},
 		&metav1.ListOptions{},
 	)
-	// run subtests
-	t.Run("tlpstress-group", func(t *testing.T) {
-		t.Run("RunOneTLPStress", e2eTest(runOneTLPStress))
-	})
-}
+	ctx, f := e2eutil.InitOperator(t)
+	defer ctx.Cleanup()
 
-func runOneTLPStress(t *testing.T,  f *framework.Framework, ctx *framework.TestCtx) {
-	namespace := f.Namespace
-	name := "tlpstress-test"
-
-	if err := createCassandraCluster(name, t, f, ctx); err != nil {
+	if err := createCassandraCluster(cassandraClusterName, t, f, ctx); err != nil {
 		t.Fatalf("Failed to create CassandraCluster: %s", err)
 	}
 
-	if err := e2eutil.WaitForCassKopCluster(t, f, namespace, name, 10 * time.Second, 3 * time.Minute); err != nil {
+	if err := e2eutil.WaitForCassKopCluster(t, f, f.Namespace, cassandraClusterName, 10 * time.Second, 3 * time.Minute); err != nil {
 		t.Fatalf("Failed waiting for CassandraCluster to become ready: %s\n", err)
 	}
 
-	if err := createTLPStress(name, t, f); err != nil {
+	// run subtests
+	t.Run("tlpstress-group", func(t *testing.T) {
+		t.Run("RunOneTLPStress", e2eTest(runOneTLPStress, t, f, ctx))
+		t.Run("RunTwoTLPStress", e2eTest(runTwoTLPStress, t, f, ctx))
+	})
+}
+
+func runOneTLPStress(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) {
+	namespace := f.Namespace
+	name := "tlpstress-test"
+
+	if err := createTLPStress(name, t, f, ctx); err != nil {
 		t.Fatalf("Failed to create TLPStress: %s", err)
 	}
 
@@ -94,7 +111,9 @@ func runOneTLPStress(t *testing.T,  f *framework.Framework, ctx *framework.TestC
 	}
 }
 
-func createTLPStress(name string, t *testing.T, f *framework.Framework) error {
+func runTwoTLPStress(t *testing.T,  f *framework.Framework, ctx *framework.TestCtx) {
+	name := "tlpstress-test-two"
+
 	tlpStress := v1alpha1.TLPStress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
@@ -107,12 +126,38 @@ func createTLPStress(name string, t *testing.T, f *framework.Framework) error {
 			},
 			CassandraConfig: v1alpha1.CassandraConfig{
 				CassandraCluster:&v1alpha1.CassandraCluster{
-					Name: name,
+					Name: cassandraClusterName,
+				},
+			},
+			JobConfig: v1alpha1.JobConfig{
+				Parallelism: int32Ptr(2),
+			},
+		},
+	}
+	if err := f.Client.Create(goctx.TODO(), &tlpStress, cleanupWithPolling(ctx)); err != nil {
+		t.Fatalf("Failed to create TLPStress (%s): %s", name, err)
+	}
+}
+
+func createTLPStress(name string, t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
+	tlpStress := v1alpha1.TLPStress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+			Namespace: f.Namespace,
+		},
+		Spec: v1alpha1.TLPStressSpec{
+			StressConfig: v1alpha1.TLPStressConfig{
+				Workload: v1alpha1.KeyValueWorkload,
+				Iterations: stringPtr("500"),
+			},
+			CassandraConfig: v1alpha1.CassandraConfig{
+				CassandraCluster:&v1alpha1.CassandraCluster{
+					Name: cassandraClusterName,
 				},
 			},
 		},
 	}
-	return f.Client.Create(goctx.TODO(), &tlpStress, noCleanup())
+	return f.Client.Create(goctx.TODO(), &tlpStress, cleanupWithPolling(ctx))
 }
 
 func createCassandraCluster(name string, t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
@@ -140,9 +185,13 @@ func createCassandraCluster(name string, t *testing.T, f *framework.Framework, c
 			},
 		},
 	}
-	return f.Client.Create(goctx.TODO(), &cc, noCleanup())
+	return f.Client.Create(goctx.TODO(), &cc, cleanupWithPolling(ctx))
 }
 
 func stringPtr(s string) *string {
 	return &s
+}
+
+func int32Ptr(n int32) *int32 {
+	return &n
 }
