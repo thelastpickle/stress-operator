@@ -64,11 +64,16 @@ func TestTLPStressWithExistingCluster(t *testing.T) {
 	ctx, f := e2eutil.InitOperator(t)
 	defer ctx.Cleanup()
 
-	if err := createCassandraCluster(cassandraClusterName, t, f, ctx); err != nil {
+	namespace, err := ctx.GetNamespace()
+	if err != nil {
+		t.Fatalf("Failed to get namespace: %s", err)
+	}
+
+	if err := createCassandraCluster(cassandraClusterName, namespace, f, ctx); err != nil {
 		t.Fatalf("Failed to create CassandraCluster: %s", err)
 	}
 
-	if err := e2eutil.WaitForCassKopCluster(t, f, f.Namespace, cassandraClusterName, 10 * time.Second, 3 * time.Minute); err != nil {
+	if err := e2eutil.WaitForCassKopCluster(t, f, namespace, cassandraClusterName, 10 * time.Second, 3 * time.Minute); err != nil {
 		t.Fatalf("Failed waiting for CassandraCluster to become ready: %s\n", err)
 	}
 
@@ -83,7 +88,7 @@ func runOneTLPStress(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 	namespace := f.Namespace
 	name := "tlpstress-test"
 
-	if err := createTLPStress(name, t, f, ctx); err != nil {
+	if err := createTLPStress(name, namespace, f, ctx); err != nil {
 		t.Fatalf("Failed to create TLPStress: %s", err)
 	}
 
@@ -114,10 +119,15 @@ func runOneTLPStress(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 func runTwoTLPStress(t *testing.T,  f *framework.Framework, ctx *framework.TestCtx) {
 	name := "tlpstress-test-two"
 
+	namespace, err := ctx.GetNamespace()
+	if err != nil {
+		t.Fatalf("Failed to get namespace: %s", err)
+	}
+
 	tlpStress := &v1alpha1.TLPStress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
-			Namespace: f.Namespace,
+			Namespace: namespace,
 		},
 		Spec: v1alpha1.TLPStressSpec{
 			StressConfig: v1alpha1.TLPStressConfig{
@@ -138,16 +148,16 @@ func runTwoTLPStress(t *testing.T,  f *framework.Framework, ctx *framework.TestC
 		t.Fatalf("Failed to create TLPStress (%s): %s", name, err)
 	}
 
-	if err := e2eutil.WaitForTLPStressToStart(t, f, f.Namespace, name, 10 * time.Second, 1 * time.Minute); err != nil {
+	if err := e2eutil.WaitForTLPStressToStart(t, f, namespace, name, 10 * time.Second, 1 * time.Minute); err != nil {
 		t.Errorf("Failed waiting for TLPStress (%s) to start: %s\n", name, err)
 	}
 
-	if err := e2eutil.WaitForTLPStressToFinish(t, f, f.Namespace, name, 2, 10 * time.Second, 3 * time.Minute); err != nil {
+	if err := e2eutil.WaitForTLPStressToFinish(t, f, namespace, name, 2, 10 * time.Second, 3 * time.Minute); err != nil {
 		t.Errorf("Failed waiting for TLPStress (%s) to finish: %s\n", name, err)
 	}
 
 	tlpStress = &v1alpha1.TLPStress{}
-	if err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: f.Namespace, Name: name}, tlpStress); err != nil {
+	if err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, tlpStress); err != nil {
 		t.Fatalf("Failed to get TLPStress instance (%s): %s", name, err)
 	}
 
@@ -162,11 +172,11 @@ func runTwoTLPStress(t *testing.T,  f *framework.Framework, ctx *framework.TestC
 	}
 }
 
-func createTLPStress(name string, t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
+func createTLPStress(name string, namespace string, f *framework.Framework, ctx *framework.TestCtx) error {
 	tlpStress := v1alpha1.TLPStress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
-			Namespace: f.Namespace,
+			Namespace: namespace,
 		},
 		Spec: v1alpha1.TLPStressSpec{
 			StressConfig: v1alpha1.TLPStressConfig{
@@ -183,7 +193,7 @@ func createTLPStress(name string, t *testing.T, f *framework.Framework, ctx *fra
 	return f.Client.Create(goctx.TODO(), &tlpStress, cleanupWithPolling(ctx))
 }
 
-func createCassandraCluster(name string, t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
+func createCassandraCluster(name string, namespace string, f *framework.Framework, ctx *framework.TestCtx) error {
 	cc := casskop.CassandraCluster{
 		TypeMeta:   metav1.TypeMeta{
 			Kind: "CassandraCluster",
@@ -191,7 +201,7 @@ func createCassandraCluster(name string, t *testing.T, f *framework.Framework, c
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
-			Namespace: f.Namespace,
+			Namespace: namespace,
 		},
 		Spec: casskop.CassandraClusterSpec{
 			DeletePVC: true,

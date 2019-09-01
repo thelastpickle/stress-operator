@@ -1,6 +1,7 @@
 module github.com/jsanda/tlp-stress-operator
 
 require (
+	github.com/NYTimes/gziphandler v1.0.1 // indirect
 	github.com/Orange-OpenSource/cassandra-k8s-operator v0.3.2
 	github.com/go-logr/logr v0.1.0
 	github.com/operator-framework/operator-sdk v0.9.1-0.20190716192717-21668facf7a7
