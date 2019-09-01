@@ -1,5 +1,6 @@
 ORG=jsanda
-NAMESPACE=tlp-stress
+#NAMESPACE=tlp-stress
+NAMESPACE=default
 PROJECT=tlp-stress-operator
 REG=docker.io
 SHELL=/bin/bash
@@ -46,7 +47,8 @@ unit-test:
 
 .PHONY: e2e-setup
 e2e-setup:
-	kubectl apply -f test/manifests
+	./scripts/create-ns.sh $(E2E_NAMESPACE)
+	kubectl apply -n $(E2E_NAMESPACE) -f config/casskop
 
 .PHONY: e2e-test
 e2e-test: e2e-setup

@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cassandra-k8s-operator
-  namespace: tlpstress-e2e
   labels:
     app: cassandra-k8s-operator
 spec:
