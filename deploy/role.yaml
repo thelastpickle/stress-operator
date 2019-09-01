@@ -54,6 +54,7 @@ rules:
   - get
 - apiGroups:
   - thelastpickle.com
+  - db.orange.com
   resources:
   - '*'
   verbs:
