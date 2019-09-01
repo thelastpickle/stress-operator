@@ -10,14 +10,18 @@ var (
 	RetryInterval        = time.Second * 5
 	Timeout              = time.Second * 60
 	CleanupRetryInterval = time.Second * 1
-	CleanupTimeout       = time.Second * 5
+	CleanupTimeout       = time.Second * 30
 )
 
 func InitOperator(t *testing.T) (*framework.TestCtx, *framework.Framework) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 
-	err := ctx.InitializeClusterResources(nil)
+	err := ctx.InitializeClusterResources(&framework.CleanupOptions{
+		TestContext:   ctx,
+		Timeout:       CleanupTimeout,
+		RetryInterval: CleanupRetryInterval,
+	})
 	if err != nil {
 		t.Fatalf("failed to initialize cluster resources: %v", err)
 	}
