@@ -223,8 +223,15 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TL
 							Image: tlpStress.Spec.Image,
 							ImagePullPolicy: tlpStress.Spec.ImagePullPolicy,
 							Args: *buildCmdLineArgs(tlpStress, namespace, log),
+							Ports: []corev1.ContainerPort{
+								{
+									Name:          "prometheus",
+									ContainerPort: 9500,  // TODO make configurable
+								},
+							},
 						},
 					},
+
 				},
 			},
 		},
