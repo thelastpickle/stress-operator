@@ -123,9 +123,16 @@ func main() {
 		{Port: operatorMetricsPort, Name: metrics.CRPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: operatorMetricsPort}},
 	}
 	// Create Service object to expose the metrics port(s).
-	_, err = metrics.CreateMetricsService(ctx, cfg, servicePorts)
+	log.Info("Configuring metrics")
+	svc, err := metrics.CreateMetricsService(ctx, cfg, servicePorts)
 	if err != nil {
-		log.Info(err.Error())
+		log.Info("Failed to create metrics service", "err", err)
+	} else {
+		_, err = metrics.CreateServiceMonitors(cfg, namespace, []*v1.Service{svc})
+		if err != nil {
+			//log.Info(err.Error())
+			log.Info("Failed to create service monitors", "metricsService", svc, "err", err)
+		}
 	}
 
 	log.Info("Starting the Cmd.")
