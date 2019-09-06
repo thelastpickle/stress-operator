@@ -27,7 +27,6 @@ const (
 )
 
 func noCleanup() *framework.CleanupOptions {
-	//return &framework.CleanupOptions{}
 	return nil
 }
 
@@ -85,7 +84,10 @@ func TestTLPStressWithExistingCluster(t *testing.T) {
 }
 
 func runOneTLPStress(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) {
-	namespace := f.Namespace
+	namespace, err := ctx.GetNamespace()
+	if err != nil {
+		t.Fatalf("Failed to get namespace: %s", err)
+	}
 	name := "tlpstress-test"
 
 	if err := createTLPStress(name, namespace, f, ctx); err != nil {
@@ -132,7 +134,7 @@ func runTwoTLPStress(t *testing.T,  f *framework.Framework, ctx *framework.TestC
 		Spec: v1alpha1.TLPStressSpec{
 			StressConfig: v1alpha1.TLPStressConfig{
 				Workload: v1alpha1.KeyValueWorkload,
-				Iterations: stringPtr("500"),
+				Iterations: stringPtr("50"),
 			},
 			CassandraConfig: v1alpha1.CassandraConfig{
 				CassandraCluster:&v1alpha1.CassandraCluster{
@@ -152,7 +154,7 @@ func runTwoTLPStress(t *testing.T,  f *framework.Framework, ctx *framework.TestC
 		t.Errorf("Failed waiting for TLPStress (%s) to start: %s\n", name, err)
 	}
 
-	if err := e2eutil.WaitForTLPStressToFinish(t, f, namespace, name, 2, 10 * time.Second, 3 * time.Minute); err != nil {
+	if err := e2eutil.WaitForTLPStressToFinish(t, f, namespace, name, 2, 1 * time.Second, 3 * time.Minute); err != nil {
 		t.Errorf("Failed waiting for TLPStress (%s) to finish: %s\n", name, err)
 	}
 
@@ -181,7 +183,7 @@ func createTLPStress(name string, namespace string, f *framework.Framework, ctx 
 		Spec: v1alpha1.TLPStressSpec{
 			StressConfig: v1alpha1.TLPStressConfig{
 				Workload: v1alpha1.KeyValueWorkload,
-				Iterations: stringPtr("500"),
+				Iterations: stringPtr("50"),
 			},
 			CassandraConfig: v1alpha1.CassandraConfig{
 				CassandraCluster:&v1alpha1.CassandraCluster{

@@ -15,7 +15,6 @@ var (
 
 func InitOperator(t *testing.T) (*framework.TestCtx, *framework.Framework) {
 	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
 
 	err := ctx.InitializeClusterResources(&framework.CleanupOptions{
 		TestContext:   ctx,

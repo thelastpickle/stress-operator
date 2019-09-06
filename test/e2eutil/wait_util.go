@@ -33,7 +33,7 @@ func WaitForCassKopCluster(
 			}
 			return false, err
 		}
-		if (cc.Status.Phase != "Running") {
+		if cc.Status.Phase != "Running" {
 			t.Logf("Waiting for CassandraCassandra %s (%s)\n", name, cc.Status.Phase)
 			return false, nil
 		}
@@ -58,6 +58,7 @@ func WaitForTLPStressToStart(t *testing.T,
 				t.Logf("Waiting for availability of TLPStress %s\n", name)
 				return false, nil
 			}
+			t.Logf("Failed to get TLPStress (%s): %s", name, err)
 			return false, err
 		}
 		if tlpStress.Status.JobStatus == nil {
