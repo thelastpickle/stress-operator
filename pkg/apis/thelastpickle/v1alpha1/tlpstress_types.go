@@ -122,9 +122,9 @@ type TLPStressSpec struct {
 
 	CassandraConfig CassandraConfig `json:"cassandraConfig,omitempty"`
 
-	Image string `json:"image"`
+	Image string `json:"image,omitempty"`
 
-	ImagePullPolicy v1.PullPolicy `json:"imagePullPolicy"`
+	ImagePullPolicy v1.PullPolicy `json:"imagePullPolicy,omitempty"`
 
 	StressConfig TLPStressConfig `json:"stressConfig,omitempty"`
 
@@ -171,4 +171,13 @@ type TLPStressList struct {
 
 func init() {
 	SchemeBuilder.Register(&TLPStress{}, &TLPStressList{})
+}
+
+func (tlpStress *TLPStress) CreateOwnerReference() metav1.OwnerReference {
+	return metav1.OwnerReference{
+		APIVersion: SchemeGroupVersion.String(),
+		Kind:       "TLPStress",
+		Name:       tlpStress.Name,
+		UID:        tlpStress.UID,
+	}
 }
