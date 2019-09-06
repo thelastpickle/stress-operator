@@ -168,24 +168,25 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	// Check if the metrics service already exists, if not create a new one
-	//metricsService := &corev1.Service{}
-	//err = r.client.Get(context.TODO(), types.NamespacedName{Namespace: tlpStress.Namespace, Name: getMetricsServiceName(tlpStress)}, metricsService)
-	//if err != nil && errors.IsNotFound(err) {
-	//	// Define a new service
-	//	metricsService = r.createMetricsService(tlpStress, request.Namespace)
-	//	reqLogger.Info("Creating metrics service.", "MetricsService.Namespace", metricsService.Namespace,
-	//		"MetricsService.Name", metricsService.Name)
-	//	err = r.client.Create(context.TODO(), metricsService)
-	//	if err != nil {
-	//		reqLogger.Error(err, "Failed to create metrics service.", "MetricsService.Namespace",
-	//			metricsService.Namespace, "MetricsService.Name", metricsService.Name)
-	//		return reconcile.Result{}, err
-	//	}
-	//	return reconcile.Result{Requeue: true}, nil
-	//} else if err != nil {
-	//	reqLogger.Error(err,"Failed to get MetricsService", "MetricsService.Namespace",
-	//		tlpStress.Namespace, "MetricsService.Name", getMetricsServiceName(tlpStress))
-	//}
+	metricsService := &corev1.Service{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Namespace: tlpStress.Namespace, Name: getMetricsServiceName(tlpStress)}, metricsService)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new service
+		metricsService = r.createMetricsService(tlpStress, request.Namespace)
+		reqLogger.Info("Creating metrics service.", "MetricsService.Namespace", metricsService.Namespace,
+			"MetricsService.Name", metricsService.Name)
+		err = r.client.Create(context.TODO(), metricsService)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create metrics service.", "MetricsService.Namespace",
+				metricsService.Namespace, "MetricsService.Name", metricsService.Name)
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err,"Failed to get MetricsService", "MetricsService.Namespace",
+			tlpStress.Namespace, "MetricsService.Name", getMetricsServiceName(tlpStress))
+		return reconcile.Result{}, err
+	}
 
 	// Check if the job already exists, if not create a new one
 	job := &v1batch.Job{}
