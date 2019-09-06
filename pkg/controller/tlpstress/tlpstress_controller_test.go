@@ -148,7 +148,7 @@ func TestTLPStressControllerDefaultsNotSet(t *testing.T) {
 	}
 }
 
-func TestTLPStressControllerJobCreate(t *testing.T) {
+func TestTLPStressControllerMetricsServiceCreate(t *testing.T) {
 	var (
 		name = "tlpstress-controller"
 		namespace = "tlpstress"
@@ -172,6 +172,67 @@ func TestTLPStressControllerJobCreate(t *testing.T) {
 	}
 
 	objs := []runtime.Object{ tlpStress }
+
+	s := scheme.Scheme
+	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, tlpStress)
+
+	cl := fake.NewFakeClient(objs...)
+
+	r := &ReconcileTLPStress{client: cl, scheme: s}
+
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name: name,
+			Namespace: namespace,
+		},
+	}
+
+	res, err := r.Reconcile(req)
+	if err != nil {
+		t.Fatalf("reconcile: (%v)", err)
+	}
+	// Check the result of reconciliation to make sure it has the desired state.
+	if !res.Requeue {
+		t.Error("reconcile did not requeue request as expected")
+	}
+
+	svc := &corev1.Service{}
+	if err = r.client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: getMetricsServiceName(tlpStress)}, svc); err != nil {
+		t.Fatalf("get metrics service: (%v)", err)
+	}
+}
+
+func TestTLPStressControllerJobCreate(t *testing.T) {
+	var (
+		name = "tlpstress-controller"
+		namespace = "tlpstress"
+	)
+
+	tlpStress := &v1alpha1.TLPStress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+			Namespace: namespace,
+		},
+		Spec: v1alpha1.TLPStressSpec{
+			CassandraConfig: v1alpha1.CassandraConfig{
+				CassandraService: "cassandra-service",
+			},
+			StressConfig: v1alpha1.TLPStressConfig{
+				Workload: v1alpha1.KeyValueWorkload,
+			},
+			Image: "jsanda/tlp-stress:demo",
+			ImagePullPolicy: corev1.PullAlways,
+		},
+	}
+
+	metricsService := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: getMetricsServiceName(tlpStress),
+		},
+	}
+
+	objs := []runtime.Object{ tlpStress, metricsService }
 
 	s := scheme.Scheme
 	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, tlpStress)
@@ -226,7 +287,14 @@ func TestTLPStressControllerSetStatus(t *testing.T) {
 		},
 	}
 
-	objs := []runtime.Object{ tlpStress }
+	metricsService := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: getMetricsServiceName(tlpStress),
+		},
+	}
+
+	objs := []runtime.Object{ tlpStress, metricsService }
 
 	s := scheme.Scheme
 	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, tlpStress)
