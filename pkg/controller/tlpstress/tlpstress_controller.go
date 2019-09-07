@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
+	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	thelastpicklev1alpha1 "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"github.com/jsanda/tlp-stress-operator/pkg/tlpstress"
@@ -79,6 +80,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		&casskop.CassandraCluster{},
 		&casskop.CassandraClusterList{},
 		&metav1.ListOptions{},
+		&monitoringv1.ServiceMonitor{},
 	)
 
 	return nil
@@ -188,6 +190,27 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
+	// Check if the service monitor already exists, if not create one
+	serviceMonitor := &monitoringv1.ServiceMonitor{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Namespace: tlpStress.Namespace, Name: metricsService.Name}, serviceMonitor)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new service monitor
+		serviceMonitor = r.createServiceMonitor(metricsService)
+		reqLogger.Info("Creating service monitor.", "ServiceMonitor.Namespace", serviceMonitor.Namespace,
+			"ServiceMonitor.Name", serviceMonitor.Name)
+		err = r.client.Create(context.TODO(), serviceMonitor)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create service monitor", "ServiceMonitor.Namespace",
+				serviceMonitor.Namespace, "ServiceMonitor.Name", serviceMonitor.Name)
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get ServiceMonitor", "ServiceMonitor.Namespace",
+			serviceMonitor.Namespace, "ServiceMonitor.Name", serviceMonitor.Name)
+		return reconcile.Result{}, err
+	}
+
 	// Check if the job already exists, if not create a new one
 	job := &v1batch.Job{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, job)
@@ -244,6 +267,31 @@ func (r *ReconcileTLPStress) createMetricsService(tlpStress *thelastpicklev1alph
 			Selector: labelsForTLPStress(tlpStress.Name),
 		},
 	}
+}
+
+func (r *ReconcileTLPStress) createServiceMonitor(svc *corev1.Service) *monitoringv1.ServiceMonitor {
+	return &monitoringv1.ServiceMonitor{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: svc.Name,
+			Namespace: svc.Namespace,
+			Labels: svc.Labels,
+			OwnerReferences: svc.OwnerReferences,
+		},
+		Spec: monitoringv1.ServiceMonitorSpec{
+			Selector: metav1.LabelSelector{
+				MatchLabels: svc.Spec.Selector,
+			},
+			Endpoints: getEndpoints(svc),
+		},
+	}
+}
+
+func getEndpoints(s *corev1.Service) []monitoringv1.Endpoint {
+	var endpoints []monitoringv1.Endpoint
+	for _, port := range s.Spec.Ports {
+		endpoints = append(endpoints, monitoringv1.Endpoint{Port: port.Name})
+	}
+	return endpoints
 }
 
 func getMetricsServiceName(tlpStress *thelastpicklev1alpha1.TLPStress) string {

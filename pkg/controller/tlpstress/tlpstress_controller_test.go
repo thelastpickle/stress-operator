@@ -14,6 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"testing"
 	"time"
+	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 )
 
 func TestTLPStressControllerDefaultsSet(t *testing.T) {
@@ -202,7 +203,7 @@ func TestTLPStressControllerMetricsServiceCreate(t *testing.T) {
 	}
 }
 
-func TestTLPStressControllerJobCreate(t *testing.T) {
+func TestTLPStressControllerServiceMonitorCreate(t *testing.T) {
 	var (
 		name = "tlpstress-controller"
 		namespace = "tlpstress"
@@ -233,6 +234,75 @@ func TestTLPStressControllerJobCreate(t *testing.T) {
 	}
 
 	objs := []runtime.Object{ tlpStress, metricsService }
+
+	s := scheme.Scheme
+	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, tlpStress,
+		&monitoringv1.ServiceMonitor{})
+
+	cl := fake.NewFakeClient(objs...)
+
+	r := &ReconcileTLPStress{client: cl, scheme: s}
+
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name: name,
+			Namespace: namespace,
+		},
+	}
+
+	res, err := r.Reconcile(req)
+	if err != nil {
+		t.Fatalf("reconcile: (%v)", err)
+	}
+	// Check the result of reconciliation to make sure it has the desired state.
+	if !res.Requeue {
+		t.Error("reconcile did not requeue request as expected")
+	}
+
+	serviceMonitor := &monitoringv1.ServiceMonitor{}
+	if err = r.client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: metricsService.Name}, serviceMonitor); err != nil {
+		t.Fatalf("get service monitor: (%v)", err)
+	}
+}
+
+func TestTLPStressControllerJobCreate(t *testing.T) {
+	var (
+		name = "tlpstress-controller"
+		namespace = "tlpstress"
+	)
+
+	tlpStress := &v1alpha1.TLPStress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+			Namespace: namespace,
+		},
+		Spec: v1alpha1.TLPStressSpec{
+			CassandraConfig: v1alpha1.CassandraConfig{
+				CassandraService: "cassandra-service",
+			},
+			StressConfig: v1alpha1.TLPStressConfig{
+				Workload: v1alpha1.KeyValueWorkload,
+			},
+			Image: "jsanda/tlp-stress:demo",
+			ImagePullPolicy: corev1.PullAlways,
+		},
+	}
+
+	metricsService := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: getMetricsServiceName(tlpStress),
+		},
+	}
+
+	serviceMonitor := &monitoringv1.ServiceMonitor{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: metricsService.Name,
+		},
+	}
+
+	objs := []runtime.Object{ tlpStress, metricsService, serviceMonitor }
 
 	s := scheme.Scheme
 	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, tlpStress)
@@ -294,7 +364,14 @@ func TestTLPStressControllerSetStatus(t *testing.T) {
 		},
 	}
 
-	objs := []runtime.Object{ tlpStress, metricsService }
+	serviceMonitor := &monitoringv1.ServiceMonitor{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: metricsService.Name,
+		},
+	}
+
+	objs := []runtime.Object{ tlpStress, metricsService, serviceMonitor }
 
 	s := scheme.Scheme
 	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, tlpStress)
