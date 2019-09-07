@@ -2,6 +2,7 @@ package tlpstress
 
 import (
 	"context"
+	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	v1batch "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -14,18 +15,72 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"testing"
 	"time"
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 )
 
-func TestTLPStressControllerDefaultsSet(t *testing.T) {
-	var (
-		name = "tlpstress-controller"
-		namespace = "tlpstress"
-	)
+var (
+	name          = "tlpstress-controller"
+	namespace     = "tlpstress"
+	namespaceName = types.NamespacedName{
+		Namespace: namespace,
+		Name:      name,
+	}
+)
 
+func setupReconcile(t *testing.T, state ...runtime.Object) (*ReconcileTLPStress, reconcile.Result) {
+	cl := fake.NewFakeClient(state...)
+	r := &ReconcileTLPStress{client: cl, scheme: scheme.Scheme}
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
+	res, err := r.Reconcile(req)
+	if err != nil {
+		t.Fatalf("reconcile: (%v)", err)
+	}
+
+	return r, res
+}
+
+func setupReconcileWithRequeue(t *testing.T, state ...runtime.Object) *ReconcileTLPStress {
+	r, res := setupReconcile(t, state...)
+
+	// Check the result of reconciliation to make sure it has the desired state.
+	if !res.Requeue {
+		t.Error("reconcile did not requeue request as expected")
+	}
+
+	return r
+}
+
+func setupReconcileWithoutRequeue(t *testing.T, state ...runtime.Object) *ReconcileTLPStress {
+	r, res := setupReconcile(t, state...)
+
+	if res.Requeue {
+		t.Error("did not expect reconcile to requeue the request")
+	}
+
+	return r
+}
+
+func TestReconcile(t *testing.T) {
+	s := scheme.Scheme
+	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &v1alpha1.TLPStress{},
+		&monitoringv1.ServiceMonitor{})
+
+	t.Run("DefaultsSet", testTLPStressControllerDefaultsSet)
+	t.Run("DefaultsNotSet", testTLPStressControllerDefaultsNotSet)
+	t.Run("MetricsServiceCreate", testTLPStressControllerMetricsServiceCreate)
+	t.Run("ServiceMonitorCreate", testTLPStressControllerServiceMonitorCreate)
+	t.Run("JobCreate", testTLPStressControllerJobCreate)
+	t.Run("SetStatus", testTLPStressControllerSetStatus)
+}
+
+func testTLPStressControllerDefaultsSet(t *testing.T) {
 	tlpStress := &v1alpha1.TLPStress{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
+			Name:      name,
 			Namespace: namespace,
 		},
 		Spec: v1alpha1.TLPStressSpec{
@@ -35,34 +90,13 @@ func TestTLPStressControllerDefaultsSet(t *testing.T) {
 		},
 	}
 
-	objs := []runtime.Object{ tlpStress }
+	objs := []runtime.Object{tlpStress}
 
-	s := scheme.Scheme
-	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, tlpStress)
-
-	cl := fake.NewFakeClient(objs...)
-
-	r := &ReconcileTLPStress{client: cl, scheme: s}
-
-	req := reconcile.Request{
-		NamespacedName: types.NamespacedName{
-			Name: name,
-			Namespace: namespace,
-		},
-	}
-
-	res, err := r.Reconcile(req)
-	if err != nil {
-		t.Fatalf("reconcile: (%v)", err)
-	}
-	// Check the result of reconciliation to make sure it has the desired state.
-	if !res.Requeue {
-		t.Error("reconcile did not requeue request as expected")
-	}
+	r := setupReconcileWithRequeue(t, objs...)
 
 	// make sure defaults are assigned
 	instance := &v1alpha1.TLPStress{}
-	err = r.client.Get(context.TODO(), req.NamespacedName, instance)
+	err := r.client.Get(context.TODO(), namespaceName, instance)
 	if err != nil {
 		t.Fatalf("get TLPStress: (%v)", err)
 	}
@@ -80,15 +114,10 @@ func TestTLPStressControllerDefaultsSet(t *testing.T) {
 	}
 }
 
-func TestTLPStressControllerDefaultsNotSet(t *testing.T) {
-	var (
-		name = "tlpstress-controller"
-		namespace = "tlpstress"
-	)
-
+func testTLPStressControllerDefaultsNotSet(t *testing.T) {
 	tlpStress := &v1alpha1.TLPStress{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
+			Name:      name,
 			Namespace: namespace,
 		},
 		Spec: v1alpha1.TLPStressSpec{
@@ -98,45 +127,24 @@ func TestTLPStressControllerDefaultsNotSet(t *testing.T) {
 			StressConfig: v1alpha1.TLPStressConfig{
 				Workload: v1alpha1.BasicTimeSeriesWorkload,
 			},
-			Image: "jsanda/tlp-stress:test",
+			Image:           "jsanda/tlp-stress:test",
 			ImagePullPolicy: corev1.PullIfNotPresent,
 		},
 	}
 
-	objs := []runtime.Object{ tlpStress }
+	objs := []runtime.Object{tlpStress}
 
-	s := scheme.Scheme
-	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, tlpStress)
-
-	cl := fake.NewFakeClient(objs...)
-
-	r := &ReconcileTLPStress{client: cl, scheme: s}
-
-	req := reconcile.Request{
-		NamespacedName: types.NamespacedName{
-			Name: name,
-			Namespace: namespace,
-		},
-	}
-
-	res, err := r.Reconcile(req)
-	if err != nil {
-		t.Fatalf("reconcile: (%v)", err)
-	}
-	// Check the result of reconciliation to make sure it has the desired state.
-	if !res.Requeue {
-		t.Error("reconcile did not requeue request as expected")
-	}
+	r := setupReconcileWithRequeue(t, objs...)
 
 	// make sure defaults are assigned
 	instance := &v1alpha1.TLPStress{}
-	err = r.client.Get(context.TODO(), req.NamespacedName, instance)
+	err := r.client.Get(context.TODO(), namespaceName, instance)
 	if err != nil {
 		t.Fatalf("get TLPStress: (%v)", err)
 	}
 
 	if instance.Spec.StressConfig.Workload != tlpStress.Spec.StressConfig.Workload {
-		t.Errorf("Workload (%s) is not the expected value (%s)", instance.Spec.StressConfig.Workload, 
+		t.Errorf("Workload (%s) is not the expected value (%s)", instance.Spec.StressConfig.Workload,
 			tlpStress.Spec.StressConfig.Workload)
 	}
 
@@ -149,15 +157,10 @@ func TestTLPStressControllerDefaultsNotSet(t *testing.T) {
 	}
 }
 
-func TestTLPStressControllerMetricsServiceCreate(t *testing.T) {
-	var (
-		name = "tlpstress-controller"
-		namespace = "tlpstress"
-	)
-
+func testTLPStressControllerMetricsServiceCreate(t *testing.T) {
 	tlpStress := &v1alpha1.TLPStress{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
+			Name:      name,
 			Namespace: namespace,
 		},
 		Spec: v1alpha1.TLPStressSpec{
@@ -167,51 +170,25 @@ func TestTLPStressControllerMetricsServiceCreate(t *testing.T) {
 			StressConfig: v1alpha1.TLPStressConfig{
 				Workload: v1alpha1.KeyValueWorkload,
 			},
-			Image: "jsanda/tlp-stress:demo",
+			Image:           "jsanda/tlp-stress:demo",
 			ImagePullPolicy: corev1.PullAlways,
 		},
 	}
 
-	objs := []runtime.Object{ tlpStress }
+	objs := []runtime.Object{tlpStress}
 
-	s := scheme.Scheme
-	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, tlpStress)
-
-	cl := fake.NewFakeClient(objs...)
-
-	r := &ReconcileTLPStress{client: cl, scheme: s}
-
-	req := reconcile.Request{
-		NamespacedName: types.NamespacedName{
-			Name: name,
-			Namespace: namespace,
-		},
-	}
-
-	res, err := r.Reconcile(req)
-	if err != nil {
-		t.Fatalf("reconcile: (%v)", err)
-	}
-	// Check the result of reconciliation to make sure it has the desired state.
-	if !res.Requeue {
-		t.Error("reconcile did not requeue request as expected")
-	}
+	r := setupReconcileWithRequeue(t, objs...)
 
 	svc := &corev1.Service{}
-	if err = r.client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: getMetricsServiceName(tlpStress)}, svc); err != nil {
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: getMetricsServiceName(tlpStress)}, svc); err != nil {
 		t.Fatalf("get metrics service: (%v)", err)
 	}
 }
 
-func TestTLPStressControllerServiceMonitorCreate(t *testing.T) {
-	var (
-		name = "tlpstress-controller"
-		namespace = "tlpstress"
-	)
-
+func testTLPStressControllerServiceMonitorCreate(t *testing.T) {
 	tlpStress := &v1alpha1.TLPStress{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
+			Name:      name,
 			Namespace: namespace,
 		},
 		Spec: v1alpha1.TLPStressSpec{
@@ -221,7 +198,7 @@ func TestTLPStressControllerServiceMonitorCreate(t *testing.T) {
 			StressConfig: v1alpha1.TLPStressConfig{
 				Workload: v1alpha1.KeyValueWorkload,
 			},
-			Image: "jsanda/tlp-stress:demo",
+			Image:           "jsanda/tlp-stress:demo",
 			ImagePullPolicy: corev1.PullAlways,
 		},
 	}
@@ -229,51 +206,24 @@ func TestTLPStressControllerServiceMonitorCreate(t *testing.T) {
 	metricsService := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name: getMetricsServiceName(tlpStress),
+			Name:      getMetricsServiceName(tlpStress),
 		},
 	}
 
-	objs := []runtime.Object{ tlpStress, metricsService }
+	objs := []runtime.Object{tlpStress, metricsService}
 
-	s := scheme.Scheme
-	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, tlpStress,
-		&monitoringv1.ServiceMonitor{})
-
-	cl := fake.NewFakeClient(objs...)
-
-	r := &ReconcileTLPStress{client: cl, scheme: s}
-
-	req := reconcile.Request{
-		NamespacedName: types.NamespacedName{
-			Name: name,
-			Namespace: namespace,
-		},
-	}
-
-	res, err := r.Reconcile(req)
-	if err != nil {
-		t.Fatalf("reconcile: (%v)", err)
-	}
-	// Check the result of reconciliation to make sure it has the desired state.
-	if !res.Requeue {
-		t.Error("reconcile did not requeue request as expected")
-	}
+	r := setupReconcileWithRequeue(t, objs...)
 
 	serviceMonitor := &monitoringv1.ServiceMonitor{}
-	if err = r.client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: metricsService.Name}, serviceMonitor); err != nil {
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: metricsService.Name}, serviceMonitor); err != nil {
 		t.Fatalf("get service monitor: (%v)", err)
 	}
 }
 
-func TestTLPStressControllerJobCreate(t *testing.T) {
-	var (
-		name = "tlpstress-controller"
-		namespace = "tlpstress"
-	)
-
+func testTLPStressControllerJobCreate(t *testing.T) {
 	tlpStress := &v1alpha1.TLPStress{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
+			Name:      name,
 			Namespace: namespace,
 		},
 		Spec: v1alpha1.TLPStressSpec{
@@ -283,7 +233,7 @@ func TestTLPStressControllerJobCreate(t *testing.T) {
 			StressConfig: v1alpha1.TLPStressConfig{
 				Workload: v1alpha1.KeyValueWorkload,
 			},
-			Image: "jsanda/tlp-stress:demo",
+			Image:           "jsanda/tlp-stress:demo",
 			ImagePullPolicy: corev1.PullAlways,
 		},
 	}
@@ -291,58 +241,32 @@ func TestTLPStressControllerJobCreate(t *testing.T) {
 	metricsService := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name: getMetricsServiceName(tlpStress),
+			Name:      getMetricsServiceName(tlpStress),
 		},
 	}
 
 	serviceMonitor := &monitoringv1.ServiceMonitor{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name: metricsService.Name,
+			Name:      metricsService.Name,
 		},
 	}
 
-	objs := []runtime.Object{ tlpStress, metricsService, serviceMonitor }
+	objs := []runtime.Object{tlpStress, metricsService, serviceMonitor}
 
-	s := scheme.Scheme
-	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, tlpStress)
-
-	cl := fake.NewFakeClient(objs...)
-
-	r := &ReconcileTLPStress{client: cl, scheme: s}
-
-	req := reconcile.Request{
-		NamespacedName: types.NamespacedName{
-			Name: name,
-			Namespace: namespace,
-		},
-	}
-
-	res, err := r.Reconcile(req)
-	if err != nil {
-		t.Fatalf("reconcile: (%v)", err)
-	}
-	// Check the result of reconciliation to make sure it has the desired state.
-	if !res.Requeue {
-		t.Error("reconcile did not requeue request as expected")
-	}
+	r := setupReconcileWithRequeue(t, objs...)
 
 	job := &v1batch.Job{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, job)
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, job)
 	if err != nil {
 		t.Fatalf("get job: (%v)", err)
 	}
 }
 
-func TestTLPStressControllerSetStatus(t *testing.T) {
-	var (
-		name = "tlpstress-controller"
-		namespace = "tlpstress"
-	)
-
+func testTLPStressControllerSetStatus(t *testing.T) {
 	tlpStress := &v1alpha1.TLPStress{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
+			Name:      name,
 			Namespace: namespace,
 		},
 		Spec: v1alpha1.TLPStressSpec{
@@ -352,7 +276,7 @@ func TestTLPStressControllerSetStatus(t *testing.T) {
 			StressConfig: v1alpha1.TLPStressConfig{
 				Workload: v1alpha1.KeyValueWorkload,
 			},
-			Image: "jsanda/tlp-stress:demo",
+			Image:           "jsanda/tlp-stress:demo",
 			ImagePullPolicy: corev1.PullAlways,
 		},
 	}
@@ -360,70 +284,40 @@ func TestTLPStressControllerSetStatus(t *testing.T) {
 	metricsService := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name: getMetricsServiceName(tlpStress),
+			Name:      getMetricsServiceName(tlpStress),
 		},
 	}
 
 	serviceMonitor := &monitoringv1.ServiceMonitor{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name: metricsService.Name,
-		},
-	}
-
-	objs := []runtime.Object{ tlpStress, metricsService, serviceMonitor }
-
-	s := scheme.Scheme
-	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, tlpStress)
-
-	cl := fake.NewFakeClient(objs...)
-
-	r := &ReconcileTLPStress{client: cl, scheme: s}
-
-	req := reconcile.Request{
-		NamespacedName: types.NamespacedName{
-			Name: name,
-			Namespace: namespace,
+			Name:      metricsService.Name,
 		},
 	}
 
 	job := &v1batch.Job{
 		TypeMeta: metav1.TypeMeta{
-			Kind: "Job",
+			Kind:       "Job",
 			APIVersion: "batch/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: tlpStress.Name,
+			Name:      tlpStress.Name,
 			Namespace: tlpStress.Namespace,
 		},
 	}
 
-	err := r.client.Create(context.TODO(), job)
-	if err != nil {
-		t.Fatalf("create job: (%v)", err)
-	}
-
 	now := metav1.Date(2019, time.April, 7, 7, 7, 7, 0, time.Local)
 	job.Status = v1batch.JobStatus{
-		Active: 1,
+		Active:    1,
 		StartTime: &now,
 	}
 
-	if err = r.client.Status().Update(context.TODO(), job); err != nil {
-		t.Fatalf("update status: (%v)", err)
-	}
+	objs := []runtime.Object{tlpStress, metricsService, serviceMonitor, job}
 
-	res, err := r.Reconcile(req)
-	if err != nil {
-		t.Fatalf("reconcile: (%v)", err)
-	}
-	// Check the result of reconciliation to make sure it has the desired state.
-	if res.Requeue {
-		t.Error("reconcile should not have requeued the request")
-	}
+	r := setupReconcileWithoutRequeue(t, objs...)
 
-	 actual := &v1alpha1.TLPStress{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, actual)
+	actual := &v1alpha1.TLPStress{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, actual)
 	if err != nil {
 		t.Fatalf("get actual: (%v)", err)
 	}
@@ -432,4 +326,3 @@ func TestTLPStressControllerSetStatus(t *testing.T) {
 		t.Errorf("actual.Status.JobStatus (%v) does not match the expected value (%+v)", actual.Status.JobStatus, job.Status)
 	}
 }
-
