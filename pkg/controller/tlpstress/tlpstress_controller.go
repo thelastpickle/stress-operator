@@ -381,6 +381,6 @@ func labelsForTLPStress(name string) map[string]string {
 	return map[string]string{
 		"app": "tlpstress",
 		"tlpstress": name,
-		"prometheus": "enabled",
+		"monitoring": "enabled",
 	}
 }
