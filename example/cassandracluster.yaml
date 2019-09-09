@@ -1,0 +1,21 @@
+apiVersion: "db.orange.com/v1alpha1"
+kind: "CassandraCluster"
+metadata:
+  name: tlpstress-demo
+spec:
+  dataCapacity: 10Gi
+  imagePullPolicy: IfNotPresent
+  deletePVC: true
+  nodesPerRack: 1
+  resources:
+    requests:
+      cpu: '1'
+      memory: 1Gi
+    limits:
+      cpu: '1'
+      memory: 1Gi
+  topology:
+    dc:
+      - name: dc1
+        rack:
+          - name: rack1
