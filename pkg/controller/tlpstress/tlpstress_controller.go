@@ -80,7 +80,11 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		&casskop.CassandraCluster{},
 		&casskop.CassandraClusterList{},
 		&metav1.ListOptions{},
+	)
+	mgr.GetScheme().AddKnownTypes(schema.GroupVersion{Group: "monitoring.coreos.com", Version: "v1"},
 		&monitoringv1.ServiceMonitor{},
+		&monitoringv1.ServiceMonitorList{},
+		&metav1.ListOptions{},
 	)
 
 	return nil
