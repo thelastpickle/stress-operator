@@ -138,9 +138,6 @@ spec:
                   - UdtTimeSeries
                   type: string
               type: object
-          required:
-          - image
-          - imagePullPolicy
           type: object
         status:
           properties:
