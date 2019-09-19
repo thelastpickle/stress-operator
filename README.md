@@ -42,3 +42,7 @@ tlp-stress-operator-65fbbbd9f8-9tbcl   1/1     Running   0          30s
 ```
 
 ## TLPStress Custom Resource 
+TODO
+
+## CircleCI Status
+[![CircleCI](https://circleci.com/gh/jsanda/tlp-stress-operator/tree/master.svg?style=svg)](https://circleci.com/gh/jsanda/tlp-stress-operator/tree/master)
