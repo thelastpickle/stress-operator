@@ -2,12 +2,8 @@ version: 2.1
 jobs:
   build:
     docker:
-      # specify the version
       - image: circleci/golang:1.12.5
     steps:
       - checkout
       - run: make build
-
-      # specify any bash command here prefixed with `run: `
-#      - run: go get -v -t -d ./...
-#      - run: go test -v ./...
+      - run: make unit-test

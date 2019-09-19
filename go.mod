@@ -1,6 +1,7 @@
 module github.com/jsanda/tlp-stress-operator
 
 require (
+	github.com/NYTimes/gziphandler v1.0.1 // indirect
 	github.com/Orange-OpenSource/cassandra-k8s-operator v0.3.2
 	github.com/coreos/prometheus-operator v0.29.0
 	github.com/go-logr/logr v0.1.0
@@ -30,3 +31,5 @@ replace (
 )
 
 replace github.com/operator-framework/operator-sdk => github.com/operator-framework/operator-sdk v0.9.0
+
+replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
