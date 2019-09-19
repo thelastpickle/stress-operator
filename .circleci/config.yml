@@ -5,7 +5,7 @@ jobs:
       # specify the version
       - image: circleci/golang:1.12.5
 
-    working_directory: /src
+    working_directory: /home/circleci
     steps:
       - checkout
       - run: make build
