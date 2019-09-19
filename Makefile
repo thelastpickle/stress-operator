@@ -1,6 +1,5 @@
 ORG=jsanda
-#NAMESPACE=tlp-stress
-NAMESPACE=default
+NAMESPACE=tlpstress-dev
 PROJECT=tlp-stress-operator
 REG=docker.io
 SHELL=/bin/bash
@@ -33,7 +32,7 @@ openapi-gen:
 	operator-sdk generate openapi
 
 .PHONY: build-image
-build-image:
+build-image: code-gen openapi-gen
 	@operator-sdk build ${REG}/${ORG}/${PROJECT}:${TAG}
 
 .PHONY: push-image
