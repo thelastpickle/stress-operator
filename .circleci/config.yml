@@ -27,11 +27,11 @@ jobs:
       - run: ./scripts/kind-smoketest.sh
 
 
-workflows:
-  version: 2.1
-  build-master:
-    jobs:
-      - build:
+#workflows:
+#  version: 2.1
+#  build-master:
+#    jobs:
+#      - build:
 
 #          filters:
 #            branches:
