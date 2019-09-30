@@ -6,6 +6,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+      - run: go get -d github.com/operator-framework/operator-sdk@0.9.0
       - run: make code-gen
       - run: make openapi-gen
       - run: make build-image
