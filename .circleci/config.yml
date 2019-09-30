@@ -23,6 +23,8 @@ jobs:
             docker login --username $DOCKERHUB_USER --password $DOCKERHUB_PASSWORD
             make push-image
   e2e-tests:
+    docker:
+      - image: circleci/golang:1.12.5
     steps:
       - run: ./scripts/kind-smoketest.sh
 
