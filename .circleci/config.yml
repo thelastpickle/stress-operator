@@ -4,6 +4,10 @@ jobs:
     docker:
       - image: circleci/golang:1.12.5
     steps:
+      - restore_cache:
+          key: operator-sdk-v0.9.0
+          paths:
+            - /tmp/operator-sdk
       - run:
           name: install operator-sdk
           command: |
@@ -12,10 +16,12 @@ jobs:
             cd operator-sdk
             git checkout v0.9.0
             make install
+      - save_cache:
+          key: operator-sdk-v0.9.0
+          paths:
+            - /tmp/operator-sdk
       - checkout
-      - setup_remote_docker
-      - run: make code-gen
-      - run: make openapi-gen
+#      - setup_remote_docker
       - run: make build-image
   unit-test:
     docker:
