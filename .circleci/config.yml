@@ -21,7 +21,7 @@ jobs:
           paths:
             - /tmp/operator-sdk
       - checkout
-#      - setup_remote_docker
+      - setup_remote_docker
       - run: make build-image
   unit-test:
     docker:
