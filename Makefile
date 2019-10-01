@@ -33,6 +33,8 @@ openapi-gen:
 
 .PHONY: build-image
 build-image: code-gen openapi-gen
+	pwd
+	ls -R
 	@operator-sdk build ${REG}/${ORG}/${PROJECT}:${TAG}
 
 .PHONY: push-image
@@ -48,6 +50,8 @@ unit-test:
 e2e-setup:
 	./scripts/create-ns.sh $(E2E_NAMESPACE)
 	kubectl apply -n $(E2E_NAMESPACE) -f config/casskop
+	kubectl apply -f config/prometheus-operator/bundle.yaml
+#	kubectl apply -n $(E2E_NAMESPACE) -f config/prometheus/bundle.yaml
 
 .PHONY: e2e-test
 e2e-test: e2e-setup
