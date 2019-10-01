@@ -33,8 +33,6 @@ openapi-gen:
 
 .PHONY: build-image
 build-image: code-gen openapi-gen
-	pwd
-	ls -R
 	@operator-sdk build ${REG}/${ORG}/${PROJECT}:${TAG}
 
 .PHONY: push-image

@@ -5,9 +5,9 @@ ENV OPERATOR=/usr/local/bin/tlp-stress-operator \
     USER_NAME=tlp-stress-operator
 
 # install operator binary
-COPY build/_output/bin/tlp-stress-operator ${OPERATOR}
+COPY ./build/_output/bin/tlp-stress-operator ${OPERATOR}
 
-COPY build/bin /usr/local/bin
+COPY ./build/bin /usr/local/bin
 RUN  /usr/local/bin/user_setup
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
