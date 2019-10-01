@@ -1,5 +1,18 @@
 version: 2.1
 jobs:
+  install-operator-sdk:
+    docker:
+      - image: circleci/golang:1.12.5
+    steps:
+      - run:
+          name: Clone operator-sdk git repo
+          command: git clone https://github.com/operator-framework/operator-sdk.git
+      - run:
+          name: Build operator-sdk
+          command: |
+            cd operator-sdk
+            git checkout v0.9.0
+            make install
   build:
     docker:
       - image: circleci/golang:1.12.5
