@@ -6,7 +6,8 @@ import (
 	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
-	thelastpicklev1alpha1 "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	api "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"
 	"github.com/jsanda/tlp-stress-operator/pkg/tlpstress"
 	v1batch "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -33,7 +34,7 @@ var log = logf.Log.WithName("controller_tlpstress")
 const (
 	DefaultImage           = "thelastpickle/tlp-stress:3.0.0"
 	DefaultImagePullPolicy = corev1.PullAlways
-	DefaultWorkload        = thelastpicklev1alpha1.KeyValueWorkload
+	DefaultWorkload        = api.KeyValueWorkload
 )
 
 /**
@@ -61,7 +62,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource TLPStress
-	err = c.Watch(&source.Kind{Type: &thelastpicklev1alpha1.TLPStress{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(&source.Kind{Type: &api.TLPStress{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -70,7 +71,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Watch for changes to secondary resource Pods and requeue the owner TLPStress
 	err = c.Watch(&source.Kind{Type: &v1batch.Job{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
-		OwnerType:    &thelastpicklev1alpha1.TLPStress{},
+		OwnerType:    &api.TLPStress{},
 	})
 	if err != nil {
 		return err
@@ -107,13 +108,13 @@ type ReconcileTLPStress struct {
 // a Pod as an example
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
-// Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
+// Result.ReconcileRequeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling TLPStress")
 
 	// Fetch the TLPStress tlpStress
-	instance := &thelastpicklev1alpha1.TLPStress{}
+	instance := &api.TLPStress{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -174,41 +175,20 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	// Check if the metrics service already exists, if not create a new one
-	metricsService := &corev1.Service{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Namespace: tlpStress.Namespace, Name: getMetricsServiceName(tlpStress)}, metricsService)
+	metricsSvc, err := monitoring.GetMetricsService(tlpStress, r.client)
 	if err != nil && errors.IsNotFound(err) {
-		// Define a new service
-		metricsService = r.createMetricsService(tlpStress, request.Namespace)
-		reqLogger.Info("Creating metrics service.", "MetricsService.Namespace", metricsService.Namespace,
-			"MetricsService.Name", metricsService.Name)
-		err = r.client.Create(context.TODO(), metricsService)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create metrics service.", "MetricsService.Namespace",
-				metricsService.Namespace, "MetricsService.Name", metricsService.Name)
-			return reconcile.Result{}, err
-		}
-		return reconcile.Result{Requeue: true}, nil
+		return monitoring.CreateMetricsService(tlpStress, r.client, reqLogger)
 	} else if err != nil {
 		reqLogger.Error(err,"Failed to get MetricsService", "MetricsService.Namespace",
-			tlpStress.Namespace, "MetricsService.Name", getMetricsServiceName(tlpStress))
+			tlpStress.Namespace, "MetricsService.Name", monitoring.GetMetricsServiceName(tlpStress))
 		return reconcile.Result{}, err
 	}
 
 	// Check if the service monitor already exists, if not create one
-	serviceMonitor := &monitoringv1.ServiceMonitor{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Namespace: tlpStress.Namespace, Name: metricsService.Name}, serviceMonitor)
+	serviceMonitor, err := monitoring.GetServiceMonitor(tlpStress, r.client)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new service monitor
-		serviceMonitor = r.createServiceMonitor(metricsService)
-		reqLogger.Info("Creating service monitor.", "ServiceMonitor.Namespace", serviceMonitor.Namespace,
-			"ServiceMonitor.Name", serviceMonitor.Name)
-		err = r.client.Create(context.TODO(), serviceMonitor)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create service monitor", "ServiceMonitor.Namespace",
-				serviceMonitor.Namespace, "ServiceMonitor.Name", serviceMonitor.Name)
-			return reconcile.Result{}, err
-		}
-		return reconcile.Result{Requeue: true}, nil
+		return monitoring.CreateServiceMonitor(metricsSvc, r.client, reqLogger)
 	} else if err != nil {
 		reqLogger.Error(err, "Failed to get ServiceMonitor", "ServiceMonitor.Namespace",
 			serviceMonitor.Namespace, "ServiceMonitor.Name", serviceMonitor.Name)
@@ -246,12 +226,12 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileTLPStress) createMetricsService(tlpStress *thelastpicklev1alpha1.TLPStress, namespace string) *corev1.Service {
+func (r *ReconcileTLPStress) createMetricsService(tlpStress *api.TLPStress, namespace string) *corev1.Service {
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: getMetricsServiceName(tlpStress),
 			Namespace: namespace,
-			Labels: labelsForTLPStress(tlpStress.Name),
+			Labels: tlpstress.LabelsForTLPStress(tlpStress.Name),
 			OwnerReferences: []metav1.OwnerReference{
 				tlpStress.CreateOwnerReference(),
 			},
@@ -268,7 +248,7 @@ func (r *ReconcileTLPStress) createMetricsService(tlpStress *thelastpicklev1alph
 					},
 				},
 			},
-			Selector: labelsForTLPStress(tlpStress.Name),
+			Selector: tlpstress.LabelsForTLPStress(tlpStress.Name),
 		},
 	}
 }
@@ -298,14 +278,14 @@ func getEndpoints(s *corev1.Service) []monitoringv1.Endpoint {
 	return endpoints
 }
 
-func getMetricsServiceName(tlpStress *thelastpicklev1alpha1.TLPStress) string {
+func getMetricsServiceName(tlpStress *api.TLPStress) string {
 	return fmt.Sprintf("%s-metrics", tlpStress.Name)
 }
 
-func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TLPStress, namespace string,
+func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *api.TLPStress, namespace string,
 	log logr.Logger) *v1batch.Job {
 
-	ls := labelsForTLPStress(tlpStress.Name)
+	ls := tlpstress.LabelsForTLPStress(tlpStress.Name)
 
 	job := &v1batch.Job{
 		TypeMeta: metav1.TypeMeta{
@@ -354,13 +334,13 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *thelastpicklev1alpha1.TL
 	return job
 }
 
-func buildCmdLineArgs(instance *thelastpicklev1alpha1.TLPStress, namespace string, log logr.Logger) *[]string {
+func buildCmdLineArgs(instance *api.TLPStress, namespace string, log logr.Logger) *[]string {
 	cmdLineArgs := tlpstress.CreateCommandLineArgs(&instance.Spec.StressConfig, &instance.Spec.CassandraConfig, namespace)
 	log.Info("Creating tlp-stress arguments", "commandLineArgs", cmdLineArgs)
 	return cmdLineArgs.GetArgs()
 }
 
-func checkDefaults(tlpStress *thelastpicklev1alpha1.TLPStress) bool {
+func checkDefaults(tlpStress *api.TLPStress) bool {
 	updated := false
 
 	if len(tlpStress.Spec.Image) == 0 {
@@ -379,12 +359,4 @@ func checkDefaults(tlpStress *thelastpicklev1alpha1.TLPStress) bool {
 	}
 
 	return updated
-}
-
-func labelsForTLPStress(name string) map[string]string {
-	return map[string]string{
-		"app": "tlpstress",
-		"tlpstress": name,
-		"monitoring": "enabled",
-	}
 }
