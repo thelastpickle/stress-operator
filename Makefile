@@ -11,6 +11,8 @@ COMPILE_TARGET=./tmp/_output/bin/$(PROJECT)
 # declare the namespace to be tlpstresss-e2e
 E2E_NAMESPACE=tlpstress-e2e
 
+PROMETHEUS_OPERATOR_NAMESPACE=prometheus-operator
+
 .PHONY: clean
 clean:
 	rm -rf build/_output
@@ -47,7 +49,9 @@ unit-test:
 .PHONY: e2e-setup
 e2e-setup:
 	./scripts/create-ns.sh $(E2E_NAMESPACE)
+	./scripts/create-ns.sh $(PROMETHEUS_OPERATOR_NAMESPACE)
 	kubectl apply -n $(E2E_NAMESPACE) -f config/casskop
+	kubectl apply -n $(PROMETHEUS_OPERATOR_NAMESPACE) -f config/prometheus-operator/bundle.yaml
 
 .PHONY: e2e-test
 e2e-test: e2e-setup
@@ -62,3 +66,18 @@ e2e-cleanup:
 	kubectl -n $(E2E_NAMESPACE) delete role tlp-stress-operator
 	kubectl -n $(E2E_NAMESPACE) delete rolebinding tlp-stress-operator
 	kubectl -n $(E2E_NAMESPACE) delete deployment tlp-stress-operator
+
+.PHONY: test-export
+test-export:
+	export FOO=hey
+
+.PHONY: init-kind-kubeconfig
+init-kind-kubeconfig:
+	export KUBECONFIG=$(shell kind get kubeconfig-path --name="tlpstress")
+
+.PHONY: create-kind-cluster
+create-kind-cluster:
+	kind create -f config/kind/multi-node.yaml
+	export KUBECONFIG="$(kind get kubeconfig-path --name="tlpstress")"
+	kubectl apply -f config/kind/hostpath-provisioner.yaml
+	kubectl delete storageclass default
