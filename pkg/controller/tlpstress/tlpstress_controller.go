@@ -2,7 +2,6 @@ package tlpstress
 
 import (
 	"context"
-	"fmt"
 	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
@@ -16,7 +15,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -224,62 +222,6 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	return reconcile.Result{}, nil
-}
-
-func (r *ReconcileTLPStress) createMetricsService(tlpStress *api.TLPStress, namespace string) *corev1.Service {
-	return &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: getMetricsServiceName(tlpStress),
-			Namespace: namespace,
-			Labels: tlpstress.LabelsForTLPStress(tlpStress.Name),
-			OwnerReferences: []metav1.OwnerReference{
-				tlpStress.CreateOwnerReference(),
-			},
-		},
-		Spec: corev1.ServiceSpec{
-			Ports: []corev1.ServicePort{
-				{
-					Port: 9500,
-					Name: "metrics",
-					Protocol: corev1.ProtocolTCP,
-					TargetPort: intstr.IntOrString{
-						Type: intstr.Int,
-						IntVal: 9500,
-					},
-				},
-			},
-			Selector: tlpstress.LabelsForTLPStress(tlpStress.Name),
-		},
-	}
-}
-
-func (r *ReconcileTLPStress) createServiceMonitor(svc *corev1.Service) *monitoringv1.ServiceMonitor {
-	return &monitoringv1.ServiceMonitor{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: svc.Name,
-			Namespace: svc.Namespace,
-			Labels: svc.Labels,
-			OwnerReferences: svc.OwnerReferences,
-		},
-		Spec: monitoringv1.ServiceMonitorSpec{
-			Selector: metav1.LabelSelector{
-				MatchLabels: svc.Spec.Selector,
-			},
-			Endpoints: getEndpoints(svc),
-		},
-	}
-}
-
-func getEndpoints(s *corev1.Service) []monitoringv1.Endpoint {
-	var endpoints []monitoringv1.Endpoint
-	for _, port := range s.Spec.Ports {
-		endpoints = append(endpoints, monitoringv1.Endpoint{Port: port.Name})
-	}
-	return endpoints
-}
-
-func getMetricsServiceName(tlpStress *api.TLPStress) string {
-	return fmt.Sprintf("%s-metrics", tlpStress.Name)
 }
 
 func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *api.TLPStress, namespace string,
