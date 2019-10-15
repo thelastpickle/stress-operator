@@ -182,15 +182,21 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
-	// Check if the service monitor already exists, if not create one
-	serviceMonitor, err := monitoring.GetServiceMonitor(tlpStress, r.client)
-	if err != nil && errors.IsNotFound(err) {
-		// Define a new service monitor
-		return monitoring.CreateServiceMonitor(metricsSvc, r.client, reqLogger)
+	// The ServiceMonitor CRD is create by prometheus-operator which is an option dependency. We therefore
+	// need to check that the CRD exists on the server before we try to create a ServiceMonitor.
+	if crdDefined, err := monitoring.ServiceMonitorCRDExists(); crdDefined {
+		// Check if the service monitor already exists, if not create one
+		serviceMonitor, err := monitoring.GetServiceMonitor(tlpStress, r.client)
+		if err != nil && errors.IsNotFound(err) {
+			// Define a new service monitor
+			return monitoring.CreateServiceMonitor(metricsSvc, r.client, reqLogger)
+		} else if err != nil {
+			reqLogger.Error(err, "Failed to get ServiceMonitor", "ServiceMonitor.Namespace",
+				serviceMonitor.Namespace, "ServiceMonitor.Name", serviceMonitor.Name)
+			return reconcile.Result{}, err
+		}
 	} else if err != nil {
-		reqLogger.Error(err, "Failed to get ServiceMonitor", "ServiceMonitor.Namespace",
-			serviceMonitor.Namespace, "ServiceMonitor.Name", serviceMonitor.Name)
-		return reconcile.Result{}, err
+		reqLogger.Error(err, "Failed to check for ServiceMonitor CRD")
 	}
 
 	// Check if the job already exists, if not create a new one
