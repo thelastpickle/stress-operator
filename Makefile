@@ -46,6 +46,14 @@ unit-test:
 	@echo Running tests:
 	go test -v -race -cover ./pkg/...
 
+.PHONE: deploy-casskop
+deploy-casskop:
+	kubectl apply -f config/casskop
+
+.PHONY: deploy-prometheus-operator
+deploy-prometheus-operator:
+	kubectl apply -f config/prometheus-operator/bundle.yaml
+
 .PHONY: e2e-setup
 e2e-setup:
 	./scripts/create-ns.sh $(E2E_NAMESPACE)
@@ -66,10 +74,6 @@ e2e-cleanup:
 	kubectl -n $(E2E_NAMESPACE) delete role tlp-stress-operator
 	kubectl -n $(E2E_NAMESPACE) delete rolebinding tlp-stress-operator
 	kubectl -n $(E2E_NAMESPACE) delete deployment tlp-stress-operator
-
-.PHONY: test-export
-test-export:
-	export FOO=hey
 
 .PHONY: init-kind-kubeconfig
 init-kind-kubeconfig:
