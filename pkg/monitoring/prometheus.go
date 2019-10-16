@@ -18,14 +18,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-type monitoringError string
-
-const ServiceMonitorCRDUndefinedError monitoringError = "ServiceMonitor CRD is undefined"
-
-func (err monitoringError) Error() string {
-	return string(err)
-}
-
 func GetMetricsService(tlpStress *api.TLPStress, client client.Client) (*corev1.Service, error) {
 	metricsService := &corev1.Service{}
 	err := client.Get(context.TODO(), types.NamespacedName{Namespace: tlpStress.Namespace, Name: GetMetricsServiceName(tlpStress)}, metricsService)
