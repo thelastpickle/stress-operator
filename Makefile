@@ -54,6 +54,14 @@ deploy-casskop:
 deploy-prometheus-operator:
 	kubectl apply -f config/prometheus-operator/bundle.yaml
 
+.PHONY: deploy-prometheus
+deploy-prometheus: deploy-prometheus-operator
+	until kubectl get crd prometheuses.monitoring.coreos.com > /dev/null 2>&1; do \
+		echo "Waiting for prometheuses.monitoring.coreos.com CRD to be deployed"; \
+		sleep 1; \
+	done;
+	kubectl apply -f config/prometheus/bundle.yaml
+
 .PHONY: e2e-setup
 e2e-setup:
 	./scripts/create-ns.sh $(E2E_NAMESPACE)
