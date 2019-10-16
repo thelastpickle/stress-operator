@@ -7,11 +7,8 @@ TAG?=latest
 PKG=github.com/jsanda/tlp-stress-operator
 COMPILE_TARGET=./tmp/_output/bin/$(PROJECT)
 
-# This currently has to be set to tlpstress-e2e. The manifest files in test/manifests
-# declare the namespace to be tlpstresss-e2e
-E2E_NAMESPACE=tlpstress-e2e
-
-PROMETHEUS_OPERATOR_NAMESPACE=prometheus-operator
+DEV_NS ?= tlpstress
+E2E_NS?=tlpstress-e2e
 
 .PHONY: clean
 clean:
@@ -46,42 +43,66 @@ unit-test:
 	@echo Running tests:
 	go test -v -race -cover ./pkg/...
 
-.PHONE: deploy-casskop
-deploy-casskop:
-	kubectl apply -f config/casskop
+.PHONY: do-deploy-casskop
+do-deploy-casskop:
+	kubectl -n $(CASSKOP_NS) apply -f config/casskop
+
+.PHONY: deploy-casskop
+deploy-casskop: CASSKOP_NS ?= $(DEV_NS)
+deploy-casskop: do-deploy-casskop
 
 .PHONY: deploy-prometheus-operator
 deploy-prometheus-operator:
 	kubectl apply -f config/prometheus-operator/bundle.yaml
 
-.PHONY: deploy-prometheus
-deploy-prometheus: deploy-prometheus-operator
+.PHONY: do-deploy-prometheus
+do-deploy-prometheus: deploy-prometheus-operator
 	until kubectl get crd prometheuses.monitoring.coreos.com > /dev/null 2>&1; do \
 		echo "Waiting for prometheuses.monitoring.coreos.com CRD to be deployed"; \
 		sleep 1; \
 	done;
-	kubectl apply -f config/prometheus/bundle.yaml
+	kubectl -n $(PROMETHEUS_NS) apply -f config/prometheus/bundle.yaml
+
+.PHONY: deploy-prometheus
+deploy-prometheus: PROMETHEUS_NS ?= $(DEV_NS)
+deploy-prometheus: do-deploy-prometheus
 
 .PHONY: e2e-setup
-e2e-setup:
-	./scripts/create-ns.sh $(E2E_NAMESPACE)
-	./scripts/create-ns.sh $(PROMETHEUS_OPERATOR_NAMESPACE)
-	kubectl apply -n $(E2E_NAMESPACE) -f config/casskop
-	kubectl apply -n $(PROMETHEUS_OPERATOR_NAMESPACE) -f config/prometheus-operator/bundle.yaml
+e2e-setup: PROMETHEUS_NS = $(E2E_NS)
+e2e-setup: CASSKOP_NS = $(E2E_NS)
+e2e-setup: deploy-prometheus-operator do-deploy-prometheus do-deploy-casskop
+	./scripts/create-ns.sh $(E2E_NS)
+	kubectl apply -n $(E2E_NS) -f config/casskop
 
 .PHONY: e2e-test
 e2e-test: e2e-setup
 	@echo Running e2e tests
-	operator-sdk test local ./test/e2e --namespace $(E2E_NAMESPACE)
+	operator-sdk test local ./test/e2e --namespace $(E2E_NS)
 
 .PHONY: e2e-cleanup
 e2e-cleanup:
-#	kubectl -n $(E2E_NAMESPACE) delete tlpstress --all
-	kubectl -n $(E2E_NAMESPACE) delete cassandracluster --all
-	kubectl -n $(E2E_NAMESPACE) delete sa tlp-stress-operator
-	kubectl -n $(E2E_NAMESPACE) delete role tlp-stress-operator
-	kubectl -n $(E2E_NAMESPACE) delete rolebinding tlp-stress-operator
-	kubectl -n $(E2E_NAMESPACE) delete deployment tlp-stress-operator
+	kubectl -n $(E2E_NS) delete cassandracluster --all
+	kubectl -n $(E2E_NS) delete sa tlp-stress-operator
+	kubectl -n $(E2E_NS) delete role tlp-stress-operator
+	kubectl -n $(E2E_NS) delete rolebinding tlp-stress-operator
+	kubectl -n $(E2E_NS) delete deployment tlp-stress-operator
+
+.PHONY: create-dev-ns
+create-dev-ns:
+	./scripts/create-ns.sh $(DEV_NS)
+
+.PHONY: deploy
+deploy: create-dev-ns
+	kubectl -n $(DEV_NS) apply -f deploy/crds/thelastpickle_v1alpha1_tlpstress_crd.yaml
+	kubectl -n $(DEV_NS) apply -f deploy/service_account.yaml
+	kubectl -n $(DEV_NS) apply -f deploy/role.yaml
+	kubectl -n $(DEV_NS) apply -f deploy/role_binding.yaml
+	kubectl -n $(DEV_NS) apply -f deploy/operator.yaml
+
+.PHONY: deploy-all
+deploy-all: CASSKOP_NS = $(DEV_NS)
+deploy-all: PROMETHEUS_NS = $(DEV_NS)
+deploy-all: create-dev-ns do-deploy-casskop deploy-prometheus-operator do-deploy-prometheus deploy
 
 .PHONY: init-kind-kubeconfig
 init-kind-kubeconfig:
