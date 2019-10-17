@@ -2,12 +2,15 @@ package tlpstress
 
 import (
 	"context"
+	"fmt"
 	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	api "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	casskoputil "github.com/jsanda/tlp-stress-operator/pkg/casskop"
 	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"
 	"github.com/jsanda/tlp-stress-operator/pkg/tlpstress"
+	"github.com/jsanda/tlp-stress-operator/pkg/k8s"
 	v1batch "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -43,6 +46,13 @@ const (
 // Add creates a new TLPStress Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
+	if dc, err := k8s.GetDiscoveryClient(); err != nil {
+		return err
+	} else {
+		monitoring.Init(dc)
+		casskoputil.Init(dc)
+	}
+
 	return add(mgr, newReconciler(mgr))
 }
 
@@ -139,35 +149,33 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	//    1) A CassandraCluster matching the template exists
 	//    2) Create the CassandraCluster if it does not exist
 	//    3) CassandraCluster.status.phase == Running
-	if tlpStress.Spec.CassandraConfig.CassandraClusterTemplate != nil {
-		template := tlpStress.Spec.CassandraConfig.CassandraClusterTemplate
-
-		if len(template.Namespace) == 0 {
-			template.Namespace = request.Namespace
-		}
-
-		cc := &casskop.CassandraCluster{}
-		if err = r.client.Get(context.TODO(), types.NamespacedName{Name: template.Name, Namespace: template.Namespace}, cc); err != nil {
-			if !errors.IsNotFound(err) {
-				return reconcile.Result{RequeueAfter: 5 * time.Second}, err
-			}
-
-			cc.ObjectMeta = template.ObjectMeta
-			cc.TypeMeta = template.TypeMeta
-			cc.Spec = template.Spec
-
-			reqLogger.Info("Creating a new CassandraCluster.", "CassandraCluster.Namespace",
-				cc.Namespace, "CassandraCluster.Name", cc.Name)
-			if err = r.client.Create(context.TODO(), cc); err != nil {
-				return reconcile.Result{RequeueAfter: 5 * time.Second}, err
-			} else {
-				return reconcile.Result{Requeue: true}, nil
-			}
+	if tlpStress.Spec.CassandraConfig.CassandraCluster != nil || tlpStress.Spec.CassandraConfig.CassandraClusterTemplate != nil {
+		if kindExists, err := casskoputil.CassandraClusterKindExists(); !kindExists {
+			reqLogger.Info("Cannot create TLPStress instance. The CassandraCluster kind does not exist.",
+				"TLPStress.Name", tlpStress.Name, "TLPStress.Namespace", tlpStress.Namespace)
+			return reconcile.Result{}, fmt.Errorf("Cannot create TLPStress instance %s.%s. The CassandraCluster kind does not exist",
+				tlpStress.Namespace, tlpStress.Name)
+		} else if err != nil {
+			reqLogger.Error(err,"Check for CassandraCluster kind failed")
+			return reconcile.Result{}, err
 		} else {
-			if cc.Status.Phase != "Running" {
-				reqLogger.Info("Waiting for CassandraCluster to be ready.", "CassandraCluster.Name",
-					cc.Name, "CassandraCluster.Status.Phase", cc.Status.Phase)
-				return reconcile.Result{RequeueAfter: 30 * time.Second}, nil
+			template := tlpStress.Spec.CassandraConfig.CassandraClusterTemplate
+			if len(template.Namespace) == 0 {
+				template.Namespace = request.Namespace
+			}
+
+			cc, err := casskoputil.GetCassandraCluster(template, r.client)
+			if err != nil {
+				if !errors.IsNotFound(err) {
+					return reconcile.Result{RequeueAfter: 5 * time.Second}, err
+				}
+				return casskoputil.CreateCassandraCluster(template, r.client, reqLogger)
+			} else {
+				if !casskoputil.IsCassandraClusterReady(cc) {
+					reqLogger.Info("Waiting for CassandraCluster to be ready.", "CassandraCluster.Name",
+						cc.Name, "CassandraCluster.Status.Phase", cc.Status.Phase)
+					return reconcile.Result{RequeueAfter: 30 * time.Second}, nil
+				}
 			}
 		}
 	}

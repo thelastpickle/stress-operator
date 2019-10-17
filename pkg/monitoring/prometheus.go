@@ -6,17 +6,21 @@ import (
 	prometheus "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	api "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/tlp-stress-operator/pkg/k8s"
 	tlp "github.com/jsanda/tlp-stress-operator/pkg/tlpstress"
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
+
+var discoveryClient k8s.DiscoveryClient
+
+func Init(dc k8s.DiscoveryClient) {
+	discoveryClient = dc
+}
 
 func GetMetricsService(tlpStress *api.TLPStress, client client.Client) (*corev1.Service, error) {
 	metricsService := &corev1.Service{}
@@ -70,15 +74,7 @@ func newMetricsService(tlpStress *api.TLPStress) *corev1.Service {
 }
 
 func ServiceMonitorCRDExists() (bool, error) {
-	cfg, err := config.GetConfig()
-	if err != nil {
-		return false, err
-	}
-	dc := discovery.NewDiscoveryClientForConfigOrDie(cfg)
-	apiVersion := "monitoring.coreos.com/v1"
-	kind := "ServiceMonitor"
-
-	return k8sutil.ResourceExists(dc, apiVersion, kind)
+	return discoveryClient.KindExists("monitoring.coreos.com/v1", "ServiceMonitor")
 }
 
 func GetServiceMonitor(tlpStress *api.TLPStress, client client.Client) (*prometheus.ServiceMonitor, error) {

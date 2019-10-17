@@ -4,6 +4,7 @@ import (
 	"context"
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"
 	v1batch "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,6 +18,12 @@ import (
 	"time"
 )
 
+type fakeDiscoveryClient struct {}
+
+func (fdc *fakeDiscoveryClient) KindExists(apiVersion string, kind string) (bool, error) {
+	return true, nil
+}
+
 var (
 	name          = "tlpstress-controller"
 	namespace     = "tlpstress"
@@ -24,11 +31,14 @@ var (
 		Namespace: namespace,
 		Name:      name,
 	}
+	fdc          = &fakeDiscoveryClient{}
 )
 
 func setupReconcile(t *testing.T, state ...runtime.Object) (*ReconcileTLPStress, reconcile.Result) {
 	cl := fake.NewFakeClient(state...)
 	r := &ReconcileTLPStress{client: cl, scheme: scheme.Scheme}
+	monitoring.Init(fdc)
+	monitoring.Init(fdc)
 	req := reconcile.Request{
 		NamespacedName: types.NamespacedName{
 			Name:      name,
@@ -180,7 +190,7 @@ func testTLPStressControllerMetricsServiceCreate(t *testing.T) {
 	r := setupReconcileWithRequeue(t, objs...)
 
 	svc := &corev1.Service{}
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: getMetricsServiceName(tlpStress)}, svc); err != nil {
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: monitoring.GetMetricsServiceName(tlpStress)}, svc); err != nil {
 		t.Fatalf("get metrics service: (%v)", err)
 	}
 }
@@ -206,7 +216,7 @@ func testTLPStressControllerServiceMonitorCreate(t *testing.T) {
 	metricsService := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name:      getMetricsServiceName(tlpStress),
+			Name:      monitoring.GetMetricsServiceName(tlpStress),
 		},
 	}
 
@@ -241,7 +251,7 @@ func testTLPStressControllerJobCreate(t *testing.T) {
 	metricsService := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name:      getMetricsServiceName(tlpStress),
+			Name:      monitoring.GetMetricsServiceName(tlpStress),
 		},
 	}
 
@@ -284,7 +294,7 @@ func testTLPStressControllerSetStatus(t *testing.T) {
 	metricsService := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name:      getMetricsServiceName(tlpStress),
+			Name:      monitoring.GetMetricsServiceName(tlpStress),
 		},
 	}
 
