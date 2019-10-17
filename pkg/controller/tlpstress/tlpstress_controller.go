@@ -153,28 +153,29 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 		if kindExists, err := casskoputil.CassandraClusterKindExists(); !kindExists {
 			reqLogger.Info("Cannot create TLPStress instance. The CassandraCluster kind does not exist.",
 				"TLPStress.Name", tlpStress.Name, "TLPStress.Namespace", tlpStress.Namespace)
-			return reconcile.Result{}, fmt.Errorf("Cannot create TLPStress instance %s.%s. The CassandraCluster kind does not exist",
+			return reconcile.Result{}, fmt.Errorf("cannot create TLPStress instance %s.%s: CassandraCluster kind does not exist",
 				tlpStress.Namespace, tlpStress.Name)
 		} else if err != nil {
 			reqLogger.Error(err,"Check for CassandraCluster kind failed")
 			return reconcile.Result{}, err
 		} else {
-			template := tlpStress.Spec.CassandraConfig.CassandraClusterTemplate
-			if len(template.Namespace) == 0 {
-				template.Namespace = request.Namespace
-			}
-
-			cc, err := casskoputil.GetCassandraCluster(template, r.client)
-			if err != nil {
-				if !errors.IsNotFound(err) {
-					return reconcile.Result{RequeueAfter: 5 * time.Second}, err
+			if tlpStress.Spec.CassandraConfig.CassandraClusterTemplate != nil {
+				template := tlpStress.Spec.CassandraConfig.CassandraClusterTemplate
+				if len(template.Namespace) == 0 {
+					template.Namespace = request.Namespace
 				}
-				return casskoputil.CreateCassandraCluster(template, r.client, reqLogger)
-			} else {
-				if !casskoputil.IsCassandraClusterReady(cc) {
-					reqLogger.Info("Waiting for CassandraCluster to be ready.", "CassandraCluster.Name",
-						cc.Name, "CassandraCluster.Status.Phase", cc.Status.Phase)
-					return reconcile.Result{RequeueAfter: 30 * time.Second}, nil
+				cc, err := casskoputil.GetCassandraCluster(template, r.client)
+				if err != nil {
+					if !errors.IsNotFound(err) {
+						return reconcile.Result{RequeueAfter: 5 * time.Second}, err
+					}
+					return casskoputil.CreateCassandraCluster(template, r.client, reqLogger)
+				} else {
+					if !casskoputil.IsCassandraClusterReady(cc) {
+						reqLogger.Info("Waiting for CassandraCluster to be ready.", "CassandraCluster.Name",
+							cc.Name, "CassandraCluster.Status.Phase", cc.Status.Phase)
+						return reconcile.Result{RequeueAfter: 30 * time.Second}, nil
+					}
 				}
 			}
 		}
