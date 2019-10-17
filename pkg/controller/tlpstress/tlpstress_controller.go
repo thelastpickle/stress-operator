@@ -145,10 +145,8 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{Requeue: true}, nil
 	}
 
-	// If a CassandraClusterTemplate is defined then make sure that:
-	//    1) A CassandraCluster matching the template exists
-	//    2) Create the CassandraCluster if it does not exist
-	//    3) CassandraCluster.status.phase == Running
+	// If the TLPStress specifies a CassandraCluster reference or a template, then we need to check that the CRD exists
+	// on the master. If the CRD does not exist, then we just requeue with an error.
 	if tlpStress.Spec.CassandraConfig.CassandraCluster != nil || tlpStress.Spec.CassandraConfig.CassandraClusterTemplate != nil {
 		if kindExists, err := casskoputil.CassandraClusterKindExists(); !kindExists {
 			reqLogger.Info("Cannot create TLPStress instance. The CassandraCluster kind does not exist.",
@@ -159,6 +157,10 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 			reqLogger.Error(err,"Check for CassandraCluster kind failed")
 			return reconcile.Result{}, err
 		} else {
+			// If a CassandraClusterTemplate is defined then make sure that:
+			//    1) A CassandraCluster matching the template exists
+			//    2) Create the CassandraCluster if it does not exist
+			//    3) CassandraCluster is ready
 			if tlpStress.Spec.CassandraConfig.CassandraClusterTemplate != nil {
 				template := tlpStress.Spec.CassandraConfig.CassandraClusterTemplate
 				if len(template.Namespace) == 0 {
@@ -193,7 +195,7 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 
 	// The ServiceMonitor CRD is create by prometheus-operator which is an option dependency. We therefore
 	// need to check that the CRD exists on the server before we try to create a ServiceMonitor.
-	if crdDefined, err := monitoring.ServiceMonitorCRDExists(); crdDefined {
+	if crdDefined, err := monitoring.ServiceMonitorKindExists(); crdDefined {
 		// Check if the service monitor already exists, if not create one
 		serviceMonitor, err := monitoring.GetServiceMonitor(tlpStress, r.client)
 		if err != nil && errors.IsNotFound(err) {

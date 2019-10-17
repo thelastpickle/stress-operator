@@ -16,6 +16,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
+const ServiceMonitorKind = "ServiceMonitor"
+
 var discoveryClient k8s.DiscoveryClient
 
 func Init(dc k8s.DiscoveryClient) {
@@ -73,8 +75,8 @@ func newMetricsService(tlpStress *api.TLPStress) *corev1.Service {
 	}
 }
 
-func ServiceMonitorCRDExists() (bool, error) {
-	return discoveryClient.KindExists("monitoring.coreos.com/v1", "ServiceMonitor")
+func ServiceMonitorKindExists() (bool, error) {
+	return discoveryClient.KindExists(prometheus.SchemeGroupVersion.String(), ServiceMonitorKind)
 }
 
 func GetServiceMonitor(tlpStress *api.TLPStress, client client.Client) (*prometheus.ServiceMonitor, error) {

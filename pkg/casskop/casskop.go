@@ -12,6 +12,8 @@ import (
 	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
 )
 
+const CassandraClusterKind = "CassandraCluster"
+
 var discoveryClient k8s.DiscoveryClient
 
 func Init(dc k8s.DiscoveryClient) {
@@ -19,7 +21,7 @@ func Init(dc k8s.DiscoveryClient) {
 }
 
 func CassandraClusterKindExists() (bool, error) {
-	return discoveryClient.KindExists("db.orange.com/v1alpha1", "CassandraCluster")
+	return discoveryClient.KindExists(casskop.SchemeGroupVersion.String(), CassandraClusterKind)
 }
 
 func GetCassandraCluster(template *api.CassandraClusterTemplate, client client.Client) (*casskop.CassandraCluster, error) {
