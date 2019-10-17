@@ -61,6 +61,15 @@ do-deploy-grafana-operator:
 deploy-grafana-operator: GRAFANA_NS ?= $(DEV_NS)
 deploy-grafana-operator: do-deploy-grafana-operator
 
+.PHONY: do-deploy-grafana
+do-deploy-grafana:
+	kubectl -n $(GRAFANA_NS) apply -f config/grafana/02_grafana.yaml
+	kubectl -n $(GRAFANA_NS) apply -f config/grafana/prometheus-datasource.yaml
+
+.PHONY: deploy-grafana
+deploy-grafana: GRAFANA_NS ?= $(DEV_NS)
+deploy-grafana: do-deploy-grafana
+
 .PHONY: deploy-prometheus-operator
 deploy-prometheus-operator:
 	kubectl apply -f config/prometheus-operator/bundle.yaml
