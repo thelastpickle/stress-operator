@@ -80,7 +80,8 @@ deploy-prometheus: do-deploy-prometheus
 .PHONY: e2e-setup
 e2e-setup: PROMETHEUS_NS = $(E2E_NS)
 e2e-setup: CASSKOP_NS = $(E2E_NS)
-e2e-setup: deploy-prometheus-operator do-deploy-prometheus do-deploy-casskop
+e2e-setup: GRAFANA_NS = $(E2E_NS)
+e2e-setup: deploy-prometheus-operator do-deploy-prometheus do-deploy-casskop do-deploy-grafana-operator
 	./scripts/create-ns.sh $(E2E_NS)
 	kubectl apply -n $(E2E_NS) -f config/casskop
 
