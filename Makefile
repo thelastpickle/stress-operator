@@ -1,5 +1,4 @@
 ORG=jsanda
-NAMESPACE=tlpstress-dev
 PROJECT=tlp-stress-operator
 REG=docker.io
 SHELL=/bin/bash
@@ -16,7 +15,7 @@ clean:
 
 .PHONY: run
 run:
-	@operator-sdk up local --namespace=${NAMESPACE}
+	@operator-sdk up local --namespace=${DEV_NS}
 
 .PHONY: build
 build:
