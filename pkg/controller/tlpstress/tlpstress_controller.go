@@ -5,6 +5,7 @@ import (
 	"fmt"
 	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	i8ly "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
 	"github.com/go-logr/logr"
 	api "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	casskoputil "github.com/jsanda/tlp-stress-operator/pkg/casskop"
@@ -208,6 +209,22 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 		}
 	} else if err != nil {
 		reqLogger.Error(err, "Failed to check for ServiceMonitor CRD")
+		return reconcile.Result{}, err
+	}
+
+	if kindExists, err := monitoring.GrafanaDashboardKindExists(); kindExists {
+		dashboard, err := monitoring.GetDashboard(tlpStress, r.client)
+		if err != nil && errors.IsNotFound(err) {
+			// Create the dashboard
+			return monitoring.CreateDashboard(tlpStress, r.client, reqLogger)
+		} else if err != nil {
+			reqLogger.Error(err, "Failed to get dashboard", "GrafanaDashboard.Namespace",
+				tlpStress.Namespace, "GrafanaDashboard.Name", tlpStress.Name)
+			return reconcile.Result{}, err
+		}
+	} else if err != nil {
+		reqLogger.Error(err, "Check for GrafanaDashboard kind failed")
+		return reconcile.Result{}, err
 	}
 
 	// Check if the job already exists, if not create a new one

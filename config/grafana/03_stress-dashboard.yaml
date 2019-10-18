@@ -1,6 +1,7 @@
 apiVersion: integreatly.org/v1alpha1
 kind: GrafanaDashboard
 metadata:
+  # TODO The name should match the TLPStress name, e.g., stress-demo-dashboard
   name: stress-dashboard
   labels:
     app: grafana
