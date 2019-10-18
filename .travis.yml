@@ -1,0 +1,19 @@
+language: go
+
+go:
+  - 1.12
+
+env:
+  - GO111MODULE=on
+
+stages:
+  - unit-test
+  - compile
+  - name: push
+    if: fork = false
+
+jobs:
+  include:
+    - stage: unit-test
+      script:
+        - make unit-test
