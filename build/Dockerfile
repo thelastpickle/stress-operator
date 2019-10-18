@@ -7,6 +7,8 @@ ENV OPERATOR=/usr/local/bin/tlp-stress-operator \
 # install operator binary
 COPY build/_output/bin/tlp-stress-operator ${OPERATOR}
 
+ADD templates/*.yaml /usr/local/bin/templates
+
 COPY build/bin /usr/local/bin
 RUN  /usr/local/bin/user_setup
 
