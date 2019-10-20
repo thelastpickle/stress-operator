@@ -5,6 +5,8 @@ jobs:
       image: ubuntu-1604:201903-01
 #    docker:
 #      - image: circleci/golang:1.12.5
+    environment:
+      - GO111MODULE: on
     steps:
       - restore_cache:
           key: operator-sdk-v0.9.0
