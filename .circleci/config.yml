@@ -39,7 +39,11 @@ jobs:
           key: build-{{ .Branch }}-{{ checksum "go.sum" }}
           paths:
             - $GOPATH/pkg/mod
-      - run: make build-image
+      - run:
+          name: build image
+          command: |
+            export GO111MODULE=on
+            make build-image
       - deploy:
           name: Push image to docker hub
           command: |
