@@ -24,7 +24,7 @@ jobs:
           paths:
             - /tmp/operator-sdk
       - checkout
-#      - setup_remote_docker
+      - setup_remote_docker
       - attach_workspace:
           at: .
       - run: make build-image
