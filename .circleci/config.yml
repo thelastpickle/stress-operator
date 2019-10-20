@@ -29,6 +29,9 @@ jobs:
       #      - setup_remote_docker
       #      - attach_workspace:
       #          at: .
+      - run:
+          name: enable go modules
+          command: export GO111MODULE=on
       - run: make unit-test
       - run: make build-image
       - deploy:
