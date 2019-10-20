@@ -2,9 +2,9 @@ version: 2.1
 jobs:
   build:
     machine:
-#      image: ubuntu-1604:201903-01
-    docker:
-      - image: circleci/golang:1.12.5
+      image: ubuntu-1604:201903-01
+#    docker:
+#      - image: circleci/golang:1.12.5
     steps:
       - restore_cache:
           key: operator-sdk-v0.9.0
@@ -24,7 +24,7 @@ jobs:
           paths:
             - /tmp/operator-sdk
       - checkout
-      - setup_remote_docker
+#      - setup_remote_docker
       - attach_workspace:
           at: .
       - run: make build-image
@@ -34,10 +34,12 @@ jobs:
     steps:
       - run: make unit-test
   publish-latest:
-    docker:
-      - image: circleci/golang:1.12.5
+    machine:
+      image: ubuntu-1604:201903-01
+#    docker:
+#      - image: circleci/golang:1.12.5
     steps:
-      - setup_remote_docker
+#      - setup_remote_docker
       - deploy:
           name: Push image to docker hub
           command: |
