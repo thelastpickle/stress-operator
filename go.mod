@@ -5,6 +5,7 @@ require (
 	github.com/Orange-OpenSource/cassandra-k8s-operator v0.3.2
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/coreos/prometheus-operator v0.29.0
+	github.com/ghodss/yaml v1.0.0
 	github.com/go-logr/logr v0.1.0
 	github.com/integr8ly/grafana-operator v2.0.0+incompatible
 	github.com/operator-framework/operator-sdk v0.9.1-0.20190716192717-21668facf7a7

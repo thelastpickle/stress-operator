@@ -211,20 +211,20 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
-	if kindExists, err := monitoring.GrafanaDashboardKindExists(); kindExists {
-		dashboard, err := monitoring.GetDashboard(tlpStress, r.client)
-		if err != nil && errors.IsNotFound(err) {
-			// Create the dashboard
-			return monitoring.CreateDashboard(tlpStress, r.client, reqLogger)
-		} else if err != nil {
-			reqLogger.Error(err, "Failed to get dashboard", "GrafanaDashboard.Namespace",
-				tlpStress.Namespace, "GrafanaDashboard.Name", tlpStress.Name)
-			return reconcile.Result{}, err
-		}
-	} else if err != nil {
-		reqLogger.Error(err, "Check for GrafanaDashboard kind failed")
-		return reconcile.Result{}, err
-	}
+	//if kindExists, err := monitoring.GrafanaDashboardKindExists(); kindExists {
+	//	_, err := monitoring.GetDashboard(tlpStress, r.client)
+	//	if err != nil && errors.IsNotFound(err) {
+	//		// Create the dashboard
+	//		return monitoring.CreateDashboard(tlpStress, r.client, reqLogger)
+	//	} else if err != nil {
+	//		reqLogger.Error(err, "Failed to get dashboard", "GrafanaDashboard.Namespace",
+	//			tlpStress.Namespace, "GrafanaDashboard.Name", tlpStress.Name)
+	//		return reconcile.Result{}, err
+	//	}
+	//} else if err != nil {
+	//	reqLogger.Error(err, "Check for GrafanaDashboard kind failed")
+	//	return reconcile.Result{}, err
+	//}
 
 	// Check if the job already exists, if not create a new one
 	job := &v1batch.Job{}
