@@ -10,9 +10,9 @@ jobs:
       - GOLANG_VERSION: 1.12.12
     steps:
       - restore_cache:
-          key: operator-sdk-v0.9.0
+          key: build-{{ .Branch }}-{{ checksum "go.sum" }}
           paths:
-            - /tmp/operator-sdk
+            - $GOPATH/pkg/mod
       - run:
           name: install golang
           command: |
@@ -30,9 +30,15 @@ jobs:
       #      - attach_workspace:
       #          at: .
       - run:
-          name: enable go modules
-          command: export GO111MODULE=on
-      - run: make unit-test
+          name: run unit-tests
+          command: |
+            export GO111MODULE=on
+            make unit-test
+      - save_cache:
+          name: cache go modules
+          key: build-{{ .Branch }}-{{ checksum "go.sum" }}
+          paths:
+            - $GOPATH/pkg/mod
       - run: make build-image
       - deploy:
           name: Push image to docker hub
