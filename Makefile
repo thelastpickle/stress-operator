@@ -128,6 +128,11 @@ deploy-all: create-dev-ns do-deploy-casskop deploy-prometheus-operator do-deploy
 init-kind-kubeconfig:
 	export KUBECONFIG=$(shell kind get kubeconfig-path --name="tlpstress")
 
+.PHONY: setup-travis
+setup-travis:
+	@echo Installing Operator SDK
+    @curl -Lo operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/v0.9.0/operator-sdk-v0.9.0-x86_64-linux-gnu && chmod +x operator-sdk && sudo mv operator-sdk /usr/local/bin/
+
 .PHONY: create-kind-cluster
 create-kind-cluster:
 	kind create -f config/kind/multi-node.yaml
