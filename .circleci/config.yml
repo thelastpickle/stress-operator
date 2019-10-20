@@ -9,10 +9,6 @@ jobs:
       - GO111MODULE: on
       - GOLANG_VERSION: 1.12.12
     steps:
-      - restore_cache:
-          key: build-{{ .Branch }}-{{ checksum "go.sum" }}
-          paths:
-            - $GOPATH/pkg/mod
       - run:
           name: install golang
           command: |
@@ -29,21 +25,25 @@ jobs:
       #      - setup_remote_docker
       #      - attach_workspace:
       #          at: .
+      - restore_cache:
+          key: build-{{ .Branch }}-{{ checksum "go.sum" }}
+          paths:
+            - $GOPATH/pkg/mod
       - run:
           name: run unit-tests
           command: |
             export GO111MODULE=on
             make unit-test
-      - save_cache:
-          name: cache go modules
-          key: build-{{ .Branch }}-{{ checksum "go.sum" }}
-          paths:
-            - $GOPATH/pkg/mod
       - run:
           name: build image
           command: |
             export GO111MODULE=on
             make build-image
+      - save_cache:
+          name: cache go modules
+          key: build-{{ .Branch }}-{{ checksum "go.sum" }}
+          paths:
+            - $GOPATH/pkg/mod
       - deploy:
           name: Push image to docker hub
           command: |
