@@ -1,10 +1,10 @@
 version: 2.1
 jobs:
   build:
-#    machine:
-#      image: ubuntu-1604:201903-01
-    docker:
-      - image: circleci/golang:1.12.5
+    machine:
+      image: ubuntu-1604:201903-01
+#    docker:
+#      - image: circleci/golang:1.12.5
     steps:
       - restore_cache:
           key: operator-sdk-v0.9.0
@@ -24,32 +24,38 @@ jobs:
           paths:
             - /tmp/operator-sdk
       - checkout
-      - setup_remote_docker
-      - attach_workspace:
-          at: .
-      - run: make build-image
-  unit-test:
-    docker:
-      - image: circleci/golang:1.12.5
-    steps:
-      - run: make unit-test
-  publish-latest:
-    machine:
-      image: ubuntu-1604:201903-01
-#    docker:
-#      - image: circleci/golang:1.12.5
-    steps:
 #      - setup_remote_docker
+#      - attach_workspace:
+#          at: .
+      - run: make unit-test
+      - run: make build-image
       - deploy:
           name: Push image to docker hub
           command: |
             docker login --username $DOCKERHUB_USER --password $DOCKERHUB_PASSWORD
             make push-image
-  e2e-tests:
-    docker:
-      - image: circleci/golang:1.12.5
-    steps:
-      - run: ./scripts/kind-smoketest.sh
+#  unit-test:
+#    docker:
+#      - image: circleci/golang:1.12.5
+#    steps:
+#      - run: make unit-test
+#  publish-latest:
+#    machine:
+#      image: ubuntu-1604:201903-01
+#    docker:
+#      - image: circleci/golang:1.12.5
+#    steps:
+#      - setup_remote_docker
+#      - deploy:
+#          name: Push image to docker hub
+#          command: |
+#            docker login --username $DOCKERHUB_USER --password $DOCKERHUB_PASSWORD
+#            make push-image
+#  e2e-tests:
+#    docker:
+#      - image: circleci/golang:1.12.5
+#    steps:
+#      - run: ./scripts/kind-smoketest.sh
 
 
 #workflows:
