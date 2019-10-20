@@ -17,3 +17,6 @@ jobs:
     - stage: unit-test
       script:
         - make unit-test
+    - stage: build-image
+      script:
+        - make build-image
