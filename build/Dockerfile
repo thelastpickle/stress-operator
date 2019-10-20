@@ -5,7 +5,7 @@ ENV OPERATOR=/usr/local/bin/tlp-stress-operator \
     USER_NAME=tlp-stress-operator
 
 # install operator binary
-COPY /home/circleci/project/build/_output/bin/tlp-stress-operator /usr/local/bin/
+COPY build/_output/bin/tlp-stress-operator ${OPERATOR}
 
 COPY build/bin /usr/local/bin
 RUN  /usr/local/bin/user_setup
