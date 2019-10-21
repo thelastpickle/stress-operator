@@ -8,6 +8,7 @@ jobs:
     environment:
       - GO111MODULE: on
       - GOLANG_VERSION: 1.12.12
+    working_directory: /home/circleci/tlp-stress-operator
     steps:
       - run:
           name: install golang
@@ -28,7 +29,7 @@ jobs:
       - restore_cache:
           key: build-{{ .Branch }}-{{ checksum "go.sum" }}
           paths:
-            - $GOPATH/pkg/mod
+            - /usr/local/go/pkg
       - run:
           name: run unit-tests
           command: |
@@ -43,7 +44,7 @@ jobs:
           name: cache go modules
           key: build-{{ .Branch }}-{{ checksum "go.sum" }}
           paths:
-            - $GOPATH/pkg/mod
+            - /usr/local/go/pkg
       - deploy:
           name: Push image to docker hub
           command: |
