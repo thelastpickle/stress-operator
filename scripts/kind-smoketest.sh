@@ -13,11 +13,11 @@ BIN_DIR="$(mktemp -d)"
 KIND="${BIN_DIR}/kind"
 
 # cleanup on exit (useful for running locally)
-cleanup() {
-    "${KIND}" delete cluster || true
-    rm -rf "${BIN_DIR}"
-}
-trap cleanup EXIT
+#cleanup() {
+#    "${KIND}" delete cluster || true
+#    rm -rf "${BIN_DIR}"
+#}
+#trap cleanup EXIT
 
 # util to install the latest kind version into ${BIN_DIR}
 install_latest_kind() {
