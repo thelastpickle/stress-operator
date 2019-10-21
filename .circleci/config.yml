@@ -6,6 +6,7 @@ jobs:
     environment:
       - GO111MODULE: on
       - GOLANG_VERSION: 1.12.12
+      - K8S_VERSION: v1.14.0
     working_directory: /home/circleci/tlp-stress-operator
     steps:
       - run:
@@ -20,6 +21,12 @@ jobs:
           command: |
             echo "Installing Operator SDK"
             curl -Lo operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/v0.9.0/operator-sdk-v0.9.0-x86_64-linux-gnu && chmod +x operator-sdk && sudo mv operator-sdk /usr/local/bin/
+      - run:
+          name: Setup kubectl
+          command: |
+            wget -O kubectl https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+            mkdir -p ${HOME}/.kube
+            touch ${HOME}/.kube/config
       - checkout
       - restore_cache:
           key: build-{{ .Branch }}-{{ checksum "go.sum" }}
