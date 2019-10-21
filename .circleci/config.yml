@@ -27,9 +27,9 @@ jobs:
       #      - attach_workspace:
       #          at: .
       - restore_cache:
-          key: build-1-{{ .Branch }}-{{ checksum "go.sum" }}
+          key: build-2-{{ .Branch }}-{{ checksum "go.sum" }}
           paths:
-            - /usr/local/go/pkg
+            - /home/circleci/.go_workspace/pkg
       - run:
           name: run unit-tests
           command: |
@@ -42,9 +42,9 @@ jobs:
             make build-image
       - save_cache:
           name: cache go modules
-          key: build-1-{{ .Branch }}-{{ checksum "go.sum" }}
+          key: build-2-{{ .Branch }}-{{ checksum "go.sum" }}
           paths:
-            - /usr/local/go/pkg
+            - /home/circleci/.go_workspace/pkg
       - deploy:
           name: Push image to docker hub
           command: |
