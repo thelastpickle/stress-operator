@@ -55,4 +55,6 @@ jobs:
             make push-image
       - run:
           name: install kind cluster
-          command: ./scripts/kind-smoketest.sh
+          command: |
+            export GO111MODULE=on
+            ./scripts/kind-smoketest.sh
