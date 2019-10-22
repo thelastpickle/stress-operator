@@ -8,7 +8,8 @@ set -o nounset;
 set -x;
 
 # working dir to install binaries etc, cleaned up on exit
-BIN_DIR="$(mktemp -d)"
+#BIN_DIR="$(mktemp -d)"
+BIN_DIR=/tmp
 # kind binary will be here
 KIND="${BIN_DIR}/kind"
 

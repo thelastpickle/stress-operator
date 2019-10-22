@@ -58,6 +58,7 @@ jobs:
           command: |
             export GO111MODULE=on
             ./scripts/kind-smoketest.sh
+            mv /tmp/kind /home/circleci/bin
       - run:
           name: run e2e tests
           command: |
