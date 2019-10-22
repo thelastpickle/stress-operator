@@ -9,7 +9,7 @@ set -x;
 
 # working dir to install binaries etc, cleaned up on exit
 #BIN_DIR="$(mktemp -d)"
-BIN_DIR=/tmp
+BIN_DIR=/home/circleci
 # kind binary will be here
 KIND="${BIN_DIR}/kind"
 
