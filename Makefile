@@ -86,12 +86,16 @@ do-deploy-prometheus: deploy-prometheus-operator
 deploy-prometheus: PROMETHEUS_NS ?= $(DEV_NS)
 deploy-prometheus: do-deploy-prometheus
 
+.PHONY: create-e2e-ns
+create-e2e-ns:
+	./scripts/create-ns.sh $(E2E_NS)
+
+
 .PHONY: e2e-setup
 e2e-setup: PROMETHEUS_NS = $(E2E_NS)
 e2e-setup: CASSKOP_NS = $(E2E_NS)
 e2e-setup: GRAFANA_NS = $(E2E_NS)
-e2e-setup: deploy-prometheus-operator do-deploy-prometheus do-deploy-casskop do-deploy-grafana-operator
-	./scripts/create-ns.sh $(E2E_NS)
+e2e-setup: create-e2e-ns deploy-prometheus-operator do-deploy-prometheus do-deploy-casskop do-deploy-grafana-operator
 	kubectl apply -n $(E2E_NS) -f config/casskop
 
 .PHONY: e2e-test
