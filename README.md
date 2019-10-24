@@ -36,7 +36,7 @@ The following libraries/tools need to be installed in order to build and deploy 
 ## Installation
 You need to clone this git repo. The operator is installed by running the Makefile. 
 
-The project uses Go modules. If you clone the repo under `GOPATH` then make you the `GO111MODULE` environment variable set:
+The project uses Go modules. If you clone the repo under `GOPATH` then make sure the `GO111MODULE` environment variable is set:
 
 ```
 $ export GO111MODULE=on
@@ -46,8 +46,10 @@ The following sections will cover a couple different installation options.
 
 Both options are namespace-based deployments. The operator is configured with permissions only for the namespace in which it is deployed. 
 
+By default the operator is deployed to the `tlpstress` namespace which will be created if it does not already exist.
+
 ### Basic Installation
-To deploy just the operator by itself without anything else, such as Prometheus or Grafana, run `make deploy`:   
+To deploy the operator by itself without anything else, such as Prometheus or Grafana, run `make deploy`:   
 
 ```
 $ make deploy
@@ -65,8 +67,6 @@ rolebinding.rbac.authorization.k8s.io/tlp-stress-operator created
 kubectl -n tlpstress apply -f deploy/operator.yaml
 deployment.apps/tlp-stress-operator created
 ```
-
-**Note:** By default the operator is deployed to the `tlpstress` namespace which will be created if it does not already exist.
 
 ### Full, Integrated Installation
 If you want the integrations with Prometheus, Grafana, and CassKop, then run
@@ -94,15 +94,6 @@ until kubectl get crd prometheuses.monitoring.coreos.com > /dev/null 2>&1; do \
 		echo "Waiting for prometheuses.monitoring.coreos.com CRD to be deployed"; \
 		sleep 1; \
 	done;
-Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
-Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
-Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
-Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
-Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
-Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
-Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
-Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
-Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
 Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
 Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
 Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
@@ -141,7 +132,7 @@ tlp-stress-operator-65fbbbd9f8-9tbcl   1/1     Running   0          30s
 ## TLPStress Custom Resource 
 The operator manages TLPStress objects. A TLPStress instance specifies how to configure and run tlp-stress.
 
-Let's look at an example manifest as introduction to the TLPStress CRD:
+Let's look at an example manifest as an introduction to the TLPStress CRD:
 
 ```yaml
 apiVersion: thelastpickle.com/v1alpha1
@@ -165,9 +156,9 @@ spec:
 ```
 The spec is divided into three sections - `stressConfig`, `jobConfig`, and `cassandraConfig`.
 
-`stressConfig` has properties that correspond to the tlp-stress command line options.
+`stressConfig` has properties that map directly to the tlp-stress command line options.
 
-`jobConfig` has properties for configuring the k8s job.
+`jobConfig` has properties for configuring the k8s job that the operator deploys.
 
 `cassandraConfig` has properties for the Cassandra cluster that tlp-stress will run against, namely how to connect to the cluster.
 
