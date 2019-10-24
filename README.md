@@ -128,17 +128,14 @@ NAME                                   READY   STATUS    RESTARTS   AGE
 tlp-stress-operator-65fbbbd9f8-9tbcl   1/1     Running   0          30s
 ```
 
-
-## TLPStress Custom Resource 
-The operator manages TLPStress objects. A TLPStress instance specifies how to configure and run tlp-stress.
-
-Let's look at an example manifest as an introduction to the TLPStress CRD:
+## Running tlp-stress
+We run tlp-stress by creating a `TLPStress` custom resource. Consider the following example, [example/stress-demo.yaml](./example/stress-demo.yaml):
 
 ```yaml
 apiVersion: thelastpickle.com/v1alpha1
 kind: TLPStress
 metadata:
-  name: stress-example
+  name: tlpstress-demo
 spec:
   stressConfig:
     workload: KeyValue
@@ -150,10 +147,13 @@ spec:
         dc1: 2
     partitionGenerator: sequence
   jobConfig:
-    parallelism: 2
+    parallelism: 1
   cassandraConfig:
-    cassandraService: stress-example
+    cassandraService: tlpstress-demo
+  image: thelastpickle/tlp-stress:3.0.0
+  imagePullPolicy: IfNotPresent
 ```
+
 The spec is divided into three sections - `stressConfig`, `jobConfig`, and `cassandraConfig`.
 
 `stressConfig` has properties that map directly to the tlp-stress command line options.
@@ -162,11 +162,55 @@ The spec is divided into three sections - `stressConfig`, `jobConfig`, and `cass
 
 `cassandraConfig` has properties for the Cassandra cluster that tlp-stress will run against, namely how to connect to the cluster.
 
-## CassKop Integration
-TODO
+**Note:** Please see [the documenation](./documentation/tlpstress.md) for a complete overview of the TLPStress custom resource.
 
-## Prometheus Integration
-TODO
+Now let's create the TLPStress instance:
 
-## Grafana Integration
-TODO
+```
+$ kubectl -n tlpstress apply -f example/stress-demo.yaml
+tlpstress.thelastpickle.com/stress-demo created
+```
+
+Verify that the object was created:
+
+```
+$ kubectl -n tlpstress get tlpstress
+NAME          AGE
+stress-demo   17s
+```
+
+The operator should create a k8s Job:
+
+```
+$ kubectl -n tlpstress get jobs --selector=tlpstress=tlpstress-demo
+NAME             COMPLETIONS   DURATION   AGE
+tlpstress-demo   1/1           9s         14s
+```
+
+The job completed quickly because there is no Cassandra cluster running. Please see [the document](./documentation/cassandra.md) for options on how to deploy Cassandra in Kubernetes.
+
+Now let's delete the TLPStress instance:
+
+```
+$ kubectl -n tlpstress delete tlpstress tlpstress-demo
+tlpstress.thelastpickle.com "tlpstress-demo" deleted
+```
+
+Verify that the object was deleted:
+
+```
+$ kubectl -n tlpstress get tlpstress
+No resources found.
+```
+
+Verify that the job was also deleted:
+
+```
+$ kubectl -n tlpstress get jobs --selector=tlpstress=tlpstress-demo
+No resources found.
+```
+
+## Documentation
+The operator provides a lot of functionaly for provisioning Cassandra clustering and for monitoring. 
+
+Please check out [the docs](./documentation/README.md) for a complete overview.
