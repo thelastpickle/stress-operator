@@ -4,7 +4,7 @@ A Kubernetes operator for running tlp-stress in Kubernetes.
 **Build Status**  [![CircleCI](https://circleci.com/gh/jsanda/tlp-stress-operator/tree/master.svg?style=svg)](https://circleci.com/gh/jsanda/tlp-stress-operator/tree/master)
 
 ## Overview
-tlp-stress is a workload-centric stress tool for Apache Cassandra. tlp-stress already has an impressive and intuitive feature set for modelling different workloads.
+tlp-stress is a workload-centric stress tool for Apache Cassandra. It provides a rich feature set for modelling different workloads with Cassandra.
 
 If you are not already familiar with tlp-stress, check out the following resources  to learn more:
 
