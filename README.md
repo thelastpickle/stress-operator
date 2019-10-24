@@ -139,7 +139,37 @@ tlp-stress-operator-65fbbbd9f8-9tbcl   1/1     Running   0          30s
 
 
 ## TLPStress Custom Resource 
-TODO
+The operator manages TLPStress objects. A TLPStress instance specifies how to configure and run tlp-stress.
+
+Let's look at an example manifest as introduction to the TLPStress CRD:
+
+```yaml
+apiVersion: thelastpickle.com/v1alpha1
+kind: TLPStress
+metadata:
+  name: stress-example
+spec:
+  stressConfig:
+    workload: KeyValue
+    partitions: 25m
+    duration: 60m
+    readRate: "0.3"
+    replication:
+      networkTopologyStrategy:
+        dc1: 2
+    partitionGenerator: sequence
+  jobConfig:
+    parallelism: 2
+  cassandraConfig:
+    cassandraService: stress-example
+```
+The spec is divided into three sections - `stressConfig`, `jobConfig`, and `cassandraConfig`.
+
+`stressConfig` has properties that correspond to the tlp-stress command line options.
+
+`jobConfig` has properties for configuring the k8s job.
+
+`cassandraConfig` has properties for the Cassandra cluster that tlp-stress will run against, namely how to connect to the cluster.
 
 ## CassKop Integration
 TODO
@@ -149,5 +179,3 @@ TODO
 
 ## Grafana Integration
 TODO
-
-## CircleCI Status
