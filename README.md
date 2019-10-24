@@ -119,6 +119,8 @@ deployment.apps/tlp-stress-operator create
 ```
 **Note:** By default the operator is deployed to the `tlpstress` namespace which will be created if it does not already exist.
 
+
+
 Everything that gets deployed by `make deploy-all` is optional. The tlp-stress operator can and will utilize resources like Prometheus and Grafana if they are deployed; however, they are not required.
 
 **Verify that the operator is running**
@@ -187,7 +189,7 @@ NAME             COMPLETIONS   DURATION   AGE
 tlpstress-demo   1/1           9s         14s
 ```
 
-The job completed quickly because there is no Cassandra cluster running. Please see [the document](./documentation/cassandra.md) for options on how to deploy Cassandra in Kubernetes.
+The job completed quickly because there is no Cassandra cluster running. Please see [the documentation](./documentation/cassandra.md) for options on how to deploy Cassandra in Kubernetes.
 
 Now let's delete the TLPStress instance:
 
