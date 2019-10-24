@@ -1,6 +1,9 @@
 # tlp-stress Operator
 A Kubernetes operator for running tlp-stress in Kubernetes.
 
+**Build Status**  [![CircleCI](https://circleci.com/gh/jsanda/tlp-stress-operator/tree/master.svg?style=svg)](https://circleci.com/gh/jsanda/tlp-stress-operator/tree/master)
+
+## Overview
 tlp-stress is a workload-centric stress tool for Apache Cassandra. tlp-stress already has an impressive and intuitive feature set for modelling different workloads.
 
 If you are not already familiar with tlp-stress, check out the following resources  to learn more:
@@ -31,9 +34,9 @@ The following libraries/tools need to be installed in order to build and deploy 
 * [Operator SDK](https://github.com/operator-framework/operator-sdk) >= 0.9.0
 
 ## Installation
-You need to clone the repo. The operator is installed by running the Makefile. 
+You need to clone this git repo. The operator is installed by running the Makefile. 
 
-This project uses Go modules. If you clone the repo under `GOPATH` then make you the `GO111MODULE` environment variable set:
+The project uses Go modules. If you clone the repo under `GOPATH` then make you the `GO111MODULE` environment variable set:
 
 ```
 $ export GO111MODULE=on
@@ -41,8 +44,10 @@ $ export GO111MODULE=on
 
 The following sections will cover a couple different installation options.
 
+Both options are namespace-based deployments. The operator is configured with permissions only for the namespace in which it is deployed. 
+
 ### Basic Installation
-To deploy just the operator by itself without anything else, like Prometheus or Grafana, run `make deploy`:   
+To deploy just the operator by itself without anything else, such as Prometheus or Grafana, run `make deploy`:   
 
 ```
 $ make deploy
@@ -62,15 +67,6 @@ deployment.apps/tlp-stress-operator created
 ```
 
 **Note:** By default the operator is deployed to the `tlpstress` namespace which will be created if it does not already exist.
-
-The operator integrate with [CassKop](https://github.com/Orange-OpenSource/cassandra-k8s-operator), Prometheus, and Grafana, but `make deploy` installs only the operator. These are all optional dependencies
-
-**Verify that the operator is running**
-```
-$ kubectl -n tlpstress get pods -l name=tlp-stress-operator
-NAME                                   READY   STATUS    RESTARTS   AGE
-tlp-stress-operator-65fbbbd9f8-9tbcl   1/1     Running   0          30s
-```
 
 ### Full, Integrated Installation
 If you want the integrations with Prometheus, Grafana, and CassKop, then run
@@ -134,6 +130,14 @@ deployment.apps/tlp-stress-operator create
 
 Everything that gets deployed by `make deploy-all` is optional. The tlp-stress operator can and will utilize resources like Prometheus and Grafana if they are deployed; however, they are not required.
 
+**Verify that the operator is running**
+```
+$ kubectl -n tlpstress get pods -l name=tlp-stress-operator
+NAME                                   READY   STATUS    RESTARTS   AGE
+tlp-stress-operator-65fbbbd9f8-9tbcl   1/1     Running   0          30s
+```
+
+
 ## TLPStress Custom Resource 
 TODO
 
@@ -147,4 +151,3 @@ TODO
 TODO
 
 ## CircleCI Status
-[![CircleCI](https://circleci.com/gh/jsanda/tlp-stress-operator/tree/master.svg?style=svg)](https://circleci.com/gh/jsanda/tlp-stress-operator/tree/master)
