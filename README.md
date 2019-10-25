@@ -119,7 +119,7 @@ deployment.apps/tlp-stress-operator create
 ```
 **Note:** By default the operator is deployed to the `tlpstress` namespace which will be created if it does not already exist.
 
-
+Please see [the documentation](./documentation/integrated-install.md) for details on everything that gets installed and deployed with `make deploy-all`.
 
 Everything that gets deployed by `make deploy-all` is optional. The tlp-stress operator can and will utilize resources like Prometheus and Grafana if they are deployed; however, they are not required.
 
@@ -213,6 +213,6 @@ No resources found.
 ```
 
 ## Documentation
-The operator provides a lot of functionaly for provisioning Cassandra clustering and for monitoring. 
+The operator provides a lot of functionaly for provisioning Cassandra clusters and for monitoring tlp-stress. 
 
 Please check out [the docs](./documentation/README.md) for a complete overview.
