@@ -93,6 +93,7 @@ The tlp-stress operator's Deployment is set as an owner reference.
 `endpoints` specifies that the `metrics` port for each service should be scraped.
 
 **Prometheus**
+
 The `Prometheus` CRD specifies a Prometheus server to be provisioned.
 
 The `Prometheus` instance is a namepace-based deployment with permissions limited to the namespace in which it is deployed. It is deployed in the same namespace as the tlp-stress operator, which defaults to `tlpstress`.
@@ -124,7 +125,9 @@ spec:
       app: tlpstress
 ```
 
-**Note:** The `Prometheus` object currently is not configurable through the tlp-stress operator. You will need to directly edit [config/prometheus/bundle.yaml](../config/prometheus/bundle.yaml) to modify the `Prometheus` instance at deployment time.
+**Note:** 
+
+The `Prometheus` object currently is not configurable through the tlp-stress operator. You will need to directly edit [config/prometheus/bundle.yaml](../config/prometheus/bundle.yaml) to modify the `Prometheus` instance at deployment time.
 
 ### Exposing Prometheus Server
 A service is deployed to expose the Prometheus web UI. It looks like this:
