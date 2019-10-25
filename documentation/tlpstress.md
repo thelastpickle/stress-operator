@@ -104,13 +104,74 @@ The following properties are supported in `spec.stressConfig`:
 
 **readRate**
 
+*description:* The frequency of read requests expressed as a fraction.
+
+*type:* string
+
+*required:* no
+
+*default:* Varys according to workload
+
+***
+
 **populate**
+
+*description:* Prepopulate Cassandra with the specified number of rows before starting the test. See [human readable strings](#human-readable-strings) for acceptable values.
+
+*type:* string
+
+*required:* no
+
+*default:* 0
+
+***
 
 **concurrency**
 
+*description:* The number of concurrent queries allowed.
+
+*type:* integer
+
+*required:* no
+
+*default:* 100
+
+***
+
 **partitionGenerator**
 
+*description:* The method of generating partition keys. Supports `random`, `normal`, `gaussian`, and `sequence`.
+
+*type:* string
+
+*required:* no
+
+*default:* random
+
+***
+
 **replication** 
+
+*description:* The replication strategy to use for Cassandra. `SimpleStrategy` is expressed as an integer while `NetworkTopologyStrategy` is expressed as a map of data center to RF. Here are a couple examples to illustrate:
+
+```yaml
+replication:
+  simpleStrategy: 3
+```
+
+```yaml
+replication:
+  networkTopologyStrategy:
+    dc1: 3
+    dc2: 4
+    dc3: 3
+```
+
+*type:* string
+
+*required:* no
+
+*default:* `simpleStrategy: 3`
 
 ### Human Readable Strings
 tlp-stress allows values for several parameters to be expressed as *human readable strings*. Instead of writing one billion as `1000000000`, you can instead write `1b`.
@@ -138,6 +199,29 @@ Note that `duration` is a bit different than the other fields. It is not governe
 
 
 ## JobConfig
+`spec.jobConfig` provides some configuration over the k8s job that the operator creates. It supports the following fields:
+
+**backoffLimit**
+
+*description:* The number of retries before marking the job as failed.
+
+*type:* integer 
+
+*required:* no
+
+*default:* 6
+
+***
+
+**parallelism**
+
+*description:* Specifies the max number of pods the job should run at any given time.
+
+*type:* integer
+
+*required:* no
+
+*default:* 1
 
 ## CassandraConfig
 
