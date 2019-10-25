@@ -44,7 +44,7 @@ The following properties are supported in `spec.stressConfig`:
 
 **partitions**
 
-*description:* The max value of the integer component of first partition key. See [human readable strings](#Human Readable Strings) for acceptable values.
+*description:* The max value of the integer component of first partition key. See [human readable strings](#human-readable-strings) for acceptable values.
 
 *type:* string
 
@@ -68,7 +68,7 @@ The following properties are supported in `spec.stressConfig`:
 
 **duration**
 
-*description:* The duration of the stress test. See [human readable strings](#Human Readable Strings) for acceptable values.
+*description:* The duration of the stress test. See [human readable strings](#human-readable-strings) for acceptable values.
 
 *type:* string
 
@@ -92,7 +92,7 @@ The following properties are supported in `spec.stressConfig`:
 
 **iterations**
 
-*description:* Number of operations to perform. See [human readable strings](#Human Readable Strings) for acceptable values.
+*description:* Number of operations to perform. See [human readable strings](#human-readable-strings) for acceptable values.
 
 *type:* string
 
