@@ -3,8 +3,6 @@ package tlpstress
 import (
 	"context"
 	"fmt"
-	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	api "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	casskoputil "github.com/jsanda/tlp-stress-operator/pkg/casskop"
@@ -16,7 +14,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -85,18 +82,20 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	mgr.GetScheme().AddKnownTypes(schema.GroupVersion{Group: "db.orange.com", Version: "v1alpha1"},
-		&casskop.CassandraCluster{},
-		&casskop.CassandraClusterList{},
-		&metav1.ListOptions{},
-	)
-	mgr.GetScheme().AddKnownTypes(schema.GroupVersion{Group: "monitoring.coreos.com", Version: "v1"},
-		&monitoringv1.ServiceMonitor{},
-		&monitoringv1.ServiceMonitorList{},
-		&metav1.ListOptions{},
-	)
+	addKnownTypes(mgr.GetScheme())
 
 	return nil
+}
+
+func addKnownTypes(scheme *runtime.Scheme) {
+	scheme.AddKnownTypes(api.SchemeGroupVersion, &api.TLPStress{}, &api.TLPStressList{})
+
+	for k, v := range monitoring.GetKnownTypes() {
+		scheme.AddKnownTypes(k, v...)
+	}
+	for k, v := range casskoputil.GetKnownTypes() {
+		scheme.AddKnownTypes(k, v...)
+	}
 }
 
 // blank assignment to verify that ReconcileTLPStress implements reconcile.Reconciler

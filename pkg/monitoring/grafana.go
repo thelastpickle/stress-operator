@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -21,6 +22,12 @@ const GrafanaDashboardKind = "GrafanaDashboard"
 
 type GrafanaTemplateParams struct {
 	PrometheusJobName string
+}
+
+func getGraganaTypes() (schema.GroupVersion, []runtime.Object) {
+	gv := schema.GroupVersion{Group: i8ly.SchemeGroupVersion.Group, Version: i8ly.SchemeGroupVersion.Version}
+	grafanaTypes := []runtime.Object{&i8ly.GrafanaDashboard{}, &i8ly.GrafanaDashboardList{}}
+	return gv, grafanaTypes
 }
 
 func GrafanaDashboardKindExists() (bool, error) {
@@ -61,14 +68,6 @@ func newDashboard(prometheusJobName string) (runtime.Object, error) {
 		return nil, err
 	}
 
-	//scheme, err := i8ly.SchemeBuilder.Build()
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//converter := runtime.UnsafeObjectConvertor(scheme)
-	//
-	//converter.Convert(resource, )
 	return &resource, nil
 }
 

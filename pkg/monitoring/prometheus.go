@@ -6,10 +6,11 @@ import (
 	prometheus "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	api "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
-	"github.com/jsanda/tlp-stress-operator/pkg/k8s"
 	tlp "github.com/jsanda/tlp-stress-operator/pkg/tlpstress"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -18,10 +19,10 @@ import (
 
 const ServiceMonitorKind = "ServiceMonitor"
 
-var discoveryClient k8s.DiscoveryClient
-
-func Init(dc k8s.DiscoveryClient) {
-	discoveryClient = dc
+func getPrometheusTypes() (schema.GroupVersion, []runtime.Object) {
+	gv := schema.GroupVersion{Group: prometheus.SchemeGroupVersion.Group, Version: prometheus.SchemeGroupVersion.Version}
+	promTypes := []runtime.Object{&prometheus.ServiceMonitor{}, &prometheus.ServiceMonitorList{}}
+	return gv, promTypes
 }
 
 func GetMetricsService(tlpStress *api.TLPStress, client client.Client) (*corev1.Service, error) {

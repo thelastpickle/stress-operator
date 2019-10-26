@@ -75,9 +75,11 @@ func setupReconcileWithoutRequeue(t *testing.T, state ...runtime.Object) *Reconc
 }
 
 func TestReconcile(t *testing.T) {
-	s := scheme.Scheme
-	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &v1alpha1.TLPStress{},
-		&monitoringv1.ServiceMonitor{})
+	//s := scheme.Scheme
+	//s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &v1alpha1.TLPStress{},
+	//	&monitoringv1.ServiceMonitor{})
+
+	addKnownTypes(scheme.Scheme)
 
 	t.Run("DefaultsSet", testTLPStressControllerDefaultsSet)
 	t.Run("DefaultsNotSet", testTLPStressControllerDefaultsNotSet)

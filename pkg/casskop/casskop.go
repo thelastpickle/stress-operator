@@ -3,6 +3,8 @@ package casskop
 import (
 	"context"
 	"github.com/jsanda/tlp-stress-operator/pkg/k8s"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	api "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -18,6 +20,15 @@ var discoveryClient k8s.DiscoveryClient
 
 func Init(dc k8s.DiscoveryClient) {
 	discoveryClient = dc
+}
+
+func GetKnownTypes() map[schema.GroupVersion][]runtime.Object {
+	gv := schema.GroupVersion{Group: casskop.SchemeGroupVersion.Group, Version: casskop.SchemeGroupVersion.Version}
+	casskopTypes := []runtime.Object{&casskop.CassandraCluster{}, &casskop.CassandraClusterList{}}
+	m := make(map[schema.GroupVersion][]runtime.Object)
+	m[gv] = casskopTypes
+
+	return m
 }
 
 func CassandraClusterKindExists() (bool, error) {
