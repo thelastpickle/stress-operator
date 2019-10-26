@@ -262,3 +262,4 @@ Note that `duration` is a bit different than the other fields. It is not governe
 
 
 ## Status
+The `status` subresource defines one field, `jobStatus`. This is simply a copy of the job's status.
