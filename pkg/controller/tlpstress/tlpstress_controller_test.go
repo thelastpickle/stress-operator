@@ -3,6 +3,7 @@ package tlpstress
 import (
 	"context"
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	i8ly "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
 	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"
 	v1batch "k8s.io/api/batch/v1"
@@ -232,6 +233,34 @@ func testTLPStressControllerServiceMonitorCreate(t *testing.T) {
 	}
 }
 
+func testTLPStressControllerDashboardCreate(t *testing.T) {
+	tlpStress := createTLPStress()
+
+	metricsService := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      monitoring.GetMetricsServiceName(tlpStress),
+		},
+	}
+
+	serviceMonitor := &monitoringv1.ServiceMonitor{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      metricsService.Name,
+		},
+	}
+
+	objs := []runtime.Object{tlpStress, metricsService, serviceMonitor}
+
+	r := setupReconcileWithRequeue(t, objs...)
+
+	dashboard := &i8ly.GrafanaDashboard{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: tlpStress.Namespace, Name: tlpStress.Name}, dashboard)
+	if err != nil {
+		t.Fatalf("get dashboard: (%v)", err)
+	}
+}
+
 func testTLPStressControllerJobCreate(t *testing.T) {
 	tlpStress := &v1alpha1.TLPStress{
 		ObjectMeta: metav1.ObjectMeta{
@@ -264,7 +293,14 @@ func testTLPStressControllerJobCreate(t *testing.T) {
 		},
 	}
 
-	objs := []runtime.Object{tlpStress, metricsService, serviceMonitor}
+	dashboard := &i8ly.GrafanaDashboard{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: tlpStress.Name,
+		},
+	}
+
+	objs := []runtime.Object{tlpStress, metricsService, serviceMonitor, dashboard}
 
 	r := setupReconcileWithRequeue(t, objs...)
 
@@ -307,6 +343,13 @@ func testTLPStressControllerSetStatus(t *testing.T) {
 		},
 	}
 
+	dashboard := &i8ly.GrafanaDashboard{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: tlpStress.Name,
+		},
+	}
+
 	job := &v1batch.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
@@ -324,7 +367,7 @@ func testTLPStressControllerSetStatus(t *testing.T) {
 		StartTime: &now,
 	}
 
-	objs := []runtime.Object{tlpStress, metricsService, serviceMonitor, job}
+	objs := []runtime.Object{tlpStress, metricsService, serviceMonitor, dashboard, job}
 
 	r := setupReconcileWithoutRequeue(t, objs...)
 
@@ -336,5 +379,24 @@ func testTLPStressControllerSetStatus(t *testing.T) {
 
 	if !reflect.DeepEqual(*actual.Status.JobStatus, job.Status) {
 		t.Errorf("actual.Status.JobStatus (%v) does not match the expected value (%+v)", actual.Status.JobStatus, job.Status)
+	}
+}
+
+func createTLPStress() *v1alpha1.TLPStress {
+	return &v1alpha1.TLPStress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Spec: v1alpha1.TLPStressSpec{
+			CassandraConfig: v1alpha1.CassandraConfig{
+				CassandraService: "cassandra-service",
+			},
+			StressConfig: v1alpha1.TLPStressConfig{
+				Workload: v1alpha1.KeyValueWorkload,
+			},
+			Image:           "jsanda/tlp-stress:demo",
+			ImagePullPolicy: corev1.PullAlways,
+		},
 	}
 }

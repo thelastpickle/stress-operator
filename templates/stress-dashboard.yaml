@@ -313,7 +313,7 @@ spec:
                          "expr": "mutations{quantile=\"0.99\", job=\"{{ .PrometheusJobName }}\"} * 1000",
                          "format": "time_series",
                          "intervalFactor": 2,
-                         "legendFormat": "{{instance}}",
+                         "legendFormat": "{{ .Instance }}",
                          "refId": "A"
                       }
                    ],
@@ -397,7 +397,7 @@ spec:
                          "expr": "selects{quantile=\"0.99\", job=\"{{ .PrometheusJobName }}\"} * 1000",
                          "format": "time_series",
                          "intervalFactor": 2,
-                         "legendFormat": "{{instance}}",
+                         "legendFormat": "{{ .Instance }}",
                          "refId": "A"
                       }
                    ],

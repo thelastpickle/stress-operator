@@ -9,10 +9,10 @@ import (
 	i8ly "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
 	tlp "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"io/ioutil"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"text/template"
@@ -22,9 +22,10 @@ const GrafanaDashboardKind = "GrafanaDashboard"
 
 type GrafanaTemplateParams struct {
 	PrometheusJobName string
+	Instance          string
 }
 
-func getGraganaTypes() (schema.GroupVersion, []runtime.Object) {
+func getGrafanaTypes() (schema.GroupVersion, []runtime.Object) {
 	gv := schema.GroupVersion{Group: i8ly.SchemeGroupVersion.Group, Version: i8ly.SchemeGroupVersion.Version}
 	grafanaTypes := []runtime.Object{&i8ly.GrafanaDashboard{}, &i8ly.GrafanaDashboardList{}}
 	return gv, grafanaTypes
@@ -42,13 +43,15 @@ func GetDashboard(tlpStress *tlp.TLPStress, client client.Client) (*i8ly.Grafana
 }
 
 func CreateDashboard(tlpStress *tlp.TLPStress, client client.Client, log logr.Logger) (reconcile.Result, error) {
-	resource, err := newDashboard(tlpStress.Name)
+	dashboard, err := newDashboard(tlpStress.Name)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
+	dashboard.Name = tlpStress.Name
+	dashboard.Namespace = tlpStress.Namespace
 
 	// TODO set controller reference
-	err = client.Create(context.TODO(), resource)
+	err = client.Create(context.TODO(), dashboard)
 	if err != nil {
 		log.Error(err, "Failed to create dashboard")
 		return reconcile.Result{}, err
@@ -56,23 +59,28 @@ func CreateDashboard(tlpStress *tlp.TLPStress, client client.Client, log logr.Lo
 	return reconcile.Result{Requeue: true}, nil
 }
 
-func newDashboard(prometheusJobName string) (runtime.Object, error) {
-	template, err := loadTemplate("stress-dashboard", GrafanaTemplateParams{ PrometheusJobName: prometheusJobName })
+func newDashboard(prometheusJobName string) (*i8ly.GrafanaDashboard, error) {
+	tmpl, err := loadTemplate("stress-dashboard", GrafanaTemplateParams{
+		PrometheusJobName: prometheusJobName,
+		Instance: "tlpstress",
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	resource := unstructured.Unstructured{}
-	err = yaml.Unmarshal(template, &resource)
+	dashboard := i8ly.GrafanaDashboard{}
+	err = yaml.Unmarshal(tmpl, &dashboard)
+
 	if err != nil {
 		return nil, err
 	}
 
-	return &resource, nil
+	return &dashboard, nil
 }
 
 func loadTemplate(name string, params GrafanaTemplateParams) ([]byte, error) {
-	path := fmt.Sprintf("./templates/%s.yaml", name)
+	templatePath := os.Getenv("TEMPLATE_PATH")
+	path := fmt.Sprintf("%s/%s.yaml", templatePath, name)
 	tpl, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -85,6 +93,7 @@ func loadTemplate(name string, params GrafanaTemplateParams) ([]byte, error) {
 
 	var buffer bytes.Buffer
 	err = parsed.Execute(&buffer, params)
+
 	if err != nil {
 		return nil, err
 	}
