@@ -9,6 +9,8 @@ COMPILE_TARGET=./tmp/_output/bin/$(PROJECT)
 DEV_NS ?= tlpstress
 E2E_NS?=tlpstress-e2e
 
+TEMPLATE_DIR := $(shell echo "`pwd`/templates")
+
 .PHONY: clean
 clean:
 	rm -rf build/_output
@@ -38,6 +40,7 @@ push-image:
 	docker push ${REG}/${ORG}/${PROJECT}:${TAG}
 
 .PHONY: unit-test
+unit-test: export TEMPLATE_PATH=$(TEMPLATE_DIR)
 unit-test:
 	@echo Running tests:
 	go test -v -race -cover ./pkg/...
