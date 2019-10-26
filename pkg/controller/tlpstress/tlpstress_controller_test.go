@@ -76,10 +76,6 @@ func setupReconcileWithoutRequeue(t *testing.T, state ...runtime.Object) *Reconc
 }
 
 func TestReconcile(t *testing.T) {
-	//s := scheme.Scheme
-	//s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &v1alpha1.TLPStress{},
-	//	&monitoringv1.ServiceMonitor{})
-
 	addKnownTypes(scheme.Scheme)
 
 	t.Run("DefaultsSet", testTLPStressControllerDefaultsSet)
@@ -172,12 +168,7 @@ func testTLPStressControllerMetricsServiceCreate(t *testing.T) {
 func testTLPStressControllerServiceMonitorCreate(t *testing.T) {
 	tlpStress := createTLPStress()
 
-	metricsService := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      monitoring.GetMetricsServiceName(tlpStress),
-		},
-	}
+	metricsService := createMetricsService(tlpStress)
 
 	objs := []runtime.Object{tlpStress, metricsService}
 
@@ -192,19 +183,9 @@ func testTLPStressControllerServiceMonitorCreate(t *testing.T) {
 func testTLPStressControllerDashboardCreate(t *testing.T) {
 	tlpStress := createTLPStress()
 
-	metricsService := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      monitoring.GetMetricsServiceName(tlpStress),
-		},
-	}
+	metricsService := createMetricsService(tlpStress)
 
-	serviceMonitor := &monitoringv1.ServiceMonitor{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      metricsService.Name,
-		},
-	}
+	serviceMonitor := createServiceMonitor(metricsService.Name)
 
 	objs := []runtime.Object{tlpStress, metricsService, serviceMonitor}
 
@@ -219,27 +200,9 @@ func testTLPStressControllerDashboardCreate(t *testing.T) {
 
 func testTLPStressControllerJobCreate(t *testing.T) {
 	tlpStress := createTLPStress()
-
-	metricsService := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      monitoring.GetMetricsServiceName(tlpStress),
-		},
-	}
-
-	serviceMonitor := &monitoringv1.ServiceMonitor{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      metricsService.Name,
-		},
-	}
-
-	dashboard := &i8ly.GrafanaDashboard{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name: tlpStress.Name,
-		},
-	}
+	metricsService :=createMetricsService(tlpStress)
+	serviceMonitor := createServiceMonitor(metricsService.Name)
+	dashboard := createDashboard(tlpStress)
 
 	objs := []runtime.Object{tlpStress, metricsService, serviceMonitor, dashboard}
 
@@ -254,27 +217,9 @@ func testTLPStressControllerJobCreate(t *testing.T) {
 
 func testTLPStressControllerSetStatus(t *testing.T) {
 	tlpStress := createTLPStress()
-
-	metricsService := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      monitoring.GetMetricsServiceName(tlpStress),
-		},
-	}
-
-	serviceMonitor := &monitoringv1.ServiceMonitor{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      metricsService.Name,
-		},
-	}
-
-	dashboard := &i8ly.GrafanaDashboard{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name: tlpStress.Name,
-		},
-	}
+	metricsService := createMetricsService(tlpStress)
+	serviceMonitor := createServiceMonitor(metricsService.Name)
+	dashboard := createDashboard(tlpStress)
 
 	job := &v1batch.Job{
 		TypeMeta: metav1.TypeMeta{
@@ -323,6 +268,33 @@ func createTLPStress() *v1alpha1.TLPStress {
 			},
 			Image:           "jsanda/tlp-stress:demo",
 			ImagePullPolicy: corev1.PullAlways,
+		},
+	}
+}
+
+func createMetricsService(tlpStress *v1alpha1.TLPStress)  *corev1.Service {
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      monitoring.GetMetricsServiceName(tlpStress),
+		},
+	}
+}
+
+func createServiceMonitor(metricsService string) *monitoringv1.ServiceMonitor {
+	return &monitoringv1.ServiceMonitor{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      metricsService,
+		},
+	}
+}
+
+func createDashboard(tlpStress *v1alpha1.TLPStress) *i8ly.GrafanaDashboard {
+	return &i8ly.GrafanaDashboard{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: tlpStress.Name,
 		},
 	}
 }
