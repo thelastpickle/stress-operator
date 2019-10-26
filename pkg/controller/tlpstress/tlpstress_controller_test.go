@@ -86,6 +86,7 @@ func TestReconcile(t *testing.T) {
 	t.Run("DefaultsNotSet", testTLPStressControllerDefaultsNotSet)
 	t.Run("MetricsServiceCreate", testTLPStressControllerMetricsServiceCreate)
 	t.Run("ServiceMonitorCreate", testTLPStressControllerServiceMonitorCreate)
+	t.Run("DashboardCreate", testTLPStressControllerDashboardCreate)
 	t.Run("JobCreate", testTLPStressControllerJobCreate)
 	t.Run("SetStatus", testTLPStressControllerSetStatus)
 }
@@ -128,22 +129,7 @@ func testTLPStressControllerDefaultsSet(t *testing.T) {
 }
 
 func testTLPStressControllerDefaultsNotSet(t *testing.T) {
-	tlpStress := &v1alpha1.TLPStress{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-		Spec: v1alpha1.TLPStressSpec{
-			CassandraConfig: v1alpha1.CassandraConfig{
-				CassandraService: "cassandra-service",
-			},
-			StressConfig: v1alpha1.TLPStressConfig{
-				Workload: v1alpha1.BasicTimeSeriesWorkload,
-			},
-			Image:           "jsanda/tlp-stress:test",
-			ImagePullPolicy: corev1.PullIfNotPresent,
-		},
-	}
+	tlpStress := createTLPStress()
 
 	objs := []runtime.Object{tlpStress}
 
@@ -171,22 +157,7 @@ func testTLPStressControllerDefaultsNotSet(t *testing.T) {
 }
 
 func testTLPStressControllerMetricsServiceCreate(t *testing.T) {
-	tlpStress := &v1alpha1.TLPStress{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-		Spec: v1alpha1.TLPStressSpec{
-			CassandraConfig: v1alpha1.CassandraConfig{
-				CassandraService: "cassandra-service",
-			},
-			StressConfig: v1alpha1.TLPStressConfig{
-				Workload: v1alpha1.KeyValueWorkload,
-			},
-			Image:           "jsanda/tlp-stress:demo",
-			ImagePullPolicy: corev1.PullAlways,
-		},
-	}
+	tlpStress := createTLPStress()
 
 	objs := []runtime.Object{tlpStress}
 
@@ -199,22 +170,7 @@ func testTLPStressControllerMetricsServiceCreate(t *testing.T) {
 }
 
 func testTLPStressControllerServiceMonitorCreate(t *testing.T) {
-	tlpStress := &v1alpha1.TLPStress{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-		Spec: v1alpha1.TLPStressSpec{
-			CassandraConfig: v1alpha1.CassandraConfig{
-				CassandraService: "cassandra-service",
-			},
-			StressConfig: v1alpha1.TLPStressConfig{
-				Workload: v1alpha1.KeyValueWorkload,
-			},
-			Image:           "jsanda/tlp-stress:demo",
-			ImagePullPolicy: corev1.PullAlways,
-		},
-	}
+	tlpStress := createTLPStress()
 
 	metricsService := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -262,22 +218,7 @@ func testTLPStressControllerDashboardCreate(t *testing.T) {
 }
 
 func testTLPStressControllerJobCreate(t *testing.T) {
-	tlpStress := &v1alpha1.TLPStress{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-		Spec: v1alpha1.TLPStressSpec{
-			CassandraConfig: v1alpha1.CassandraConfig{
-				CassandraService: "cassandra-service",
-			},
-			StressConfig: v1alpha1.TLPStressConfig{
-				Workload: v1alpha1.KeyValueWorkload,
-			},
-			Image:           "jsanda/tlp-stress:demo",
-			ImagePullPolicy: corev1.PullAlways,
-		},
-	}
+	tlpStress := createTLPStress()
 
 	metricsService := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -312,22 +253,7 @@ func testTLPStressControllerJobCreate(t *testing.T) {
 }
 
 func testTLPStressControllerSetStatus(t *testing.T) {
-	tlpStress := &v1alpha1.TLPStress{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-		Spec: v1alpha1.TLPStressSpec{
-			CassandraConfig: v1alpha1.CassandraConfig{
-				CassandraService: "cassandra-service",
-			},
-			StressConfig: v1alpha1.TLPStressConfig{
-				Workload: v1alpha1.KeyValueWorkload,
-			},
-			Image:           "jsanda/tlp-stress:demo",
-			ImagePullPolicy: corev1.PullAlways,
-		},
-	}
+	tlpStress := createTLPStress()
 
 	metricsService := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
