@@ -83,6 +83,9 @@ do-deploy-prometheus: deploy-prometheus-operator
 		echo "Waiting for prometheuses.monitoring.coreos.com CRD to be deployed"; \
 		sleep 1; \
 	done;
+	echo "Installing Prometheus"
+	# Temporarily adding a sleep call here due to intermittent failures on CircleCI.
+	sleep 2
 	kubectl -n $(PROMETHEUS_NS) apply -f config/prometheus/bundle.yaml
 
 .PHONY: deploy-prometheus
