@@ -68,3 +68,4 @@ jobs:
             kubectl apply -f config/kind/hostpath-provisioner.yaml
             kubectl delete storageclass standard
             make e2e-test
+          no_output_timeout: 15m
