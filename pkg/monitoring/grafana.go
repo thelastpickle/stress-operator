@@ -16,6 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"text/template"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const GrafanaDashboardKind = "GrafanaDashboard"
@@ -27,7 +28,7 @@ type GrafanaTemplateParams struct {
 
 func getGrafanaTypes() (schema.GroupVersion, []runtime.Object) {
 	gv := schema.GroupVersion{Group: i8ly.SchemeGroupVersion.Group, Version: i8ly.SchemeGroupVersion.Version}
-	grafanaTypes := []runtime.Object{&i8ly.GrafanaDashboard{}, &i8ly.GrafanaDashboardList{}}
+	grafanaTypes := []runtime.Object{&i8ly.GrafanaDashboard{}, &i8ly.GrafanaDashboardList{}, &metav1.ListOptions{}}
 	return gv, grafanaTypes
 }
 

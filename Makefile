@@ -132,7 +132,7 @@ deploy: create-dev-ns
 .PHONY: deploy-all
 deploy-all: CASSKOP_NS = $(DEV_NS)
 deploy-all: PROMETHEUS_NS = $(DEV_NS)
-deploy-all: create-dev-ns do-deploy-casskop deploy-prometheus-operator do-deploy-prometheus deploy
+deploy-all: create-dev-ns do-deploy-casskop deploy-prometheus-operator do-deploy-prometheus do-deploy-grafana-operator do-deploy-grafana deploy
 
 .PHONY: init-kind-kubeconfig
 init-kind-kubeconfig:

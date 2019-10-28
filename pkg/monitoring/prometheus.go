@@ -21,7 +21,7 @@ const ServiceMonitorKind = "ServiceMonitor"
 
 func getPrometheusTypes() (schema.GroupVersion, []runtime.Object) {
 	gv := schema.GroupVersion{Group: prometheus.SchemeGroupVersion.Group, Version: prometheus.SchemeGroupVersion.Version}
-	promTypes := []runtime.Object{&prometheus.ServiceMonitor{}, &prometheus.ServiceMonitorList{}}
+	promTypes := []runtime.Object{&prometheus.ServiceMonitor{}, &prometheus.ServiceMonitorList{}, &metav1.ListOptions{}}
 	return gv, promTypes
 }
 

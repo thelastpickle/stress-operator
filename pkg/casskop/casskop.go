@@ -12,6 +12,7 @@ import (
 	"time"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const CassandraClusterKind = "CassandraCluster"
@@ -24,7 +25,7 @@ func Init(dc k8s.DiscoveryClient) {
 
 func GetKnownTypes() map[schema.GroupVersion][]runtime.Object {
 	gv := schema.GroupVersion{Group: casskop.SchemeGroupVersion.Group, Version: casskop.SchemeGroupVersion.Version}
-	casskopTypes := []runtime.Object{&casskop.CassandraCluster{}, &casskop.CassandraClusterList{}}
+	casskopTypes := []runtime.Object{&casskop.CassandraCluster{}, &casskop.CassandraClusterList{}, &metav1.ListOptions{}}
 	m := make(map[schema.GroupVersion][]runtime.Object)
 	m[gv] = casskopTypes
 
