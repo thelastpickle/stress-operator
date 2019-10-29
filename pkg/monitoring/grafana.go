@@ -64,7 +64,7 @@ func CreateDashboard(tlpStress *tlp.TLPStress, client client.Client, log logr.Lo
 func newDashboard(dashboardName string, prometheusJobName string) (*i8ly.GrafanaDashboard, error) {
 	tmpl, err := loadTemplate("stress-dashboard", GrafanaTemplateParams{
 		PrometheusJobName: prometheusJobName,
-		Instance: "tlpstress",
+		Instance: dashboardName,
 		DashboardName: dashboardName,
 	})
 	if err != nil {
