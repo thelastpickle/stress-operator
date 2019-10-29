@@ -54,7 +54,7 @@ type JobConfig struct {
 }
 
 type TLPStressConfig struct {
-	// +kubebuilder:validation:Enum=KeyValue,BasisTimeSeries,CountersWide,LWT,Locking,Maps,MaterializedViews,RandomPartitionAccess,UdtTimeSeries
+	// +kubebuilder:validation:Enum=KeyValue,BasicTimeSeries,CountersWide,LWT,Locking,Maps,MaterializedViews,RandomPartitionAccess,UdtTimeSeries
 	Workload Workload `json:"workload,omitempty"`
 
 	// +kubebuilder:validation:Enum=ANY,ONE,TWO,THREE,QUORUM,ALL,LOCAL_QUORUM,EACH_QUORUM,SERIAL,LOCAL_SERIAL,LOCAL_ONE
