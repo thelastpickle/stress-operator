@@ -125,42 +125,18 @@ spec:
       app: tlpstress
 ```
 
-**Note:** 
+**Note:** The `Prometheus` object currently is not configurable through the tlp-stress operator. You will need to directly edit [config/prometheus/bundle.yaml](../config/prometheus/bundle.yaml) at deployment time.
 
-The `Prometheus` object currently is not configurable through the tlp-stress operator. You will need to directly edit [config/prometheus/bundle.yaml](../config/prometheus/bundle.yaml) to modify the `Prometheus` instance at deployment time.
+### Accessing Prometheus Console
+The Prometheus Operator deploys a service to expose the Prometheus web UI. It looks like this:
 
-### Exposing Prometheus Server
-A service is deployed to expose the Prometheus web UI. It looks like this:
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  annotations:
-    kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"prometheus-tlpstress","namespace":"tlpstress"},"spec":{"ports":[{"name":"web","port":9090,"protocol":"TCP","targetPort":"web"}],"selector":{"prometheus":"tlpstress"}}}
-  creationTimestamp: "2019-10-24T00:45:27Z"
-  name: prometheus-tlpstress
-  namespace: tlpstress
-  resourceVersion: "1387"
-  selfLink: /api/v1/namespaces/tlpstress/services/prometheus-tlpstress
-  uid: 8ca0fb75-8a85-4473-a284-782f1121c12d
-spec:
-  clusterIP: 10.106.254.224
-  ports:
-  - name: web
-    port: 9090
-    protocol: TCP
-    targetPort: web
-  selector:
-    prometheus: tlpstress
-  sessionAffinity: None
-  type: ClusterIP
-status:
-  loadBalancer: {}
+```
+$ kubectl get svc prometheus-tlpstress
+NAME                   TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
+prometheus-tlpstress   ClusterIP   10.80.14.96   <none>        9090/TCP   5h11m
 ```
 
-You can use `kubectl port-forward` to access the web UI from your local machine:
+By default this is a ClusterIP service, which can be accessed with `kubectl port-forward`:
 
 ```
 $ kubectl port-forward svc/prometheus-tlpstress 9090:9090
