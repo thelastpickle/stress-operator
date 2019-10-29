@@ -54,7 +54,7 @@ This will first deploy the [Promtheus Operator](https://github.com/coreos/promet
 
 The Prometheus operator adds several new CRDs, notably `ServiceMonitor` and `Prometheus`.
 
-**ServiceMonitor**
+### ServiceMonitor
 The `ServiceMonitor` CRD defines how a set of services should be monitored. It facilitates service discovery.
 
 If the `ServiceMonitor` CRD exists in the cluster, then the tlp-stress operator will create a `ServiceMonitor` that looks like this:
@@ -92,7 +92,7 @@ The tlp-stress operator's Deployment is set as an owner reference.
 
 `endpoints` specifies that the `metrics` port for each service should be scraped.
 
-**Prometheus**
+### Prometheus
 
 The `Prometheus` CRD specifies a Prometheus server to be provisioned.
 
@@ -104,31 +104,22 @@ The `Prometheus` object looks like:
 apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
 metadata:
-  annotations:
-    kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"monitoring.coreos.com/v1","kind":"Prometheus","metadata":{"annotations":{},"name":"tlpstress","namespace":"tlpstress"},"spec":{"enableAdminAPI":false,"resources":{"requests":{"memory":"400Mi"}},"serviceAccountName":"prometheus","serviceMonitorSelector":{"matchLabels":{"app":"tlpstress"}}}}
-  creationTimestamp: "2019-10-24T00:45:26Z"
-  generation: 1
   name: tlpstress
-  namespace: tlpstress
-  resourceVersion: "1385"
-  selfLink: /apis/monitoring.coreos.com/v1/namespaces/tlpstress/prometheuses/tlpstress
-  uid: 31e069b0-ce60-4608-b6a4-21c966fbfba2
 spec:
-  enableAdminAPI: false
-  resources:
-    requests:
-      memory: 400Mi
   serviceAccountName: prometheus
   serviceMonitorSelector:
     matchLabels:
       app: tlpstress
+  resources:
+    requests:
+      memory: 400Mi
+  enableAdminAPI: false
 ```
 
 **Note:** The `Prometheus` object currently is not configurable through the tlp-stress operator. You will need to directly edit [config/prometheus/bundle.yaml](../config/prometheus/bundle.yaml) at deployment time.
 
-### Accessing Prometheus Console
-The Prometheus Operator deploys a service to expose the Prometheus web UI. It looks like this:
+#### Accessing Prometheus Console
+A service is deployed to expose the Prometheus web UI. It looks like this:
 
 ```
 $ kubectl get svc prometheus-tlpstress
@@ -136,7 +127,7 @@ NAME                   TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
 prometheus-tlpstress   ClusterIP   10.80.14.96   <none>        9090/TCP   5h11m
 ```
 
-By default this is a ClusterIP service, which can be accessed with `kubectl port-forward`:
+This is a ClusterIP service, which can be accessed with `kubectl port-forward`:
 
 ```
 $ kubectl port-forward svc/prometheus-tlpstress 9090:9090
