@@ -1,5 +1,5 @@
 # Prometheus Integration
-The tlp-stress operator provides rich integration with Prometheus in a couple of ways. First, it exposes metrics for each `TLPStress` instance. Secondly, the operator provisions a Prometheus server.
+The tlp-stress operator provides Prometheus itegration in a couple of ways. First, it exposes metrics for each `TLPStress` instance. Secondly, the operator provisions a Prometheus server using the [Prometheus operator](https://github.com/coreos/prometheus-operator). The Prometheus operator is an optional dependency.
 
 ## Exposing Metrics
 A service is created for each TLPStress instance and exposes metrics on port 9500. The name of the service will be of the format `<TLPStress-name>-metrics`. Suppose we have a TLPStress instance named `stress-demo`. The operator will create a service that looks like:
