@@ -59,6 +59,11 @@ jobs:
             export GO111MODULE=on
             ./scripts/kind-smoketest.sh
             mv /home/circleci/kind /home/circleci/bin
+      - save_cache:
+          name: cache go modules
+          key: build-{{ .Branch }}-{{ checksum "go.sum" }}
+          paths:
+            - /home/circleci/.go_workspace/pkg
       - run:
           name: run e2e tests
           command: |
