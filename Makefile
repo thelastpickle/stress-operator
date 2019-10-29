@@ -66,7 +66,14 @@ deploy-grafana-operator: GRAFANA_NS ?= $(DEV_NS)
 deploy-grafana-operator: do-deploy-grafana-operator
 
 .PHONY: do-deploy-grafana
-do-deploy-grafana:
+do-deploy-grafana: deploy-grafana-operator
+	until kubectl get crd grafanas.integreatly.org > /dev/null 2>&1; do \
+    	echo "Waiting for grafanas.integreatly.org CRD to be deployed"; \
+    	sleep 1; \
+    done;
+	echo "Installing Grafana"
+    # Temporarily adding a sleep call here due to intermittent failures on CircleCI.
+	sleep 2
 	kubectl -n $(GRAFANA_NS) apply -f config/grafana/02_grafana.yaml
 	kubectl -n $(GRAFANA_NS) apply -f config/grafana/prometheus-datasource.yaml
 
@@ -134,7 +141,7 @@ deploy: create-dev-ns
 deploy-all: CASSKOP_NS = $(DEV_NS)
 deploy-all: PROMETHEUS_NS = $(DEV_NS)
 deploy-all: GRAFANA_NS = $(DEV_NS)
-deploy-all: create-dev-ns do-deploy-casskop deploy-prometheus-operator deploy-grafana-operator deploy
+deploy-all: create-dev-ns do-deploy-casskop deploy-prometheus deploy-grafana deploy
 
 .PHONY: init-kind-kubeconfig
 init-kind-kubeconfig:
