@@ -128,7 +128,7 @@ spec:
                 workload:
                   enum:
                   - KeyValue
-                  - BasisTimeSeries
+                  - BasicTimeSeries
                   - CountersWide
                   - LWT
                   - Locking
