@@ -99,6 +99,10 @@ spec:
 
 **Note:** The `GrafanaDataSource` object currently is not configurable through the tlp-stress operator. You will need to directly edit [config/grafana/prometheus-datasource.yaml](../config/grafana/prometheus-datasource.yaml) at deployment time.
 
+Here is a screenshot of the data source:
+
+![tlp-stress dashboard](../images/grafana-datasource.png)
+
 ## GrafanaDashboard
 The `GrafanaDashboard` CRD specifies a dashboard that the tlp-stress operator creates per `TLPStress` instance.
 
@@ -129,4 +133,4 @@ spec:
 
 Here is a screenshot of a dashboard:
 
-[tlp-stress dashboard](../images/grafana-dashboard.png)
+![tlp-stress dashboard](../images/grafana-dashboard.png)
