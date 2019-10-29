@@ -24,6 +24,7 @@ const GrafanaDashboardKind = "GrafanaDashboard"
 type GrafanaTemplateParams struct {
 	PrometheusJobName string
 	Instance          string
+	DashboardName     string
 }
 
 func getGrafanaTypes() (schema.GroupVersion, []runtime.Object) {
@@ -44,7 +45,7 @@ func GetDashboard(tlpStress *tlp.TLPStress, client client.Client) (*i8ly.Grafana
 }
 
 func CreateDashboard(tlpStress *tlp.TLPStress, client client.Client, log logr.Logger) (reconcile.Result, error) {
-	dashboard, err := newDashboard(tlpStress.Name)
+	dashboard, err := newDashboard(tlpStress.Name, fmt.Sprintf("%s-metrics", tlpStress.Name))
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -60,10 +61,11 @@ func CreateDashboard(tlpStress *tlp.TLPStress, client client.Client, log logr.Lo
 	return reconcile.Result{Requeue: true}, nil
 }
 
-func newDashboard(prometheusJobName string) (*i8ly.GrafanaDashboard, error) {
+func newDashboard(dashboardName string, prometheusJobName string) (*i8ly.GrafanaDashboard, error) {
 	tmpl, err := loadTemplate("stress-dashboard", GrafanaTemplateParams{
 		PrometheusJobName: prometheusJobName,
 		Instance: "tlpstress",
+		DashboardName: dashboardName,
 	})
 	if err != nil {
 		return nil, err

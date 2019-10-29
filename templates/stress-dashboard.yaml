@@ -5,7 +5,7 @@ metadata:
   labels:
     app: grafana
 spec:
-  name: simple-dashboard.json
+  name: {{ .DashboardName }}.json
   json: >
     {
        "__inputs": [ ],
@@ -82,7 +82,7 @@ spec:
                    "tableColumn": "",
                    "targets": [
                       {
-                         "expr": "sum(rate(mutations_count{job=\"{{ .PrometheusJobName }}\"}[15s]))",
+                         "expr": "sum(rate(mutations_count{job=\"{{ .PrometheusJobName }}\"}[60s]))",
                          "format": "time_series",
                          "intervalFactor": 2,
                          "legendFormat": "",
@@ -160,7 +160,7 @@ spec:
                    "tableColumn": "",
                    "targets": [
                       {
-                         "expr": "sum(rate(selects_count{job=\"{{ .PrometheusJobName }}\"}[15s]))",
+                         "expr": "sum(rate(selects_count{job=\"{{ .PrometheusJobName }}\"}[60s]))",
                          "format": "time_series",
                          "intervalFactor": 2,
                          "legendFormat": "",
@@ -238,7 +238,7 @@ spec:
                    "tableColumn": "",
                    "targets": [
                       {
-                         "expr": "sum(rate(errors_total{job=\"{{ .PrometheusJobName }}stress\"}[15s]))",
+                         "expr": "sum(rate(errors_total{job=\"{{ .PrometheusJobName }}stress\"}[60s]))",
                          "format": "time_series",
                          "intervalFactor": 2,
                          "legendFormat": "",
@@ -505,6 +505,6 @@ spec:
           ]
        },
        "timezone": "browser",
-       "title": "tlp-stress",
+       "title": "{{ .DashboardName }}",
        "version": 0
     }
