@@ -55,6 +55,7 @@ deploy-casskop: do-deploy-casskop
 
 .PHONY: do-deploy-grafana-operator
 do-deploy-grafana-operator:
+	@echo GRAFANA_NS = $(GRAFANA_NS)
 	kubectl -n $(GRAFANA_NS) apply -f config/grafana/00_service-account.yaml
 	kubectl -n $(GRAFANA_NS) apply -f config/grafana/00_crd.yaml
 	kubectl -n $(GRAFANA_NS) apply -f config/grafana/00_role.yaml
@@ -132,7 +133,8 @@ deploy: create-dev-ns
 .PHONY: deploy-all
 deploy-all: CASSKOP_NS = $(DEV_NS)
 deploy-all: PROMETHEUS_NS = $(DEV_NS)
-deploy-all: create-dev-ns do-deploy-casskop deploy-prometheus-operator do-deploy-prometheus do-deploy-grafana-operator do-deploy-grafana deploy
+deploy-all: GRAFANA_NS = $(DEV_NS)
+deploy-all: create-dev-ns do-deploy-casskop deploy-prometheus-operator deploy-grafana-operator deploy
 
 .PHONY: init-kind-kubeconfig
 init-kind-kubeconfig:
