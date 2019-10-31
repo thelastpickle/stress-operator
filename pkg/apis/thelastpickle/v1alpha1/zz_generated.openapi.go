@@ -11,9 +11,12 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStress":       schema_pkg_apis_thelastpickle_v1alpha1_TLPStress(ref),
-		"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressSpec":   schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref),
-		"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressStatus": schema_pkg_apis_thelastpickle_v1alpha1_TLPStressStatus(ref),
+		"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStress":              schema_pkg_apis_thelastpickle_v1alpha1_TLPStress(ref),
+		"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressContext":       schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContext(ref),
+		"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressContextSpec":   schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextSpec(ref),
+		"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressContextStatus": schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextStatus(ref),
+		"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressSpec":          schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref),
+		"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressStatus":        schema_pkg_apis_thelastpickle_v1alpha1_TLPStressStatus(ref),
 	}
 }
 
@@ -57,6 +60,80 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStress(ref common.ReferenceCallba
 		},
 		Dependencies: []string{
 			"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressSpec", "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+	}
+}
+
+func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContext(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "TLPStressContext is the Schema for the tlpstresscontexts API",
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+						},
+					},
+					"spec": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressContextSpec"),
+						},
+					},
+					"status": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressContextStatus"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressContextSpec", "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressContextStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+	}
+}
+
+func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "TLPStressContextSpec defines the desired state of TLPStressContext",
+				Properties: map[string]spec.Schema{
+					"installPrometheus": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{},
+	}
+}
+
+func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "TLPStressContextStatus defines the observed state of TLPStressContext",
+				Properties:  map[string]spec.Schema{},
+			},
+		},
+		Dependencies: []string{},
 	}
 }
 

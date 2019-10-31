@@ -59,6 +59,7 @@ rules:
   - integreatly.org
   resources:
   - '*'
+  - tlpstresscontexts
   verbs:
   - '*'
 - apiGroups:

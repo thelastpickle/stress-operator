@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/jsanda/tlp-stress-operator/pkg/controller/tlpstresscontext"
 	"os"
 	"runtime"
 
@@ -137,6 +138,8 @@ func main() {
 
 	log.Info("Starting the Cmd.")
 
+	startContextController(namespace, cfg, signals.SetupSignalHandler())
+
 	// Start the Cmd
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
 		log.Error(err, "Manager exited non-zero")
@@ -166,4 +169,29 @@ func serveCRMetrics(cfg *rest.Config) error {
 		return err
 	}
 	return nil
+}
+
+func startContextController(namespace string, cfg *rest.Config, signalHandler <-chan struct{}) {
+	mgr, err := manager.New(cfg, manager.Options{Namespace: namespace})
+	if err != nil {
+		log.Error(err, "Failed to create manager for context controller")
+		os.Exit(1)
+	}
+
+	if err := apis.AddToScheme(mgr.GetScheme()); err != nil {
+		log.Error(err, "Failed to add context resource to scheme")
+		os.Exit(1)
+	}
+
+	if err = tlpstresscontext.Add(mgr); err != nil {
+		log.Error(err, "Failed to add context controller to manager")
+		os.Exit(1)
+	}
+
+	go func() {
+		if err := mgr.Start(signalHandler); err != nil {
+			log.Error(err, "context manager exited non-zero")
+			os.Exit(1)
+		}
+	}()
 }

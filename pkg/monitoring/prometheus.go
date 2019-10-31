@@ -8,6 +8,8 @@ import (
 	api "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	tlp "github.com/jsanda/tlp-stress-operator/pkg/tlpstress"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -17,7 +19,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-const ServiceMonitorKind = "ServiceMonitor"
+const (
+	ServiceMonitorKind = "ServiceMonitor"
+	PrometheusKind = "Prometheus"
+
+	prometheusName = "prometheus-tlpstress"
+)
+
 
 func getPrometheusTypes() (schema.GroupVersion, []runtime.Object) {
 	gv := schema.GroupVersion{Group: prometheus.SchemeGroupVersion.Group, Version: prometheus.SchemeGroupVersion.Version}
@@ -79,6 +87,70 @@ func newMetricsService(tlpStress *api.TLPStress) *corev1.Service {
 func ServiceMonitorKindExists() (bool, error) {
 	return discoveryClient.KindExists(prometheus.SchemeGroupVersion.String(), ServiceMonitorKind)
 }
+
+func PrometheusKindExists() (bool, error) {
+	return discoveryClient.KindExists(prometheus.SchemeGroupVersion.String(), PrometheusKind)
+}
+
+func GetPrometheus(namespace string, client client.Client) (*prometheus.Prometheus, error) {
+	instance := &prometheus.Prometheus{}
+	err := client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: prometheusName}, instance)
+
+	return instance, err
+}
+
+func CreatePrometheus(namespace string, client client.Client, log logr.Logger) (reconcile.Result, error) {
+	instance := newPrometheus(namespace)
+	log.Info("Creating Prometheus", "Prometheus.Namespace", instance.Namespace, "Prometheus.Name",
+		instance.Name)
+	err := client.Create(context.TODO(), instance)
+	if err != nil {
+		log.Error(err, "Failed to create Prometheus", "Prometheus.Namespace", instance.Namespace,
+			"Prometheus.Name", instance.Name)
+		return reconcile.Result{}, err
+	}
+	return reconcile.Result{Requeue: true}, nil
+}
+
+func newPrometheus(namespace string) *prometheus.Prometheus {
+	selector := metav1.LabelSelector{
+		MatchExpressions: []metav1.LabelSelectorRequirement{
+			{
+				Key: "app",
+				Operator: metav1.LabelSelectorOpIn,
+				Values: []string{"tlpstress"},
+			},
+		},
+	}
+
+		return &prometheus.Prometheus{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: prometheusName,
+		},
+		Spec: prometheus.PrometheusSpec{
+			ServiceAccountName: prometheusName,
+			ServiceMonitorSelector: &selector,
+			Resources: v1.ResourceRequirements{
+				Requests: v1.ResourceList{
+					v1.ResourceMemory: resource.MustParse("400Mi"),
+				},
+			},
+			EnableAdminAPI: false,
+		},
+	}
+}
+
+//func createPrometheusServiceAccount(namespace string, client client.Client, log logr.Logger) error {
+//	sa := v1.ServiceAccount{
+//		ObjectMeta: metav1.ObjectMeta{
+//			Namespace: namespace,
+//			Name: prometheusName,
+//		},
+//	}
+//
+//
+//}
 
 func GetServiceMonitor(tlpStress *api.TLPStress, client client.Client) (*prometheus.ServiceMonitor, error) {
 	metricsSvc := GetMetricsServiceName(tlpStress)
