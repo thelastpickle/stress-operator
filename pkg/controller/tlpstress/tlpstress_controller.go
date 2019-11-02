@@ -6,7 +6,6 @@ import (
 	"github.com/go-logr/logr"
 	api "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	casskoputil "github.com/jsanda/tlp-stress-operator/pkg/casskop"
-	"github.com/jsanda/tlp-stress-operator/pkg/k8s"
 	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"
 	"github.com/jsanda/tlp-stress-operator/pkg/tlpstress"
 	v1batch "k8s.io/api/batch/v1"
@@ -43,12 +42,12 @@ const (
 // Add creates a new TLPStress Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
-	if dc, err := k8s.GetDiscoveryClient(); err != nil {
-		return err
-	} else {
-		monitoring.Init(dc)
-		casskoputil.Init(dc)
-	}
+	//if dc, err := k8s.GetDiscoveryClient(); err != nil {
+	//	return err
+	//} else {
+	//	monitoring.Init(dc)
+	//	casskoputil.Init(dc)
+	//}
 
 	return add(mgr, newReconciler(mgr))
 }
@@ -82,20 +81,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	addKnownTypes(mgr.GetScheme())
-
 	return nil
-}
-
-func addKnownTypes(scheme *runtime.Scheme) {
-	scheme.AddKnownTypes(api.SchemeGroupVersion, &api.TLPStress{}, &api.TLPStressList{})
-
-	for k, v := range monitoring.GetKnownTypes() {
-		scheme.AddKnownTypes(k, v...)
-	}
-	for k, v := range casskoputil.GetKnownTypes() {
-		scheme.AddKnownTypes(k, v...)
-	}
 }
 
 // blank assignment to verify that ReconcileTLPStress implements reconcile.Reconciler

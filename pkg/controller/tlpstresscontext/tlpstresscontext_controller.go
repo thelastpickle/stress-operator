@@ -2,8 +2,6 @@ package tlpstresscontext
 
 import (
 	"context"
-	"time"
-
 	thelastpicklev1alpha1 "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -38,6 +36,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
+	log.Info("CREATE CONTROLLER")
 	c, err := controller.New("tlpstresscontext-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
@@ -103,17 +102,15 @@ func (r *ReconcileTLPStressContext) Reconcile(request reconcile.Request) (reconc
 	if stressContext.Spec.InstallPrometheus {
 		if kindExists, err := monitoring.PrometheusKindExists(); kindExists {
 			_, err := monitoring.GetPrometheus(request.Namespace, r.client)
-			if err != nil {
-				if !errors.IsNotFound(err) {
-					return reconcile.Result{RequeueAfter: 5 * time.Second}, err
-				}
+			if err != nil && errors.IsNotFound(err) {
+				reqLogger.Info("CREATE PROMETHEUS")
 				return monitoring.CreatePrometheus(request.Namespace, r.client, reqLogger)
+			} else if err != nil {
+				reqLogger.Error(err, "Failed to get Prometheus")
+				return reconcile.Result{}, err
 			}
-		} else {
-			reqLogger.Info("Prometheus CR does not exist. Cannot install Prometheus server.")
-			if err != nil {
-				reqLogger.Error(err, "Check for Prometheus CR failed")
-			}
+		} else if err != nil {
+			reqLogger.Error(err, "Failed to check for Prometheus CRD")
 			return reconcile.Result{}, err
 		}
 	}

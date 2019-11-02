@@ -4,16 +4,19 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/jsanda/tlp-stress-operator/pkg/controller/tlpstresscontext"
+	"github.com/jsanda/tlp-stress-operator/pkg/k8s"
 	"os"
 	"runtime"
+	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 
 	"github.com/jsanda/tlp-stress-operator/pkg/apis"
+	"github.com/jsanda/tlp-stress-operator/pkg/casskop"
 	"github.com/jsanda/tlp-stress-operator/pkg/controller"
+	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"
@@ -29,6 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
+	//prometheus "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 )
 
 // Change below variables to serve metrics on different host or port.
@@ -103,7 +107,7 @@ func main() {
 	log.Info("Registering Components.")
 
 	// Setup Scheme for all resources
-	if err := apis.AddToScheme(mgr.GetScheme()); err != nil {
+	if err := controller.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
@@ -136,12 +140,21 @@ func main() {
 		}
 	}
 
+	if dc, err := k8s.GetDiscoveryClient(); err != nil {
+		log.Error(err, "Failed to get discovery client")
+	} else {
+		monitoring.Init(dc)
+		casskop.Init(dc)
+	}
+
 	log.Info("Starting the Cmd.")
 
-	startContextController(namespace, cfg, signals.SetupSignalHandler())
+	signalHandler := signals.SetupSignalHandler()
+
+	startContextController(namespace, cfg, signalHandler)
 
 	// Start the Cmd
-	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(signalHandler); err != nil {
 		log.Error(err, "Manager exited non-zero")
 		os.Exit(1)
 	}
@@ -174,24 +187,22 @@ func serveCRMetrics(cfg *rest.Config) error {
 func startContextController(namespace string, cfg *rest.Config, signalHandler <-chan struct{}) {
 	mgr, err := manager.New(cfg, manager.Options{Namespace: namespace})
 	if err != nil {
-		log.Error(err, "Failed to create manager for context controller")
+		log.Error(err, "failed to create manager for tlpstress context controller")
 		os.Exit(1)
 	}
 
-	if err := apis.AddToScheme(mgr.GetScheme()); err != nil {
-		log.Error(err, "Failed to add context resource to scheme")
-		os.Exit(1)
-	}
-
-	if err = tlpstresscontext.Add(mgr); err != nil {
-		log.Error(err, "Failed to add context controller to manager")
+	if err := controller.AddToScheme(mgr.GetScheme()); err != nil {
+		log.Error(err, "")
 		os.Exit(1)
 	}
 
 	go func() {
 		if err := mgr.Start(signalHandler); err != nil {
-			log.Error(err, "context manager exited non-zero")
+			log.Error(err, "tlpstress context manager exited non-zero")
 			os.Exit(1)
 		}
+		log.Info("started tlpstress context controller")
 	}()
+	time.Sleep(2 * time.Second)
 }
+

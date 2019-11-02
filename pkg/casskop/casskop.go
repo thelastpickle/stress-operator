@@ -2,17 +2,15 @@ package casskop
 
 import (
 	"context"
+	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
+	"github.com/go-logr/logr"
+	api "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"github.com/jsanda/tlp-stress-operator/pkg/k8s"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-	api "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"github.com/go-logr/logr"
-	"time"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"time"
 )
 
 const CassandraClusterKind = "CassandraCluster"
@@ -23,13 +21,8 @@ func Init(dc k8s.DiscoveryClient) {
 	discoveryClient = dc
 }
 
-func GetKnownTypes() map[schema.GroupVersion][]runtime.Object {
-	gv := schema.GroupVersion{Group: casskop.SchemeGroupVersion.Group, Version: casskop.SchemeGroupVersion.Version}
-	casskopTypes := []runtime.Object{&casskop.CassandraCluster{}, &casskop.CassandraClusterList{}, &metav1.ListOptions{}}
-	m := make(map[schema.GroupVersion][]runtime.Object)
-	m[gv] = casskopTypes
-
-	return m
+func AddToScheme(scheme *runtime.Scheme) error {
+	return casskop.SchemeBuilder.AddToScheme(scheme)
 }
 
 func CassandraClusterKindExists() (bool, error) {

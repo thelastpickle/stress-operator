@@ -9,14 +9,11 @@ import (
 	i8ly "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
 	tlp "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"io/ioutil"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"text/template"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const GrafanaDashboardKind = "GrafanaDashboard"
@@ -25,12 +22,6 @@ type GrafanaTemplateParams struct {
 	PrometheusJobName string
 	Instance          string
 	DashboardName     string
-}
-
-func getGrafanaTypes() (schema.GroupVersion, []runtime.Object) {
-	gv := schema.GroupVersion{Group: i8ly.SchemeGroupVersion.Group, Version: i8ly.SchemeGroupVersion.Version}
-	grafanaTypes := []runtime.Object{&i8ly.GrafanaDashboard{}, &i8ly.GrafanaDashboardList{}, &metav1.ListOptions{}}
-	return gv, grafanaTypes
 }
 
 func GrafanaDashboardKindExists() (bool, error) {

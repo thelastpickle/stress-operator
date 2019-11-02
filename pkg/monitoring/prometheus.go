@@ -11,27 +11,20 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"time"
 )
 
 const (
 	ServiceMonitorKind = "ServiceMonitor"
 	PrometheusKind = "Prometheus"
 
-	prometheusName = "prometheus-tlpstress"
+	prometheusName = "tlpstress"
 )
 
-
-func getPrometheusTypes() (schema.GroupVersion, []runtime.Object) {
-	gv := schema.GroupVersion{Group: prometheus.SchemeGroupVersion.Group, Version: prometheus.SchemeGroupVersion.Version}
-	promTypes := []runtime.Object{&prometheus.ServiceMonitor{}, &prometheus.ServiceMonitorList{}, &metav1.ListOptions{}}
-	return gv, promTypes
-}
 
 func GetMetricsService(tlpStress *api.TLPStress, client client.Client) (*corev1.Service, error) {
 	metricsService := &corev1.Service{}
@@ -109,7 +102,7 @@ func CreatePrometheus(namespace string, client client.Client, log logr.Logger) (
 			"Prometheus.Name", instance.Name)
 		return reconcile.Result{}, err
 	}
-	return reconcile.Result{Requeue: true}, nil
+	return reconcile.Result{Requeue: true, RequeueAfter: 10 * time.Second}, nil
 }
 
 func newPrometheus(namespace string) *prometheus.Prometheus {

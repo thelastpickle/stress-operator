@@ -4,14 +4,16 @@ import (
 	"context"
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	i8ly "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
+	"github.com/jsanda/tlp-stress-operator/pkg/apis"
 	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/tlp-stress-operator/pkg/casskop"
 	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"
 	v1batch "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -33,13 +35,12 @@ var (
 		Name:      name,
 	}
 	fdc          = &fakeDiscoveryClient{}
+	testScheme   = scheme.Scheme
 )
 
 func setupReconcile(t *testing.T, state ...runtime.Object) (*ReconcileTLPStress, reconcile.Result) {
 	cl := fake.NewFakeClient(state...)
-	r := &ReconcileTLPStress{client: cl, scheme: scheme.Scheme}
-	monitoring.Init(fdc)
-	monitoring.Init(fdc)
+	r := &ReconcileTLPStress{client: cl, scheme: testScheme}
 	req := reconcile.Request{
 		NamespacedName: types.NamespacedName{
 			Name:      name,
@@ -76,7 +77,18 @@ func setupReconcileWithoutRequeue(t *testing.T, state ...runtime.Object) *Reconc
 }
 
 func TestReconcile(t *testing.T) {
-	addKnownTypes(scheme.Scheme)
+	monitoring.Init(fdc)
+	monitoring.Init(fdc)
+
+	if err := apis.AddToScheme(testScheme); err != nil {
+		t.FailNow()
+	}
+	if err := monitoring.AddToScheme(testScheme); err != nil {
+		t.FailNow()
+	}
+	if err := casskop.AddToScheme(testScheme); err != nil {
+		t.FailNow()
+	}
 
 	t.Run("DefaultsSet", testTLPStressControllerDefaultsSet)
 	t.Run("DefaultsNotSet", testTLPStressControllerDefaultsNotSet)
