@@ -118,6 +118,12 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextSpec(ref common.Refe
 							Format: "",
 						},
 					},
+					"installGrafana": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},

@@ -94,7 +94,7 @@ func GetPrometheus(namespace string, client client.Client) (*prometheus.Promethe
 }
 
 func CreatePrometheus(namespace string, client client.Client, log logr.Logger) (reconcile.Result, error) {
-	if err := createPrometheusServiceAccount(client, namespace); err != nil {
+	if err := k8s.CreateServiceAccount(client, namespace, prometheusName); err != nil {
 		return reconcile.Result{}, fmt.Errorf("failed to create prometheus service account: %s", err)
 	}
 	if err := createPrometheusRole(client, namespace); err != nil {
@@ -103,27 +103,16 @@ func CreatePrometheus(namespace string, client client.Client, log logr.Logger) (
 	if err := createPrometheusRoleBinding(client, namespace); err != nil {
 		return reconcile.Result{}, fmt.Errorf("failed to create prometheus role binding: %s", err)
 	}
-
+	// TODO create service to expose prometheus UI
 	instance := newPrometheus(namespace)
 	log.Info("Creating Prometheus", "Prometheus.Namespace", instance.Namespace, "Prometheus.Name",
 		instance.Name)
-	err := client.Create(context.TODO(), instance)
-	if err != nil {
+	if err := k8s.CreateResource(client, instance); err != nil {
 		log.Error(err, "Failed to create Prometheus", "Prometheus.Namespace", instance.Namespace,
 			"Prometheus.Name", instance.Name)
 		return reconcile.Result{}, err
 	}
 	return reconcile.Result{Requeue: true, RequeueAfter: 10 * time.Second}, nil
-}
-
-func createPrometheusServiceAccount(client client.Client, namespace string) error {
-	sa := &v1.ServiceAccount{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name: prometheusName,
-		},
-	}
-	return k8s.CreateResource(client, sa)
 }
 
 func createPrometheusRole(client client.Client, namespace string) error {
@@ -193,17 +182,6 @@ func newPrometheus(namespace string) *prometheus.Prometheus {
 		},
 	}
 }
-
-//func createPrometheusServiceAccount(namespace string, client client.Client, log logr.Logger) error {
-//	sa := v1.ServiceAccount{
-//		ObjectMeta: metav1.ObjectMeta{
-//			Namespace: namespace,
-//			Name: prometheusName,
-//		},
-//	}
-//
-//
-//}
 
 func GetServiceMonitor(tlpStress *api.TLPStress, client client.Client) (*prometheus.ServiceMonitor, error) {
 	metricsSvc := GetMetricsServiceName(tlpStress)

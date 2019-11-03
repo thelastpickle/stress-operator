@@ -29,6 +29,8 @@ spec:
           type: object
         spec:
           properties:
+            installGrafana:
+              type: boolean
             installPrometheus:
               type: boolean
           type: object

@@ -16,6 +16,7 @@ type TLPStressContextSpec struct {
 
 	InstallPrometheus bool `json:"installPrometheus,omitempty"`
 
+	InstallGrafana bool `json:"installGrafana,omitempty"`
 }
 
 // TLPStressContextStatus defines the observed state of TLPStressContext

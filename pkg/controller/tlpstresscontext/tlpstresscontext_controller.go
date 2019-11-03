@@ -113,5 +113,20 @@ func (r *ReconcileTLPStressContext) Reconcile(request reconcile.Request) (reconc
 		}
 	}
 
+	if stressContext.Spec.InstallGrafana {
+		if kindExists, err := monitoring.GrafanaKindExists(); kindExists {
+			_, err := monitoring.GetGrafana(request.Namespace, r.client)
+			if err != nil && errors.IsNotFound(err) {
+				return monitoring.CreateGrafana(request.Namespace, r.client, reqLogger)
+			} else if err != nil {
+				reqLogger.Error(err, "Failed to get Grafana")
+				return reconcile.Result{}, err
+			}
+		} else if err != nil {
+			reqLogger.Error(err, "Failed to check for Grafana CRD")
+			return reconcile.Result{}, err
+		}
+	}
+
 	return reconcile.Result{}, nil
 }

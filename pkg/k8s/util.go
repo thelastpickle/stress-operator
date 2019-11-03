@@ -4,6 +4,9 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	v1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type DiscoveryClient interface {
@@ -30,4 +33,14 @@ func GetDiscoveryClient() (*k8sDiscoveryClient, error) {
 
 func (kdc *k8sDiscoveryClient) KindExists(apiVersion string, kind string) (bool, error) {
 	return k8sutil.ResourceExists(kdc.discoveryClient, apiVersion, kind)
+}
+
+func CreateServiceAccount(client client.Client, namespace string, name string) error {
+	sa := &v1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: name,
+		},
+	}
+	return CreateResource(client, sa)
 }

@@ -8,15 +8,22 @@ import (
 	"github.com/go-logr/logr"
 	i8ly "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
 	tlp "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/tlp-stress-operator/pkg/k8s"
 	"io/ioutil"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"text/template"
+	"time"
 )
 
-const GrafanaDashboardKind = "GrafanaDashboard"
+const (
+	GrafanaKind          = "Grafana"
+	GrafanaDashboardKind = "GrafanaDashboard"
+	grafanaName          = "tlpstress-grafana"
+)
 
 type GrafanaTemplateParams struct {
 	PrometheusJobName string
@@ -93,4 +100,74 @@ func loadTemplate(name string, params GrafanaTemplateParams) ([]byte, error) {
 	}
 
 	return buffer.Bytes(), nil
+}
+
+func GrafanaKindExists() (bool, error) {
+	return discoveryClient.KindExists(i8ly.SchemeGroupVersion.String(), GrafanaKind)
+}
+
+func GetGrafana(namespace string, client client.Client) (*i8ly.Grafana, error) {
+	instance := &i8ly.Grafana{}
+	err := client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: grafanaName}, instance)
+
+	return instance, err
+}
+
+func CreateGrafana(namespace string, client client.Client, log logr.Logger) (reconcile.Result, error) {
+	instance := newGrafana(namespace)
+	log.Info("Creating Grafana", "Grafana.Namespace", instance.Namespace, "Grafana.Name",
+		instance.Name)
+	if err := k8s.CreateResource(client, instance); err != nil {
+		log.Error(err, "Failed to create Grafana", "Grafana.Namespace", instance.Namespace,
+			"Grafana.Name", instance.Name)
+		return reconcile.Result{}, err
+	}
+	return reconcile.Result{Requeue: true, RequeueAfter: 10 * time.Second}, nil
+}
+
+func newGrafana(namespace string) *i8ly.Grafana {
+	selector := &metav1.LabelSelector{
+		MatchExpressions: []metav1.LabelSelectorRequirement{
+			{
+				Key: "app",
+				Operator: metav1.LabelSelectorOpIn,
+				Values: []string{"tlpstress"},
+			},
+		},
+	}
+
+	return &i8ly.Grafana{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: grafanaName,
+		},
+		Spec: i8ly.GrafanaSpec{
+			Service: i8ly.GrafanaService{
+				Labels: map[string]string{
+					"app": "grafana",
+				},
+			},
+			Config: i8ly.GrafanaConfig{
+				Log: i8ly.GrafanaConfigLog{
+					Mode: "console",
+					Level: "debug",
+				},
+				Security: i8ly.GrafanaConfigSecurity{
+					AdminUser: "root",
+					AdminPassword: "grafana",
+				},
+				Auth: i8ly.GrafanaConfigAuth{
+					DisableLoginForm: false,
+					DisableSignoutMenu: false,
+				},
+				AuthBasic: i8ly.GrafanaConfigAuthBasic{
+					Enabled: true,
+				},
+				AuthAnonymous: i8ly.GrafanaConfigAuthAnonymous{
+					Enabled: true,
+				},
+			},
+			DashboardLabelSelector: []*metav1.LabelSelector{selector},
+		},
+	}
 }
