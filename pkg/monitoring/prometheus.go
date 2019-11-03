@@ -6,9 +6,11 @@ import (
 	prometheus "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	api "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/tlp-stress-operator/pkg/k8s"
 	tlp "github.com/jsanda/tlp-stress-operator/pkg/tlpstress"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
+	rbac "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -22,9 +24,8 @@ const (
 	ServiceMonitorKind = "ServiceMonitor"
 	PrometheusKind = "Prometheus"
 
-	prometheusName = "tlpstress"
+	prometheusName = "tlpstress-prometheus"
 )
-
 
 func GetMetricsService(tlpStress *api.TLPStress, client client.Client) (*corev1.Service, error) {
 	metricsService := &corev1.Service{}
@@ -93,6 +94,16 @@ func GetPrometheus(namespace string, client client.Client) (*prometheus.Promethe
 }
 
 func CreatePrometheus(namespace string, client client.Client, log logr.Logger) (reconcile.Result, error) {
+	if err := createPrometheusServiceAccount(client, namespace); err != nil {
+		return reconcile.Result{}, fmt.Errorf("failed to create prometheus service account: %s", err)
+	}
+	if err := createPrometheusRole(client, namespace); err != nil {
+		return reconcile.Result{}, fmt.Errorf("failed to create prometheus role: %s", err)
+	}
+	if err := createPrometheusRoleBinding(client, namespace); err != nil {
+		return reconcile.Result{}, fmt.Errorf("failed to create prometheus role binding: %s", err)
+	}
+
 	instance := newPrometheus(namespace)
 	log.Info("Creating Prometheus", "Prometheus.Namespace", instance.Namespace, "Prometheus.Name",
 		instance.Name)
@@ -103,6 +114,55 @@ func CreatePrometheus(namespace string, client client.Client, log logr.Logger) (
 		return reconcile.Result{}, err
 	}
 	return reconcile.Result{Requeue: true, RequeueAfter: 10 * time.Second}, nil
+}
+
+func createPrometheusServiceAccount(client client.Client, namespace string) error {
+	sa := &v1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: prometheusName,
+		},
+	}
+	return k8s.CreateResource(client, sa)
+}
+
+func createPrometheusRole(client client.Client, namespace string) error {
+	role := &rbac.Role{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: prometheusName,
+		},
+		Rules: []rbac.PolicyRule{
+			{
+				APIGroups: []string { "" },
+				Verbs: []string {"get", "list", "watch"},
+				Resources: []string {"nodes", "services", "endpoints", "pods"},
+			},
+		},
+	}
+	return k8s.CreateResource(client, role)
+}
+
+func createPrometheusRoleBinding(client client.Client, namespace string) error {
+	roleBinding := &rbac.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: prometheusName,
+		},
+		RoleRef: rbac.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind: "Role",
+			Name: prometheusName,
+		},
+		Subjects: []rbac.Subject{
+			{
+				Namespace: namespace,
+				Name: prometheusName,
+				Kind: "ServiceAccount",
+			},
+		},
+	}
+	return k8s.CreateResource(client, roleBinding)
 }
 
 func newPrometheus(namespace string) *prometheus.Prometheus {
