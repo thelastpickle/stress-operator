@@ -171,3 +171,45 @@ func newGrafana(namespace string) *i8ly.Grafana {
 		},
 	}
 }
+
+func GetDataSource(namespace string, client client.Client) (*i8ly.GrafanaDataSource, error) {
+	ds := &i8ly.GrafanaDataSource{}
+	err := client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: grafanaName}, ds)
+
+	return ds, err
+}
+
+func CreateDataSource(namespace string, client client.Client, log logr.Logger) (reconcile.Result, error) {
+	log.Info("Creating Prometheus data source", "GrafanaDataSource.Namespace", namespace,
+		"GrafanaDataSource.Name", PrometheusName)
+
+	ds := &i8ly.GrafanaDataSource{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: PrometheusName,
+		},
+		Spec: i8ly.GrafanaDataSourceSpec{
+			Name: "middleware.yaml",
+			Datasources: []i8ly.GrafanaDataSourceFields{
+				{
+					Name: PrometheusName,
+					Type: "Prometheus",
+					Access: "proxy",
+					Url: "http://tlpstress-prometheus:9090",
+					IsDefault: true,
+					Version: 1,
+					JsonData: i8ly.GrafanaDataSourceJsonData{
+						TlsSkipVerify: true,
+						TimeInterval: "5s",
+					},
+				},
+			},
+		},
+	}
+	if err := k8s.CreateResource(client, ds); err != nil {
+		log.Error(err, "Failed to create Prometheus data source", "GrafanaDataSource.Namespace", namespace,
+			"GrafanaDataSource.Name", PrometheusName)
+		return reconcile.Result{}, err
+	}
+	return reconcile.Result{Requeue: true, RequeueAfter: 10 * time.Second}, nil
+}

@@ -24,7 +24,7 @@ const (
 	ServiceMonitorKind = "ServiceMonitor"
 	PrometheusKind = "Prometheus"
 
-	prometheusName = "tlpstress-prometheus"
+	PrometheusName = "tlpstress-prometheus"
 )
 
 func GetMetricsService(tlpStress *api.TLPStress, client client.Client) (*corev1.Service, error) {
@@ -88,13 +88,13 @@ func PrometheusKindExists() (bool, error) {
 
 func GetPrometheus(namespace string, client client.Client) (*prometheus.Prometheus, error) {
 	instance := &prometheus.Prometheus{}
-	err := client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: prometheusName}, instance)
+	err := client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: PrometheusName}, instance)
 
 	return instance, err
 }
 
 func CreatePrometheus(namespace string, client client.Client, log logr.Logger) (reconcile.Result, error) {
-	if err := k8s.CreateServiceAccount(client, namespace, prometheusName); err != nil {
+	if err := k8s.CreateServiceAccount(client, namespace, PrometheusName); err != nil {
 		return reconcile.Result{}, fmt.Errorf("failed to create prometheus service account: %s", err)
 	}
 	if err := createPrometheusRole(client, namespace); err != nil {
@@ -119,7 +119,7 @@ func createPrometheusRole(client client.Client, namespace string) error {
 	role := &rbac.Role{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name: prometheusName,
+			Name:      PrometheusName,
 		},
 		Rules: []rbac.PolicyRule{
 			{
@@ -136,18 +136,18 @@ func createPrometheusRoleBinding(client client.Client, namespace string) error {
 	roleBinding := &rbac.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name: prometheusName,
+			Name:      PrometheusName,
 		},
 		RoleRef: rbac.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
-			Kind: "Role",
-			Name: prometheusName,
+			Kind:     "Role",
+			Name:     PrometheusName,
 		},
 		Subjects: []rbac.Subject{
 			{
 				Namespace: namespace,
-				Name: prometheusName,
-				Kind: "ServiceAccount",
+				Name:      PrometheusName,
+				Kind:      "ServiceAccount",
 			},
 		},
 	}
@@ -168,10 +168,10 @@ func newPrometheus(namespace string) *prometheus.Prometheus {
 		return &prometheus.Prometheus{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name: prometheusName,
+			Name:      PrometheusName,
 		},
 		Spec: prometheus.PrometheusSpec{
-			ServiceAccountName: prometheusName,
+			ServiceAccountName:     PrometheusName,
 			ServiceMonitorSelector: &selector,
 			Resources: v1.ResourceRequirements{
 				Requests: v1.ResourceList{
@@ -214,7 +214,9 @@ func newServiceMonitor(svc *corev1.Service) *prometheus.ServiceMonitor {
 		},
 		Spec: prometheus.ServiceMonitorSpec{
 			Selector: metav1.LabelSelector{
-				MatchLabels: svc.Spec.Selector,
+				MatchLabels: map[string]string{
+					"app": "tlpstress",
+				},
 			},
 			Endpoints: getEndpoints(svc),
 		},

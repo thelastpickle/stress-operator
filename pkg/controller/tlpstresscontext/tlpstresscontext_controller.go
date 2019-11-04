@@ -126,6 +126,14 @@ func (r *ReconcileTLPStressContext) Reconcile(request reconcile.Request) (reconc
 			reqLogger.Error(err, "Failed to check for Grafana CRD")
 			return reconcile.Result{}, err
 		}
+
+		_, err = monitoring.GetDataSource(request.Namespace, r.client)
+		if err != nil && errors.IsNotFound(err) {
+			return monitoring.CreateDataSource(request.Namespace, r.client, reqLogger)
+		} else if err != nil {
+			reqLogger.Error(err, "Failed to get DataSource")
+			return reconcile.Result{}, err
+		}
 	}
 
 	return reconcile.Result{}, nil
