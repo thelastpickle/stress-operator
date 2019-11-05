@@ -22,10 +22,12 @@ import (
 
 const (
 	ServiceMonitorKind = "ServiceMonitor"
-	PrometheusKind = "Prometheus"
+	PrometheusKind     = "Prometheus"
 
-	PrometheusName = "tlpstress-prometheus"
+	PrometheusName     = "tlpstress-prometheus"
 	ServiceMonitorName = "tlpstress"
+
+	metricsPort        = "metrics"
 )
 
 func GetMetricsService(tlpStress *api.TLPStress, client client.Client) (*corev1.Service, error) {
@@ -66,7 +68,7 @@ func newMetricsService(tlpStress *api.TLPStress) *corev1.Service {
 			Ports: []corev1.ServicePort{
 				{
 					Port: 9500,
-					Name: "metrics",
+					Name: metricsPort,
 					Protocol: corev1.ProtocolTCP,
 					TargetPort: intstr.IntOrString{
 						Type: intstr.Int,
@@ -219,7 +221,11 @@ func newServiceMonitor(namespace string) *prometheus.ServiceMonitor {
 					"app": "tlpstress",
 				},
 			},
-			Endpoints: []prometheus.Endpoint{},
+			Endpoints: []prometheus.Endpoint{
+				{
+					Port: metricsPort,
+				},
+			},
  		},
 	}
 }
