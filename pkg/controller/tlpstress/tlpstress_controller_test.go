@@ -2,7 +2,6 @@ package tlpstress
 
 import (
 	"context"
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	i8ly "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
 	"github.com/jsanda/tlp-stress-operator/pkg/apis"
 	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
@@ -12,8 +11,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes/scheme"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -93,7 +92,7 @@ func TestReconcile(t *testing.T) {
 	t.Run("DefaultsSet", testTLPStressControllerDefaultsSet)
 	t.Run("DefaultsNotSet", testTLPStressControllerDefaultsNotSet)
 	t.Run("MetricsServiceCreate", testTLPStressControllerMetricsServiceCreate)
-	t.Run("ServiceMonitorCreate", testTLPStressControllerServiceMonitorCreate)
+	//t.Run("ServiceMonitorCreate", testTLPStressControllerServiceMonitorCreate)
 	t.Run("DashboardCreate", testTLPStressControllerDashboardCreate)
 	t.Run("JobCreate", testTLPStressControllerJobCreate)
 	t.Run("SetStatus", testTLPStressControllerSetStatus)
@@ -177,29 +176,29 @@ func testTLPStressControllerMetricsServiceCreate(t *testing.T) {
 	}
 }
 
-func testTLPStressControllerServiceMonitorCreate(t *testing.T) {
-	tlpStress := createTLPStress()
-
-	metricsService := createMetricsService(tlpStress)
-
-	objs := []runtime.Object{tlpStress, metricsService}
-
-	r := setupReconcileWithRequeue(t, objs...)
-
-	serviceMonitor := &monitoringv1.ServiceMonitor{}
-	if err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: metricsService.Name}, serviceMonitor); err != nil {
-		t.Fatalf("get service monitor: (%v)", err)
-	}
-}
+//func testTLPStressControllerServiceMonitorCreate(t *testing.T) {
+//	tlpStress := createTLPStress()
+//
+//	metricsService := createMetricsService(tlpStress)
+//
+//	objs := []runtime.Object{tlpStress, metricsService}
+//
+//	r := setupReconcileWithRequeue(t, objs...)
+//
+//	serviceMonitor := &monitoringv1.ServiceMonitor{}
+//	if err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: metricsService.Name}, serviceMonitor); err != nil {
+//		t.Fatalf("get service monitor: (%v)", err)
+//	}
+//}
 
 func testTLPStressControllerDashboardCreate(t *testing.T) {
 	tlpStress := createTLPStress()
 
 	metricsService := createMetricsService(tlpStress)
 
-	serviceMonitor := createServiceMonitor(metricsService.Name)
+	//serviceMonitor := createServiceMonitor(metricsService.Name)
 
-	objs := []runtime.Object{tlpStress, metricsService, serviceMonitor}
+	objs := []runtime.Object{tlpStress, metricsService}
 
 	r := setupReconcileWithRequeue(t, objs...)
 
@@ -213,10 +212,10 @@ func testTLPStressControllerDashboardCreate(t *testing.T) {
 func testTLPStressControllerJobCreate(t *testing.T) {
 	tlpStress := createTLPStress()
 	metricsService :=createMetricsService(tlpStress)
-	serviceMonitor := createServiceMonitor(metricsService.Name)
+	//serviceMonitor := createServiceMonitor(metricsService.Name)
 	dashboard := createDashboard(tlpStress)
 
-	objs := []runtime.Object{tlpStress, metricsService, serviceMonitor, dashboard}
+	objs := []runtime.Object{tlpStress, metricsService, dashboard}
 
 	r := setupReconcileWithRequeue(t, objs...)
 
@@ -230,7 +229,7 @@ func testTLPStressControllerJobCreate(t *testing.T) {
 func testTLPStressControllerSetStatus(t *testing.T) {
 	tlpStress := createTLPStress()
 	metricsService := createMetricsService(tlpStress)
-	serviceMonitor := createServiceMonitor(metricsService.Name)
+	//serviceMonitor := createServiceMonitor(metricsService.Name)
 	dashboard := createDashboard(tlpStress)
 
 	job := &v1batch.Job{
@@ -250,7 +249,7 @@ func testTLPStressControllerSetStatus(t *testing.T) {
 		StartTime: &now,
 	}
 
-	objs := []runtime.Object{tlpStress, metricsService, serviceMonitor, dashboard, job}
+	objs := []runtime.Object{tlpStress, metricsService, dashboard, job}
 
 	r := setupReconcileWithoutRequeue(t, objs...)
 
@@ -293,14 +292,14 @@ func createMetricsService(tlpStress *v1alpha1.TLPStress)  *corev1.Service {
 	}
 }
 
-func createServiceMonitor(metricsService string) *monitoringv1.ServiceMonitor {
-	return &monitoringv1.ServiceMonitor{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      metricsService,
-		},
-	}
-}
+//func createServiceMonitor(metricsService string) *monitoringv1.ServiceMonitor {
+//	return &monitoringv1.ServiceMonitor{
+//		ObjectMeta: metav1.ObjectMeta{
+//			Namespace: namespace,
+//			Name:      metricsService,
+//		},
+//	}
+//}
 
 func createDashboard(tlpStress *v1alpha1.TLPStress) *i8ly.GrafanaDashboard {
 	return &i8ly.GrafanaDashboard{

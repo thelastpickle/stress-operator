@@ -111,6 +111,27 @@ func (r *ReconcileTLPStressContext) Reconcile(request reconcile.Request) (reconc
 			reqLogger.Error(err, "Failed to check for Prometheus CRD")
 			return reconcile.Result{}, err
 		}
+
+		_, err := monitoring.GetPrometheusService(request.Namespace, r.client)
+		if err != nil && errors.IsNotFound(err) {
+			return monitoring.CreatePrometheusService(request.Namespace, r.client, reqLogger)
+		} else if err != nil {
+			reqLogger.Error(err, "Failed to get Prometheus service")
+			return reconcile.Result{}, err
+		}
+
+		if kindExists, err := monitoring.ServiceMonitorKindExists(); kindExists {
+			_, err := monitoring.GetServiceMonitor(request.Namespace, r.client)
+			if err != nil && errors.IsNotFound(err) {
+				return monitoring.CreateServiceMonitor(request.Namespace, r.client, reqLogger)
+			} else if err != nil {
+				reqLogger.Error(err, "Failed to get ServiceMonitor")
+				return reconcile.Result{}, err
+			}
+		} else if err != nil {
+			reqLogger.Error(err, "Failed to check for ServiceMonitor CRD")
+			return reconcile.Result{}, err
+		}
 	}
 
 	if stressContext.Spec.InstallGrafana {

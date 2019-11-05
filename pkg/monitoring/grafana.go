@@ -174,7 +174,7 @@ func newGrafana(namespace string) *i8ly.Grafana {
 
 func GetDataSource(namespace string, client client.Client) (*i8ly.GrafanaDataSource, error) {
 	ds := &i8ly.GrafanaDataSource{}
-	err := client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: grafanaName}, ds)
+	err := client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: PrometheusName}, ds)
 
 	return ds, err
 }
@@ -193,7 +193,7 @@ func CreateDataSource(namespace string, client client.Client, log logr.Logger) (
 			Datasources: []i8ly.GrafanaDataSourceFields{
 				{
 					Name: PrometheusName,
-					Type: "Prometheus",
+					Type: "prometheus",
 					Access: "proxy",
 					Url: "http://tlpstress-prometheus:9090",
 					IsDefault: true,

@@ -25,6 +25,7 @@ const (
 	PrometheusKind = "Prometheus"
 
 	PrometheusName = "tlpstress-prometheus"
+	ServiceMonitorName = "tlpstress"
 )
 
 func GetMetricsService(tlpStress *api.TLPStress, client client.Client) (*corev1.Service, error) {
@@ -183,17 +184,16 @@ func newPrometheus(namespace string) *prometheus.Prometheus {
 	}
 }
 
-func GetServiceMonitor(tlpStress *api.TLPStress, client client.Client) (*prometheus.ServiceMonitor, error) {
-	metricsSvc := GetMetricsServiceName(tlpStress)
+func GetServiceMonitor(namespace string, client client.Client) (*prometheus.ServiceMonitor, error) {
 	serviceMonitor := &prometheus.ServiceMonitor{}
-	err := client.Get(context.TODO(), types.NamespacedName{Namespace: tlpStress.Namespace, Name: metricsSvc}, serviceMonitor)
+	err := client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: ServiceMonitorName}, serviceMonitor)
 
 	return serviceMonitor, err
 }
 
-func CreateServiceMonitor(svc *corev1.Service, client client.Client, log logr.Logger) (reconcile.Result, error) {
-	serviceMonitor := newServiceMonitor(svc)
-	log.Info("Creating service monitor.", "ServiceMonitor.Namespace", serviceMonitor.Namespace,
+func CreateServiceMonitor(namespace string, client client.Client, log logr.Logger) (reconcile.Result, error) {
+	serviceMonitor := newServiceMonitor(namespace)
+	log.Info("Creating service monitor", "ServiceMonitor.Namespace", serviceMonitor.Namespace,
 		"ServiceMonitor.Name", serviceMonitor.Name)
 	err := client.Create(context.TODO(), serviceMonitor)
 	if err != nil {
@@ -204,13 +204,14 @@ func CreateServiceMonitor(svc *corev1.Service, client client.Client, log logr.Lo
 	return reconcile.Result{Requeue: true}, nil
 }
 
-func newServiceMonitor(svc *corev1.Service) *prometheus.ServiceMonitor {
+func newServiceMonitor(namespace string) *prometheus.ServiceMonitor {
 	return &prometheus.ServiceMonitor{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: svc.Name,
-			Namespace: svc.Namespace,
-			Labels: svc.Labels,
-			OwnerReferences: svc.OwnerReferences,
+			Name: ServiceMonitorName,
+			Namespace: namespace,
+			Labels: map[string]string{
+				"app": "tlpstress",
+			},
 		},
 		Spec: prometheus.ServiceMonitorSpec{
 			Selector: metav1.LabelSelector{
@@ -218,15 +219,54 @@ func newServiceMonitor(svc *corev1.Service) *prometheus.ServiceMonitor {
 					"app": "tlpstress",
 				},
 			},
-			Endpoints: getEndpoints(svc),
-		},
+			Endpoints: []prometheus.Endpoint{},
+ 		},
 	}
 }
 
-func getEndpoints(s *corev1.Service) []prometheus.Endpoint {
-	var endpoints []prometheus.Endpoint
-	for _, port := range s.Spec.Ports {
-		endpoints = append(endpoints, prometheus.Endpoint{Port: port.Name})
+func GetPrometheusService(namespace string, client client.Client) (*corev1.Service, error) {
+	metricsService := &corev1.Service{}
+	err := client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: PrometheusName}, metricsService)
+
+	return metricsService, err
+}
+
+func CreatePrometheusService(namespace string, client client.Client, log logr.Logger) (reconcile.Result, error) {
+	metricsService := newPrometheusService(namespace)
+	log.Info("Creating Prometheus service.", "PrometheusService.Namespace", namespace,
+		"PrometheusService.Name", PrometheusName)
+	err := client.Create(context.TODO(), metricsService)
+	if err != nil {
+		log.Error(err, "Failed to create Prometheus service.", "PrometheusService.Namespace", namespace,
+			"PrometheusService.Name", PrometheusName)
+		return reconcile.Result{}, err
 	}
-	return endpoints
+	return reconcile.Result{Requeue: true}, nil
+}
+
+func newPrometheusService(namespace string) *corev1.Service {
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      PrometheusName,
+			Namespace: namespace,
+			Labels: map[string]string{
+				"app": "prometheus",
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{
+					Port: 9090,
+					Name: "web",
+					Protocol: corev1.ProtocolTCP,
+					TargetPort: intstr.IntOrString{
+						StrVal: "web",
+					},
+				},
+			},
+			Selector: map[string]string{
+				"prometheus": PrometheusName,
+			},
+		},
+	}
 }
