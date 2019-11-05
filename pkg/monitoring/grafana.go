@@ -49,6 +49,9 @@ func CreateDashboard(tlpStress *tlp.TLPStress, client client.Client, log logr.Lo
 	}
 	dashboard.Name = tlpStress.Name
 	dashboard.Namespace = tlpStress.Namespace
+	dashboard.ObjectMeta.Labels = map[string]string{
+		"app": "tlpstress",
+	}
 
 	// TODO set controller reference
 	err = client.Create(context.TODO(), dashboard)
