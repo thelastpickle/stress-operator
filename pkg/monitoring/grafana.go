@@ -23,12 +23,14 @@ const (
 	GrafanaKind          = "Grafana"
 	GrafanaDashboardKind = "GrafanaDashboard"
 	grafanaName          = "tlpstress-grafana"
+	DataSourceName       = PrometheusName
 )
 
 type GrafanaTemplateParams struct {
 	PrometheusJobName string
 	Instance          string
 	DashboardName     string
+	DataSource        string
 }
 
 func GrafanaDashboardKindExists() (bool, error) {
@@ -67,6 +69,7 @@ func newDashboard(dashboardName string, prometheusJobName string) (*i8ly.Grafana
 		PrometheusJobName: prometheusJobName,
 		Instance: dashboardName,
 		DashboardName: dashboardName,
+		DataSource: DataSourceName,
 	})
 	if err != nil {
 		return nil, err
@@ -177,7 +180,7 @@ func newGrafana(namespace string) *i8ly.Grafana {
 
 func GetDataSource(namespace string, client client.Client) (*i8ly.GrafanaDataSource, error) {
 	ds := &i8ly.GrafanaDataSource{}
-	err := client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: PrometheusName}, ds)
+	err := client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: DataSourceName}, ds)
 
 	return ds, err
 }
