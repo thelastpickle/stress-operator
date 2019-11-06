@@ -3,6 +3,7 @@ package tlpstresscontext
 import (
 	"context"
 	v1alpha1 "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/tlp-stress-operator/pkg/casskop"
 	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"
 	"github.com/jsanda/tlp-stress-operator/test"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -29,7 +30,7 @@ func setupReconcile(t *testing.T, state ...runtime.Object) (*ReconcileTLPStressC
 	r := &ReconcileTLPStressContext{client: cl, scheme: testScheme}
 	req := reconcile.Request{
 		NamespacedName: types.NamespacedName{
-			Name:      name,
+			Name:      contextName,
 			Namespace: namespace,
 		},
 	}
@@ -75,7 +76,7 @@ var (
 
 func TestReconcile(t *testing.T) {
 	monitoring.Init(fdc)
-	monitoring.Init(fdc)
+	casskop.Init(fdc)
 
 	test.InitScheme(t)
 
@@ -172,10 +173,14 @@ func testCreateGrafanaDataSource(t *testing.T) {
 	}
 }
 
+func reconcileNonDefaultContext(t *testing.T) {
+
+}
+
 func createTLPStressContext() *v1alpha1.TLPStressContext {
 	return &v1alpha1.TLPStressContext{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
+			Name:      contextName,
 			Namespace: namespace,
 		},
 		Spec: v1alpha1.TLPStressContextSpec{
