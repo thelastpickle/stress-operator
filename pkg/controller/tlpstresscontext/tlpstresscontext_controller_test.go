@@ -124,7 +124,18 @@ func testCreateServiceMonitor(t *testing.T) {
 }
 
 func testCreateGrafana(t *testing.T) {
-	
+	ctx := createTLPStressContext()
+	prometheus := createPrometheus()
+	prometheusService := createPrometheusService()
+	serviceMonitor :=  createServiceMonitor()
+
+	objs := []runtime.Object{ctx, prometheus, prometheusService, serviceMonitor}
+
+	r := setupReconcileWithRequeue(t, objs...)
+
+	if _, err := monitoring.GetGrafana(namespace, r.client); err != nil {
+		t.Errorf("get grafana: (%v)", err)
+	}
 }
 
 func createTLPStressContext() *v1alpha1.TLPStressContext {
@@ -154,6 +165,15 @@ func createPrometheusService() *corev1.Service {
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      monitoring.PrometheusName,
+		},
+	}
+}
+
+func createServiceMonitor() *prometheusv1.ServiceMonitor {
+	return &prometheusv1.ServiceMonitor{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: monitoring.ServiceMonitorName,
 		},
 	}
 }
