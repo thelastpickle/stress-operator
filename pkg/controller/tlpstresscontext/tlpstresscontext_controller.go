@@ -17,6 +17,8 @@ import (
 
 var log = logf.Log.WithName("controller_tlpstresscontext")
 
+const contextName = "tlpstress"
+
 /**
 * USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
 * business logic.  Delete these comments after modifying this file.*
@@ -81,6 +83,12 @@ type ReconcileTLPStressContext struct {
 func (r *ReconcileTLPStressContext) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling TLPStressContext")
+
+	if request.Name != contextName {
+		reqLogger.Info("Ignoring request", "Request.Namespace", request.Namespace,
+			"Request.Name", request.Name)
+		return reconcile.Result{}, nil
+	}
 
 	// Fetch the TLPStressContext instance
 	instance := &thelastpicklev1alpha1.TLPStressContext{}
