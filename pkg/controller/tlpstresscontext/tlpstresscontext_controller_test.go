@@ -14,6 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	prometheusv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbac "k8s.io/api/rbac/v1"
 )
 
 type fakeDiscoveryClient struct {}
@@ -92,6 +93,21 @@ func testCreatePrometheus(t *testing.T) {
 
 	if _, err := monitoring.GetPrometheus(namespace, r.client); err != nil {
 		t.Errorf("get prometheus: (%v)", err)
+	}
+
+	sa := &corev1.ServiceAccount{}
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: monitoring.PrometheusName}, sa); err != nil {
+		t.Errorf("get prometheus service account: (%v)", err)
+	}
+
+	role := &rbac.Role{}
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: monitoring.PrometheusName}, role); err != nil {
+		t.Errorf("get prometheus role: (%v)", err)
+	}
+
+	roleBinding := &rbac.RoleBinding{}
+	if err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: monitoring.PrometheusName}, roleBinding); err != nil {
+		t.Errorf("get prometheus role binding: (%v)", err)
 	}
 }
 
