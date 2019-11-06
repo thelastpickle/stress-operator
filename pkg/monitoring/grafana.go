@@ -22,7 +22,7 @@ import (
 const (
 	GrafanaKind          = "Grafana"
 	GrafanaDashboardKind = "GrafanaDashboard"
-	grafanaName          = "tlpstress-grafana"
+	GrafanaName          = "tlpstress-grafana"
 	DataSourceName       = PrometheusName
 )
 
@@ -114,7 +114,7 @@ func GrafanaKindExists() (bool, error) {
 
 func GetGrafana(namespace string, client client.Client) (*i8ly.Grafana, error) {
 	instance := &i8ly.Grafana{}
-	err := client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: grafanaName}, instance)
+	err := client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: GrafanaName}, instance)
 
 	return instance, err
 }
@@ -145,7 +145,7 @@ func newGrafana(namespace string) *i8ly.Grafana {
 	return &i8ly.Grafana{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name: grafanaName,
+			Name:      GrafanaName,
 		},
 		Spec: i8ly.GrafanaSpec{
 			Service: i8ly.GrafanaService{

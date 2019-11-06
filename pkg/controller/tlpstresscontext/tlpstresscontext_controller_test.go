@@ -15,6 +15,7 @@ import (
 	prometheusv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
+	i8ly "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
 )
 
 type fakeDiscoveryClient struct {}
@@ -82,6 +83,7 @@ func TestReconcile(t *testing.T) {
 	t.Run("CreatePrometheusService", testCreatePrometheusService)
 	t.Run("CreateServiceMonitor", testCreateServiceMonitor)
 	t.Run("CreateGrafana", testCreateGrafana)
+	t.Run("CreateGrafanaDataSource", testCreateGrafanaDataSource)
 }
 
 func testCreatePrometheus(t *testing.T) {
@@ -154,6 +156,22 @@ func testCreateGrafana(t *testing.T) {
 	}
 }
 
+func testCreateGrafanaDataSource(t *testing.T) {
+	ctx := createTLPStressContext()
+	prometheus := createPrometheus()
+	prometheusService := createPrometheusService()
+	serviceMonitor :=  createServiceMonitor()
+	grafana := createGrafana()
+
+	objs := []runtime.Object{ctx, prometheus, prometheusService, serviceMonitor, grafana}
+
+	r := setupReconcileWithRequeue(t, objs...)
+
+	if _, err := monitoring.GetDataSource(namespace, r.client); err != nil {
+		t.Errorf("get grafana data source: (%v)", err)
+	}
+}
+
 func createTLPStressContext() *v1alpha1.TLPStressContext {
 	return &v1alpha1.TLPStressContext{
 		ObjectMeta: metav1.ObjectMeta{
@@ -190,6 +208,15 @@ func createServiceMonitor() *prometheusv1.ServiceMonitor {
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name: monitoring.ServiceMonitorName,
+		},
+	}
+}
+
+func createGrafana() *i8ly.Grafana {
+	return &i8ly.Grafana{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name: monitoring.GrafanaName,
 		},
 	}
 }
