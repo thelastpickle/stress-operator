@@ -2,6 +2,7 @@ package casskop
 
 import (
 	"context"
+	casskopapi "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis"
 	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
 	"github.com/go-logr/logr"
 	api "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
@@ -22,7 +23,9 @@ func Init(dc k8s.DiscoveryClient) {
 }
 
 func AddToScheme(scheme *runtime.Scheme) error {
-	return casskop.SchemeBuilder.AddToScheme(scheme)
+	return casskopapi.AddToScheme(scheme)
+	//return casskop.SchemeBuilder.AddToScheme(scheme)
+	//return nil
 }
 
 func CassandraClusterKindExists() (bool, error) {

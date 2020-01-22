@@ -3,13 +3,13 @@ package e2e
 import (
 	goctx "context"
 	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
+	casskopapi "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis"
 	"github.com/jsanda/tlp-stress-operator/pkg/apis"
 	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	tlp "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"github.com/jsanda/tlp-stress-operator/test/e2eutil"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"testing"
 	"time"
@@ -55,11 +55,10 @@ func TestTLPStressWithExistingCluster(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to add custom resource scheme to framework: %v", err)
 	}
-	framework.Global.Scheme.AddKnownTypes(schema.GroupVersion{Group: "db.orange.com", Version: "v1alpha1"},
-		&casskop.CassandraCluster{},
-		&casskop.CassandraClusterList{},
-		&metav1.ListOptions{},
-	)
+	ccList := &casskop.CassandraClusterList{}
+	if err = framework.AddToFrameworkScheme(casskopapi.AddToScheme, ccList); err != nil {
+		t.Fatalf("failed to add custom resource scheme to framework: %v", err)
+	}
 	ctx, f := e2eutil.InitOperator(t)
 	defer ctx.Cleanup()
 
