@@ -225,7 +225,7 @@ func (in *TLPStressContext) DeepCopyObject() runtime.Object {
 func (in *TLPStressContextList) DeepCopyInto(out *TLPStressContextList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]TLPStressContext, len(*in))
@@ -290,7 +290,7 @@ func (in *TLPStressContextStatus) DeepCopy() *TLPStressContextStatus {
 func (in *TLPStressList) DeepCopyInto(out *TLPStressList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]TLPStress, len(*in))

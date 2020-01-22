@@ -1,7 +1,0 @@
-apiVersion: thelastpickle.com/v1alpha1
-kind: TLPStressContext
-metadata:
-  name: example-tlpstresscontext
-spec:
-  # Add fields here
-  size: 3

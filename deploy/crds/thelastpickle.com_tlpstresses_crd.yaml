@@ -1,0 +1,411 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tlpstresses.thelastpickle.com
+spec:
+  group: thelastpickle.com
+  names:
+    kind: TLPStress
+    listKind: TLPStressList
+    plural: tlpstresses
+    singular: tlpstress
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: TLPStress is the Schema for the tlpstresses API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: TLPStressSpec defines the desired state of TLPStress
+          properties:
+            cassandraConfig:
+              description: Provides connection details about the cluster to which
+                tlp-stress will run against.
+              properties:
+                cassandraCluster:
+                  description: The name of a casskop-generated Cassandra cluster to
+                    which tlp-stress will connect. Note that will only be used when
+                    CassandraClusterTemplate is not specified.
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                  type: object
+                cassandraClusterTemplate:
+                  description: Describes a casskop CassandraCluster that will be created
+                    and to which tlp-stress will connect.
+                  properties:
+                    metadata:
+                      type: object
+                    spec:
+                      description: CassandraClusterSpec defines the configuration
+                        of CassandraCluster
+                      properties:
+                        _unlockNextOperation:
+                          description: Very special Flag to hack CassKop reconcile
+                            loop - use with really good Care
+                          type: boolean
+                        autoPilot:
+                          description: AutoPilot defines if the Operator can fly alone
+                            or if we need human action to trigger Actions on specific
+                            Cassandra nodes If autoPilot=true, the operator will set
+                            labels pod-operation-status=To-Do on Pods which allows
+                            him to automatically triggers Action If autoPilot=false,
+                            the operator will set labels pod-operation-status=Manual
+                            on Pods which won't automatically triggers Action
+                          type: boolean
+                        autoUpdateSeedList:
+                          description: AutoUpdateSeedList defines if the Operator
+                            automatically update the SeedList according to new cluster
+                            CRD topology by default a boolean is false
+                          type: boolean
+                        baseImage:
+                          description: Base image to use for a Cassandra deployment.
+                          type: string
+                        configMapName:
+                          description: Name of the ConfigMap for Cassandra configuration
+                            (cassandra.yaml) If this is empty, operator will uses
+                            default cassandra.yaml from the baseImage If this is not
+                            empty, operator will uses the cassandra.yaml from the
+                            Configmap instead
+                          type: string
+                        dataCapacity:
+                          description: Define the Capacity for Persistent Volume Claims
+                            in the local storage
+                          type: string
+                        dataStorageClass:
+                          description: Define StorageClass for Persistent Volume Claims
+                            in the local storage.
+                          type: string
+                        deletePVC:
+                          description: DeletePVC defines if the PVC must be deleted
+                            when the cluster is deleted it is false by default
+                          type: boolean
+                        gcStdout:
+                          description: 'GCStdout set the parameter CASSANDRA_GC_STDOUT
+                            which configure the JVM -Xloggc: true by default'
+                          type: boolean
+                        hardAntiAffinity:
+                          description: HardAntiAffinity defines if the PodAntiAffinity
+                            of the statefulsets has to be hard (it's soft by default)
+                          type: boolean
+                        imageJolokiaSecret:
+                          description: JMX Secret if Set is used to set JMX_USER and
+                            JMX_PASSWORD
+                          properties:
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
+                              type: string
+                          type: object
+                        imagePullSecret:
+                          description: Name of the secret to uses to authenticate
+                            on Docker registries If this is empty, operator do nothing
+                            If this is not empty, propagate the imagePullSecrets to
+                            the statefulsets
+                          properties:
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
+                              type: string
+                          type: object
+                        imagepullpolicy:
+                          description: ImagePullPolicy define the pull poicy for C*
+                            docker image
+                          type: string
+                        maxPodUnavailable:
+                          format: int32
+                          type: integer
+                        noCheckStsAreEqual:
+                          type: boolean
+                        nodesPerRacks:
+                          description: 'Number of nodes to deploy for a Cassandra
+                            deployment in each Racks. Default: 1. If NodesPerRacks
+                            = 2 and there is 3 racks, the cluster will have 6 Cassandra
+                            Nodes'
+                          format: int32
+                          type: integer
+                        resources:
+                          description: Pod defines the policy for pods owned by cassandra
+                            operator. This field cannot be updated once the CR is
+                            created. Pod       *PodPolicy         `json:"pod,omitempty"`
+                          properties:
+                            limits:
+                              description: CPUAndMem defines how many cpu and ram
+                                the container will request/limit
+                              properties:
+                                cpu:
+                                  type: string
+                                memory:
+                                  type: string
+                              required:
+                              - cpu
+                              - memory
+                              type: object
+                            requests:
+                              description: CPUAndMem defines how many cpu and ram
+                                the container will request/limit
+                              properties:
+                                cpu:
+                                  type: string
+                                memory:
+                                  type: string
+                              required:
+                              - cpu
+                              - memory
+                              type: object
+                          type: object
+                        runAsUser:
+                          description: RunAsUser define the id of the user to run
+                            in the Cassandra image
+                          format: int64
+                          type: integer
+                        topology:
+                          description: Topology to create Cassandra DC and Racks and
+                            to target appropriate Kubernetes Nodes
+                          properties:
+                            dc:
+                              description: Liste of DC defined in the CassandraCluster
+                              items:
+                                description: DC allow to configure Cassandra RC according
+                                  to kubernetes nodeselector labels
+                                properties:
+                                  labels:
+                                    additionalProperties:
+                                      type: string
+                                    description: Labels used to target Kubernetes
+                                      nodes
+                                    type: object
+                                  name:
+                                    description: Name of the CassandraDC
+                                    type: string
+                                  nodesPerRacks:
+                                    description: 'Number of nodes to deploy for a
+                                      Cassandra deployment in each Racks. Default:
+                                      1. Optional, if not filled, used value define
+                                      in CassandraClusterSpec'
+                                    format: int32
+                                    type: integer
+                                  numTokens:
+                                    description: 'NumTokens : configure the CASSANDRA_NUM_TOKENS
+                                      parameter which can be different for each DD'
+                                    format: int32
+                                    type: integer
+                                  rack:
+                                    description: List of Racks defined in the Cassandra
+                                      DC
+                                    items:
+                                      description: Rack allow to configure Cassandra
+                                        Rack according to kubernetes nodeselector
+                                        labels
+                                      properties:
+                                        labels:
+                                          additionalProperties:
+                                            type: string
+                                          description: Labels used to target Kubernetes
+                                            nodes
+                                          type: object
+                                        name:
+                                          description: Name of the Rack
+                                          type: string
+                                        rollingPartition:
+                                          description: The Partition to control the
+                                            Statefulset Upgrade
+                                          format: int32
+                                          type: integer
+                                        rollingRestart:
+                                          description: Flag to tell the operator to
+                                            trigger a rolling restart of the Rack
+                                          type: boolean
+                                      type: object
+                                    type: array
+                                type: object
+                              type: array
+                          type: object
+                        version:
+                          description: Version of Cassandra to be deployed.
+                          type: string
+                      required:
+                      - baseImage
+                      - imagepullpolicy
+                      - maxPodUnavailable
+                      - runAsUser
+                      - version
+                      type: object
+                    typeMeta:
+                      description: TypeMeta describes an individual object in an API
+                        response or request with strings representing the type of
+                        the object and its API schema version. Structures that are
+                        versioned or persisted should inline TypeMeta.
+                      properties:
+                        apiVersion:
+                          description: 'APIVersion defines the versioned schema of
+                            this representation of an object. Servers should convert
+                            recognized schemas to the latest internal value, and may
+                            reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+                          type: string
+                        kind:
+                          description: 'Kind is a string value representing the REST
+                            resource this object represents. Servers may infer this
+                            from the endpoint the client submits requests to. Cannot
+                            be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                          type: string
+                      type: object
+                  type: object
+                cassandraService:
+                  description: The headless service for the Cassandra cluster to which
+                    tlp-stress will connect. Note that this will only be used when
+                    neither CassandraCluster nor CassandraClusterTemplate is specified.
+                  type: string
+              type: object
+            image:
+              type: string
+            imagePullPolicy:
+              description: PullPolicy describes a policy for if/when to pull a container
+                image
+              type: string
+            jobConfig:
+              description: Describes the data the the job should have
+              properties:
+                backoffLimit:
+                  description: Specifies the number of retries before marking this
+                    job failed. Defaults to 6
+                  format: int32
+                  type: integer
+                parallelism:
+                  description: 'Specifies the maximum desired number of pods the job
+                    should run at any given time. The actual number of pods running
+                    in steady state will be less than this number when ((.spec.completions
+                    - .status.successful) < .spec.parallelism), i.e. when the work
+                    left to do is less than max parallelism. More info: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/'
+                  format: int32
+                  type: integer
+              type: object
+            stressConfig:
+              properties:
+                concurrency:
+                  format: int32
+                  type: integer
+                consistencyLevel:
+                  type: string
+                dataCenter:
+                  type: string
+                dropKeyspace:
+                  type: boolean
+                duration:
+                  type: string
+                iterations:
+                  pattern: ^(\d+)([BbMmKk]?$)
+                  type: string
+                partitionGenerator:
+                  type: string
+                partitions:
+                  pattern: ^(\d+)([BbMmKk]?$)
+                  type: string
+                populate:
+                  pattern: ^(\d+)([BbMmKk]?$)
+                  type: string
+                readRate:
+                  type: string
+                replication:
+                  properties:
+                    networkTopologyStrategy:
+                      additionalProperties:
+                        format: int32
+                        type: integer
+                      type: object
+                    simpleStrategy:
+                      format: int32
+                      type: integer
+                  type: object
+                workload:
+                  type: string
+              type: object
+          type: object
+        status:
+          description: TLPStressStatus defines the observed state of TLPStress
+          properties:
+            jobStatus:
+              description: JobStatus represents the current state of a Job.
+              properties:
+                active:
+                  description: The number of actively running pods.
+                  format: int32
+                  type: integer
+                completionTime:
+                  description: Represents time when the job was completed. It is not
+                    guaranteed to be set in happens-before order across separate operations.
+                    It is represented in RFC3339 form and is in UTC.
+                  format: date-time
+                  type: string
+                conditions:
+                  description: 'The latest available observations of an object''s
+                    current state. More info: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/'
+                  items:
+                    description: JobCondition describes current state of a job.
+                    properties:
+                      lastProbeTime:
+                        description: Last time the condition was checked.
+                        format: date-time
+                        type: string
+                      lastTransitionTime:
+                        description: Last time the condition transit from one status
+                          to another.
+                        format: date-time
+                        type: string
+                      message:
+                        description: Human readable message indicating details about
+                          last transition.
+                        type: string
+                      reason:
+                        description: (brief) reason for the condition's last transition.
+                        type: string
+                      status:
+                        description: Status of the condition, one of True, False,
+                          Unknown.
+                        type: string
+                      type:
+                        description: Type of job condition, Complete or Failed.
+                        type: string
+                    required:
+                    - status
+                    - type
+                    type: object
+                  type: array
+                failed:
+                  description: The number of pods which reached phase Failed.
+                  format: int32
+                  type: integer
+                startTime:
+                  description: Represents time when the job was acknowledged by the
+                    job controller. It is not guaranteed to be set in happens-before
+                    order across separate operations. It is represented in RFC3339
+                    form and is in UTC.
+                  format: date-time
+                  type: string
+                succeeded:
+                  description: The number of pods which reached phase Succeeded.
+                  format: int32
+                  type: integer
+              type: object
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true

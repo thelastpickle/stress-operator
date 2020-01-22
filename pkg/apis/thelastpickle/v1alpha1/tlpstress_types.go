@@ -54,10 +54,8 @@ type JobConfig struct {
 }
 
 type TLPStressConfig struct {
-	// +kubebuilder:validation:Enum=KeyValue,BasicTimeSeries,CountersWide,LWT,Locking,Maps,MaterializedViews,RandomPartitionAccess,UdtTimeSeries
 	Workload Workload `json:"workload,omitempty"`
 
-	// +kubebuilder:validation:Enum=ANY,ONE,TWO,THREE,QUORUM,ALL,LOCAL_QUORUM,EACH_QUORUM,SERIAL,LOCAL_SERIAL,LOCAL_ONE
 	ConsistencyLevel ConsistencyLevel `json:"consistencyLevel,omitempty"`
 
 	// +kubebuilder:validation:Pattern=^(\d+)([BbMmKk]?$)
@@ -94,7 +92,7 @@ type CassandraClusterTemplate struct {
 
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec casskop.CassandraClusterSpec
+	Spec casskop.CassandraClusterSpec `json:"spec,omitempty"`
 }
 
 // Provides connection details about the cluster to which tlp-stress will run against.
