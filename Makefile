@@ -10,8 +10,12 @@ BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 REV=$(shell git rev-parse --short=12 HEAD)
 
 PRE_TEST_TAG=$(BRANCH)-$(REV)-TEST
-POST_TEST_TAG=$(BRANCH-$(REV)
+POST_TEST_TAG=$(BRANCH)-$(REV)
 E2E_IMAGE=$(REG)/$(ORG)/$(PROJECT):$(PRE_TEST_TAG)
+
+ifeq ($(CIRCLE_BRANCH),master)
+	PUSH_LATEST := true
+endif
 
 DEV_NS ?= tlpstress
 E2E_NS?=tlpstress-e2e
@@ -49,11 +53,20 @@ push-e2e-image:
 
 .PHONY: build-image
 build-image: code-gen openapi-gen
-	@operator-sdk build ${REG}/${ORG}/${PROJECT}:${TAG}
+	@operator-sdk build ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG}
 
 .PHONY: push-image
 push-image:
-	docker push ${REG}/${ORG}/${PROJECT}:${TAG}
+	@echo Pushing ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG}
+	docker push ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG}
+ifdef CIRCLE_BRANCH
+	@echo Pushing ${REG}/${ORG}/${PROJECT}:${BRANCH}-latest
+	docker tag ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG} ${BRANCH}-latest
+	docker push ${REG}/${ORG}/${PROJECT}:${BRANCH}-latest
+endif
+ifdef PUSH_LATEST
+	@echo PUSHING ${REG}/${ORG}/${PROJECT}:latest
+endif
 
 .PHONY: unit-test
 unit-test: export TEMPLATE_PATH=$(TEMPLATE_DIR)
