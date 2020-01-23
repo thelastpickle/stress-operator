@@ -9,9 +9,14 @@ COMPILE_TARGET=./tmp/_output/bin/$(PROJECT)
 BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 REV=$(shell git rev-parse --short=12 HEAD)
 
+IMAGE_BASE=$(REG)/$(ORG)/$(PROJECT)
 PRE_TEST_TAG=$(BRANCH)-$(REV)-TEST
 POST_TEST_TAG=$(BRANCH)-$(REV)
-E2E_IMAGE=$(REG)/$(ORG)/$(PROJECT):$(PRE_TEST_TAG)
+E2E_IMAGE=$(IMAGE_BASE):$(PRE_TEST_TAG)
+BRANCH_REV_IMAGE=$(IMAGE_BASE):$(POST_TEST_TAG)
+REV_IMAGE=$(IMAGE_BASE):$(REV)
+BRANCH_LATEST_IMAGE=$(IMAGE_BASE):$(BRANCH)-latest
+LATEST_IMAGE=$(IMAGE_BASE):latest
 
 ifeq ($(CIRCLE_BRANCH),master)
 	PUSH_LATEST := true
@@ -57,18 +62,21 @@ build-image: code-gen openapi-gen
 
 .PHONY: push-image
 push-image:
-	@echo Pushing ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG}
-	docker tag ${E2E_IMAGE} ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG}
-	docker push ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG}
+	@echo Pushing ${BRANCH_REV_IMAGE}
+	docker tag ${E2E_IMAGE} ${BRANCH_REV_IMAGE}
+	docker push ${BRANCH_REV_IMAGE}
+	@echo Pushing ${REV_IMAGE}
+	docker tag ${BRANCH_REV_IMAGE} ${REV_IMAGE}
+	docker push ${REV_IMAGE}
 ifdef CIRCLE_BRANCH
-	@echo Pushing ${REG}/${ORG}/${PROJECT}:${BRANCH}-latest
-	docker tag ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG} ${REG}/${ORG}/${PROJECT}:${BRANCH}-latest
-	docker push ${REG}/${ORG}/${PROJECT}:${BRANCH}-latest
+	@echo Pushing ${BRANCH_LATEST_IMAGE}
+	docker tag ${BRANCH_REV_IMAGE} ${BRANCH_LATEST_IMAGE}
+	docker push ${BRANCH_LATEST_IMAGE}
 endif
 ifdef PUSH_LATEST
-	@echo PUSHING ${REG}/${ORG}/${PROJECT}:latest
-	docker tag ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG} ${REG}/${ORG}/${PROJECT}:latest
-	docker push ${REG}/${ORG}/${PROJECT}:latest
+	@echo PUSHING ${LATEST_IMAGE}
+	docker tag ${BRANCH_REV_IMAGE} ${LATEST_IMAGE}
+	docker push ${IMAGE_BASE}:latest
 endif
 
 .PHONY: unit-test
