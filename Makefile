@@ -6,6 +6,13 @@ TAG?=latest
 PKG=github.com/jsanda/tlp-stress-operator
 COMPILE_TARGET=./tmp/_output/bin/$(PROJECT)
 
+BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+REV=$(shell git rev-parse --short=12 HEAD)
+
+PRE_TEST_TAG=$(BRANCH)-$(REV)-TEST
+POST_TEST_TAG=$(BRANCH-$(REV)
+E2E_IMAGE=$(REG)/$(ORG)/$(PROJECT):$(PRE_TEST_TAG)
+
 DEV_NS ?= tlpstress
 E2E_NS?=tlpstress-e2e
 
@@ -27,9 +34,18 @@ build:
 code-gen:
 	operator-sdk generate k8s
 
-.PHONE: openapi-gen
+.PHONY: openapi-gen
 openapi-gen:
 	operator-sdk generate openapi
+
+.PHONY: build-e2e-image
+build-e2e-image:
+	@echo Building ${E2E_IMAGE}
+	@operator-sdk build ${E2E_IMAGE}
+
+.PHONY: push-e2e-image
+push-e2e-image:
+	docker push ${E2E_IMAGE}
 
 .PHONY: build-image
 build-image: code-gen openapi-gen
@@ -104,7 +120,6 @@ deploy-prometheus: do-deploy-prometheus
 create-e2e-ns:
 	./scripts/create-ns.sh $(E2E_NS)
 
-
 .PHONY: e2e-setup
 e2e-setup: PROMETHEUS_NS = $(E2E_NS)
 e2e-setup: CASSKOP_NS = $(E2E_NS)
@@ -115,7 +130,7 @@ e2e-setup: create-e2e-ns deploy-prometheus-operator do-deploy-prometheus do-depl
 .PHONY: e2e-test
 e2e-test: e2e-setup
 	@echo Running e2e tests
-	operator-sdk test local ./test/e2e --namespace $(E2E_NS)
+	operator-sdk test local ./test/e2e --image $(E2E_IMAGE) --namespace $(E2E_NS)
 
 .PHONY: e2e-cleanup
 e2e-cleanup:
