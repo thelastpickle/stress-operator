@@ -62,7 +62,7 @@ push-image:
 	docker push ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG}
 ifdef CIRCLE_BRANCH
 	@echo Pushing ${REG}/${ORG}/${PROJECT}:${BRANCH}-latest
-	docker tag ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG} ${BRANCH}-latest
+	docker tag ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG} ${REG}/${ORG}/${PROJECT}:${BRANCH}-latest
 	docker push ${REG}/${ORG}/${PROJECT}:${BRANCH}-latest
 endif
 ifdef PUSH_LATEST
