@@ -58,6 +58,7 @@ build-image: code-gen openapi-gen
 .PHONY: push-image
 push-image:
 	@echo Pushing ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG}
+	docker tag ${E2E_IMAGE} ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG}
 	docker push ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG}
 ifdef CIRCLE_BRANCH
 	@echo Pushing ${REG}/${ORG}/${PROJECT}:${BRANCH}-latest
