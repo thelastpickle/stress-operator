@@ -67,6 +67,8 @@ ifdef CIRCLE_BRANCH
 endif
 ifdef PUSH_LATEST
 	@echo PUSHING ${REG}/${ORG}/${PROJECT}:latest
+	docker tag ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG} ${REG}/${ORG}/${PROJECT}:latest
+	docker push ${REG}/${ORG}/${PROJECT}:latest
 endif
 
 .PHONY: unit-test
