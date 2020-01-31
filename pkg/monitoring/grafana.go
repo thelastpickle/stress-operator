@@ -173,6 +173,10 @@ func newGrafana(namespace string) *i8ly.Grafana {
 					Enabled: boolPtr(true),
 				},
 			},
+			Compat: &i8ly.GrafanaCompat{
+					FixAnnotations: true,
+					FixHeights: true,
+			},
 			DashboardLabelSelector: []*metav1.LabelSelector{selector},
 		},
 	}
