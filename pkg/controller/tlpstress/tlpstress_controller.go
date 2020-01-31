@@ -29,8 +29,8 @@ import (
 var log = logf.Log.WithName("controller_tlpstress")
 
 const (
-	DefaultImage           = "thelastpickle/tlp-stress:3.0.0"
-	DefaultImagePullPolicy = corev1.PullAlways
+	DefaultImage           = "thelastpickle/tlp-stress:4.0.0"
+	DefaultImagePullPolicy = corev1.PullIfNotPresent
 	DefaultWorkload        = api.KeyValueWorkload
 )
 
