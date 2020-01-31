@@ -2,7 +2,7 @@ package tlpstress
 
 import (
 	"context"
-	i8ly "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
+	i8ly "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"github.com/jsanda/tlp-stress-operator/pkg/casskop"
 	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"

@@ -2,7 +2,7 @@ package monitoring
 
 import (
 	prometheus "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	i8ly "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
+	i8ly "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	"github.com/jsanda/tlp-stress-operator/pkg/k8s"
 	"k8s.io/apimachinery/pkg/runtime"
 )

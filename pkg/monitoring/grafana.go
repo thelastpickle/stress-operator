@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/go-logr/logr"
-	i8ly "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
+	i8ly "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	tlp "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"github.com/jsanda/tlp-stress-operator/pkg/k8s"
 	"io/ioutil"
@@ -148,34 +148,38 @@ func newGrafana(namespace string) *i8ly.Grafana {
 			Name:      GrafanaName,
 		},
 		Spec: i8ly.GrafanaSpec{
-			Service: i8ly.GrafanaService{
+			Service: &i8ly.GrafanaService{
 				Labels: map[string]string{
 					"app": "grafana",
 				},
 			},
 			Config: i8ly.GrafanaConfig{
-				Log: i8ly.GrafanaConfigLog{
+				Log: &i8ly.GrafanaConfigLog{
 					Mode: "console",
 					Level: "debug",
 				},
-				Security: i8ly.GrafanaConfigSecurity{
+				Security: &i8ly.GrafanaConfigSecurity{
 					AdminUser: "root",
 					AdminPassword: "grafana",
 				},
-				Auth: i8ly.GrafanaConfigAuth{
-					DisableLoginForm: false,
-					DisableSignoutMenu: false,
+				Auth: &i8ly.GrafanaConfigAuth{
+					DisableLoginForm: boolPtr(false),
+					DisableSignoutMenu: boolPtr(false),
 				},
-				AuthBasic: i8ly.GrafanaConfigAuthBasic{
-					Enabled: true,
+				AuthBasic: &i8ly.GrafanaConfigAuthBasic{
+					Enabled: boolPtr(true),
 				},
-				AuthAnonymous: i8ly.GrafanaConfigAuthAnonymous{
-					Enabled: true,
+				AuthAnonymous: &i8ly.GrafanaConfigAuthAnonymous{
+					Enabled: boolPtr(true),
 				},
 			},
 			DashboardLabelSelector: []*metav1.LabelSelector{selector},
 		},
 	}
+}
+
+func boolPtr(b bool) *bool {
+	return &b
 }
 
 func GetDataSource(namespace string, client client.Client) (*i8ly.GrafanaDataSource, error) {
