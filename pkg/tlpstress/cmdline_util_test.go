@@ -127,6 +127,26 @@ func TestCreateCommandLineArgs(t *testing.T) {
 			},
 		},
 		{
+			name: "SetTTL",
+			args: args{
+				stressCfg: &v1alpha1.TLPStressConfig{
+					Workload: v1alpha1.KeyValueWorkload,
+					Ttl: int64Ref(600),
+				},
+				cassandraCfg: &v1alpha1.CassandraConfig{
+					CassandraService: "cassandra-test",
+				},
+				namespace: "default",
+			},
+			want: &CommandLineArgs{
+				args: []string{
+					"run", string(v1alpha1.KeyValueWorkload),
+					"--ttl", "600",
+					"--host", "cassandra-test",
+				},
+			},
+		},
+		{
 			name: "WorkloadWithCassandraClusterWithoutNamespace",
 			args: args{
 				stressCfg: &v1alpha1.TLPStressConfig{
@@ -223,5 +243,9 @@ func stringRef(s string) *string {
 }
 
 func int32Ref(n int32) *int32 {
+	return &n
+}
+
+func int64Ref(n int64) *int64 {
 	return &n
 }

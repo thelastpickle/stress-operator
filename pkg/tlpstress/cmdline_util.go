@@ -26,6 +26,7 @@ const (
 	username           argName = "--username"
 	password           argName = "--password"
 	keyspace           argName = "--keyspace"
+	ttl                argName = "--ttl"
 )
 
 type CommandLineArgs struct {
@@ -101,6 +102,10 @@ func CreateCommandLineArgs(stressCfg *v1alpha1.TLPStressConfig, cassandraCfg *v1
 
 	if len(stressCfg.Keyspace) > 0 {
 		args.addArg(keyspace, stressCfg.Keyspace)
+	}
+
+	if stressCfg.Ttl != nil {
+		args.addArg(ttl, strconv.FormatInt(*stressCfg.Ttl, 10))
 	}
 
 	// TODO Need to make sure only one replication strategy is specified

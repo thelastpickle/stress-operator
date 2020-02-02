@@ -76,6 +76,9 @@ type TLPStressConfig struct {
 	// Defaults to tlp_stress
 	Keyspace string `json:"keyspace,omitempty"`
 
+	// Table level TTL. Set to zero to disable.
+	Ttl *int64 `json:"ttl,omitempty"`
+
 	// +kubebuilder:validation:Pattern=^(\d+)([BbMmKk]?$)
 	Iterations *string `json:"iterations,omitempty"`
 
