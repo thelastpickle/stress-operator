@@ -28,6 +28,7 @@ const (
 	keyspace           argName = "--keyspace"
 	ttl                argName = "--ttl"
 	paging             argName = "--paging"
+	deleteRate         argName = "--deleterate"
 )
 
 type CommandLineArgs struct {
@@ -111,6 +112,10 @@ func CreateCommandLineArgs(stressCfg *v1alpha1.TLPStressConfig, cassandraCfg *v1
 
 	if stressCfg.Paging != nil {
 		args.addArg(paging, strconv.FormatInt(int64(*stressCfg.Paging), 10))
+	}
+
+	if len(stressCfg.DeleteRate) > 0 {
+		args.addArg(deleteRate, stressCfg.DeleteRate)
 	}
 
 	// TODO Need to make sure only one replication strategy is specified

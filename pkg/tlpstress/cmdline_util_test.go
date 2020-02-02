@@ -167,6 +167,26 @@ func TestCreateCommandLineArgs(t *testing.T) {
 			},
 		},
 		{
+			name: "SetDeleteRate",
+			args: args{
+				stressCfg: &v1alpha1.TLPStressConfig{
+					Workload: v1alpha1.KeyValueWorkload,
+					DeleteRate: "0.5",
+				},
+				cassandraCfg: &v1alpha1.CassandraConfig{
+					CassandraService: "cassandra-test",
+				},
+				namespace: "default",
+			},
+			want: &CommandLineArgs{
+				args: []string{
+					"run", string(v1alpha1.KeyValueWorkload),
+					"--deleterate", "0.5",
+					"--host", "cassandra-test",
+				},
+			},
+		},
+		{
 			name: "WorkloadWithCassandraClusterWithoutNamespace",
 			args: args{
 				stressCfg: &v1alpha1.TLPStressConfig{

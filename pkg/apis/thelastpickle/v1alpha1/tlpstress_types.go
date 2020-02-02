@@ -85,6 +85,11 @@ type TLPStressConfig struct {
 	// +kubebuilder:validation:Pattern=^(\d+)([BbMmKk]?$)
 	Iterations *string `json:"iterations,omitempty"`
 
+	// TODO add validation to ensure value is numeric
+	// Deletion Rate, 0-1.  Workloads may have their own defaults.  Default is dependent on workload.
+	DeleteRate string `json:"deleterate,omitempty"`
+
+	// TODO add validation to ensure value is numeric
 	ReadRate string `json:"readRate,omitempty"`
 
 	// +kubebuilder:validation:Pattern=^(\d+)([BbMmKk]?$)
