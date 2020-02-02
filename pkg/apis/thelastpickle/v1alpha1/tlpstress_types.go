@@ -67,6 +67,15 @@ type TLPStressConfig struct {
 
 	DropKeyspace bool `json:"dropKeyspace,omitempty"`
 
+	// Defaults to cassandra
+	Username string `json:"username,omitempty"`
+
+	// Defaults to cassandra
+	Password string `json:"password,omitempty"`
+
+	// Defaults to tlp_stress
+	Keyspace string `json:"keyspace,omitempty"`
+
 	// +kubebuilder:validation:Pattern=^(\d+)([BbMmKk]?$)
 	Iterations *string `json:"iterations,omitempty"`
 

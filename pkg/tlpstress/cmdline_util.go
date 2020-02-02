@@ -23,6 +23,9 @@ const (
 	partitionGenerator argName = "--partitiongenerator"
 	dataCenter         argName = "--dc"
 	replication        argName = "--replication"
+	username           argName = "--username"
+	password           argName = "--password"
+	keyspace           argName = "--keyspace"
 )
 
 type CommandLineArgs struct {
@@ -86,6 +89,18 @@ func CreateCommandLineArgs(stressCfg *v1alpha1.TLPStressConfig, cassandraCfg *v1
 
 	if len(stressCfg.DataCenter) > 0 {
 		args.addArg(dataCenter, stressCfg.DataCenter)
+	}
+
+	if len(stressCfg.Username) > 0 {
+		args.addArg(username, stressCfg.Username)
+	}
+
+	if len(stressCfg.Password) > 0 {
+		args.addArg(password, stressCfg.Password)
+	}
+
+	if len(stressCfg.Keyspace) > 0 {
+		args.addArg(keyspace, stressCfg.Keyspace)
 	}
 
 	// TODO Need to make sure only one replication strategy is specified

@@ -103,6 +103,30 @@ func TestCreateCommandLineArgs(t *testing.T) {
 			},
 		},
 		{
+			name: "UseCredentialsAndDifferentKeyspace",
+			args: args{
+				stressCfg: &v1alpha1.TLPStressConfig{
+					Workload: v1alpha1.KeyValueWorkload,
+					Username: "john",
+					Password: "password",
+					Keyspace: "test",
+				},
+				cassandraCfg: &v1alpha1.CassandraConfig{
+					CassandraService: "cassandra-test",
+				},
+				namespace: "default",
+			},
+			want: &CommandLineArgs{
+				args: []string{
+					"run", string(v1alpha1.KeyValueWorkload),
+					"--username", "john",
+					"--password", "password",
+					"--keyspace", "test",
+					"--host", "cassandra-test",
+				},
+			},
+		},
+		{
 			name: "WorkloadWithCassandraClusterWithoutNamespace",
 			args: args{
 				stressCfg: &v1alpha1.TLPStressConfig{
