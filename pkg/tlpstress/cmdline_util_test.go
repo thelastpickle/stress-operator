@@ -147,6 +147,26 @@ func TestCreateCommandLineArgs(t *testing.T) {
 			},
 		},
 		{
+			name: "SetPageSize",
+			args: args{
+				stressCfg: &v1alpha1.TLPStressConfig{
+					Workload: v1alpha1.KeyValueWorkload,
+					Paging: int32Ref(10000),
+				},
+				cassandraCfg: &v1alpha1.CassandraConfig{
+					CassandraService: "cassandra-test",
+				},
+				namespace: "default",
+			},
+			want: &CommandLineArgs{
+				args: []string{
+					"run", string(v1alpha1.KeyValueWorkload),
+					"--paging", "10000",
+					"--host", "cassandra-test",
+				},
+			},
+		},
+		{
 			name: "WorkloadWithCassandraClusterWithoutNamespace",
 			args: args{
 				stressCfg: &v1alpha1.TLPStressConfig{

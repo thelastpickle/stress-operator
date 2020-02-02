@@ -169,6 +169,11 @@ func (in *TLPStressConfig) DeepCopyInto(out *TLPStressConfig) {
 		*out = new(int64)
 		**out = **in
 	}
+	if in.Paging != nil {
+		in, out := &in.Paging, &out.Paging
+		*out = new(int32)
+		**out = **in
+	}
 	if in.Iterations != nil {
 		in, out := &in.Iterations, &out.Iterations
 		*out = new(string)

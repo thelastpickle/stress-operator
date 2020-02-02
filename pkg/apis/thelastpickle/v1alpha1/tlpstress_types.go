@@ -79,6 +79,9 @@ type TLPStressConfig struct {
 	// Table level TTL. Set to zero to disable.
 	Ttl *int64 `json:"ttl,omitempty"`
 
+	// Override the driver's default page size
+	Paging *int32 `json:"paging,omitempty"`
+
 	// +kubebuilder:validation:Pattern=^(\d+)([BbMmKk]?$)
 	Iterations *string `json:"iterations,omitempty"`
 
