@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/jsanda/tlp-stress-operator/pkg/k8s"
+	"github.com/jsanda/stress-operator/pkg/k8s"
 	"os"
 	"runtime"
 	"time"
@@ -14,10 +14,10 @@ import (
 
 	"k8s.io/client-go/rest"
 
-	"github.com/jsanda/tlp-stress-operator/pkg/apis"
-	"github.com/jsanda/tlp-stress-operator/pkg/casskop"
-	"github.com/jsanda/tlp-stress-operator/pkg/controller"
-	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"
+	"github.com/jsanda/stress-operator/pkg/apis"
+	"github.com/jsanda/stress-operator/pkg/casskop"
+	"github.com/jsanda/stress-operator/pkg/controller"
+	"github.com/jsanda/stress-operator/pkg/monitoring"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"
@@ -88,7 +88,7 @@ func main() {
 
 	ctx := context.TODO()
 	// Become the leader before proceeding
-	err = leader.Become(ctx, "tlp-stress-operator-lock")
+	err = leader.Become(ctx, "stress-operator-lock")
 	if err != nil {
 		log.Error(err, "")
 		os.Exit(1)
@@ -188,7 +188,7 @@ func serveCRMetrics(cfg *rest.Config) error {
 func startContextController(namespace string, cfg *rest.Config, signalHandler <-chan struct{}) {
 	mgr, err := manager.New(cfg, manager.Options{Namespace: namespace})
 	if err != nil {
-		log.Error(err, "failed to create manager for tlpstress context controller")
+		log.Error(err, "failed to create manager for stress context controller")
 		os.Exit(1)
 	}
 
@@ -199,10 +199,10 @@ func startContextController(namespace string, cfg *rest.Config, signalHandler <-
 
 	go func() {
 		if err := mgr.Start(signalHandler); err != nil {
-			log.Error(err, "tlpstress context manager exited non-zero")
+			log.Error(err, "stress context manager exited non-zero")
 			os.Exit(1)
 		}
-		log.Info("started tlpstress context controller")
+		log.Info("started stress context controller")
 	}()
 	time.Sleep(2 * time.Second)
 }

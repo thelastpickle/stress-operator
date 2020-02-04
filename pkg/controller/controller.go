@@ -3,9 +3,9 @@ package controller
 import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"github.com/jsanda/tlp-stress-operator/pkg/apis"
-	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"
-	"github.com/jsanda/tlp-stress-operator/pkg/casskop"
+	"github.com/jsanda/stress-operator/pkg/apis"
+	"github.com/jsanda/stress-operator/pkg/monitoring"
+	"github.com/jsanda/stress-operator/pkg/casskop"
 )
 
 // AddToManagerFuncs is a list of functions to add all Controllers to the Manager

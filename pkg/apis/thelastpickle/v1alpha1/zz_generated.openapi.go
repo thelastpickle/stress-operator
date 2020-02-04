@@ -11,12 +11,12 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStress":              schema_pkg_apis_thelastpickle_v1alpha1_TLPStress(ref),
-		"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressContext":       schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContext(ref),
-		"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressContextSpec":   schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextSpec(ref),
-		"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressContextStatus": schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextStatus(ref),
-		"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressSpec":          schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref),
-		"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressStatus":        schema_pkg_apis_thelastpickle_v1alpha1_TLPStressStatus(ref),
+		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.Stress":              schema_pkg_apis_thelastpickle_v1alpha1_TLPStress(ref),
+		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressContext":       schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContext(ref),
+		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressContextSpec":   schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextSpec(ref),
+		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressContextStatus": schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextStatus(ref),
+		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressSpec":          schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref),
+		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressStatus":        schema_pkg_apis_thelastpickle_v1alpha1_TLPStressStatus(ref),
 	}
 }
 
@@ -24,7 +24,7 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStress(ref common.ReferenceCallba
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "TLPStress is the Schema for the tlpstresses API",
+				Description: "Stress is the Schema for the tlpstresses API",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
@@ -48,19 +48,19 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStress(ref common.ReferenceCallba
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressSpec"),
+							Ref: ref("github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressStatus"),
+							Ref: ref("github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressSpec", "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressSpec", "github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -68,7 +68,7 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContext(ref common.Referenc
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "TLPStressContext is the Schema for the tlpstresscontexts API",
+				Description: "StressContext is the Schema for the tlpstresscontexts API",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
@@ -92,19 +92,19 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContext(ref common.Referenc
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressContextSpec"),
+							Ref: ref("github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressContextSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressContextStatus"),
+							Ref: ref("github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressContextStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressContextSpec", "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressContextStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressContextSpec", "github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressContextStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -112,7 +112,7 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextSpec(ref common.Refe
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "TLPStressContextSpec defines the desired state of TLPStressContext",
+				Description: "StressContextSpec defines the desired state of StressContext",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"installPrometheus": {
@@ -137,7 +137,7 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextStatus(ref common.Re
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "TLPStressContextStatus defines the observed state of TLPStressContext",
+				Description: "StressContextStatus defines the observed state of StressContext",
 				Type:        []string{"object"},
 			},
 		},
@@ -148,12 +148,12 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref common.ReferenceCa
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "TLPStressSpec defines the desired state of TLPStress",
+				Description: "StressSpec defines the desired state of Stress",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"cassandraConfig": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.CassandraConfig"),
+							Ref: ref("github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.CassandraConfig"),
 						},
 					},
 					"image": {
@@ -170,19 +170,19 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref common.ReferenceCa
 					},
 					"stressConfig": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressConfig"),
+							Ref: ref("github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressConfig"),
 						},
 					},
 					"jobConfig": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.JobConfig"),
+							Ref: ref("github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.JobConfig"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.CassandraConfig", "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.JobConfig", "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1.TLPStressConfig"},
+			"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.CassandraConfig", "github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.JobConfig", "github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressConfig"},
 	}
 }
 
@@ -190,7 +190,7 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressStatus(ref common.Reference
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "TLPStressStatus defines the observed state of TLPStress",
+				Description: "StressStatus defines the observed state of Stress",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"jobStatus": {

@@ -1,11 +1,11 @@
-package tlpstresscontext
+package stresscontext
 
 import (
 	"context"
-	v1alpha1 "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
-	"github.com/jsanda/tlp-stress-operator/pkg/casskop"
-	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"
-	"github.com/jsanda/tlp-stress-operator/test"
+	"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/stress-operator/pkg/casskop"
+	"github.com/jsanda/stress-operator/pkg/monitoring"
+	"github.com/jsanda/stress-operator/test"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -25,9 +25,9 @@ func (fdc *fakeDiscoveryClient) KindExists(apiVersion string, kind string) (bool
 	return true, nil
 }
 
-func setupReconcile(t *testing.T, state ...runtime.Object) (*ReconcileTLPStressContext, reconcile.Result) {
+func setupReconcile(t *testing.T, state ...runtime.Object) (*ReconcileStressContext, reconcile.Result) {
 	cl := fake.NewFakeClient(state...)
-	r := &ReconcileTLPStressContext{client: cl, scheme: testScheme}
+	r := &ReconcileStressContext{client: cl, scheme: testScheme}
 	req := reconcile.Request{
 		NamespacedName: types.NamespacedName{
 			Name:      contextName,
@@ -42,7 +42,7 @@ func setupReconcile(t *testing.T, state ...runtime.Object) (*ReconcileTLPStressC
 	return r, res
 }
 
-func setupReconcileWithRequeue(t *testing.T, state ...runtime.Object) *ReconcileTLPStressContext {
+func setupReconcileWithRequeue(t *testing.T, state ...runtime.Object) *ReconcileStressContext {
 	r, res := setupReconcile(t, state...)
 
 	// Check the result of reconciliation to make sure it has the desired state.
@@ -53,7 +53,7 @@ func setupReconcileWithRequeue(t *testing.T, state ...runtime.Object) *Reconcile
 	return r
 }
 
-func setupReconcileWithoutRequeue(t *testing.T, state ...runtime.Object) *ReconcileTLPStressContext {
+func setupReconcileWithoutRequeue(t *testing.T, state ...runtime.Object) *ReconcileStressContext {
 	r, res := setupReconcile(t, state...)
 
 	if res.Requeue {
@@ -64,7 +64,7 @@ func setupReconcileWithoutRequeue(t *testing.T, state ...runtime.Object) *Reconc
 }
 
 var (
-	name          = "tlpstress-controller"
+	name          = "stress-controller"
 	namespace     = "tlpstress"
 	namespaceName = types.NamespacedName{
 		Namespace: namespace,
@@ -88,7 +88,7 @@ func TestReconcile(t *testing.T) {
 }
 
 func testCreatePrometheus(t *testing.T) {
-	ctx := createTLPStressContext()
+	ctx := createStressContext()
 
 	objs := []runtime.Object{ctx}
 
@@ -115,7 +115,7 @@ func testCreatePrometheus(t *testing.T) {
 }
 
 func testCreatePrometheusService(t *testing.T) {
-	ctx := createTLPStressContext()
+	ctx := createStressContext()
 	prometheus := createPrometheus()
 
 	objs := []runtime.Object{ctx, prometheus}
@@ -129,7 +129,7 @@ func testCreatePrometheusService(t *testing.T) {
 }
 
 func testCreateServiceMonitor(t *testing.T) {
-	ctx := createTLPStressContext()
+	ctx := createStressContext()
 	prometheus := createPrometheus()
 	prometheusService := createPrometheusService()
 
@@ -143,7 +143,7 @@ func testCreateServiceMonitor(t *testing.T) {
 }
 
 func testCreateGrafana(t *testing.T) {
-	ctx := createTLPStressContext()
+	ctx := createStressContext()
 	prometheus := createPrometheus()
 	prometheusService := createPrometheusService()
 	serviceMonitor :=  createServiceMonitor()
@@ -158,7 +158,7 @@ func testCreateGrafana(t *testing.T) {
 }
 
 func testCreateGrafanaDataSource(t *testing.T) {
-	ctx := createTLPStressContext()
+	ctx := createStressContext()
 	prometheus := createPrometheus()
 	prometheusService := createPrometheusService()
 	serviceMonitor :=  createServiceMonitor()
@@ -177,13 +177,13 @@ func reconcileNonDefaultContext(t *testing.T) {
 
 }
 
-func createTLPStressContext() *v1alpha1.TLPStressContext {
-	return &v1alpha1.TLPStressContext{
+func createStressContext() *v1alpha1.StressContext {
+	return &v1alpha1.StressContext{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      contextName,
 			Namespace: namespace,
 		},
-		Spec: v1alpha1.TLPStressContextSpec{
+		Spec: v1alpha1.StressContextSpec{
 			InstallPrometheus: true,
 			InstallGrafana: true,
 		},

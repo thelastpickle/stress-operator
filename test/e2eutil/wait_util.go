@@ -3,7 +3,7 @@ package e2eutil
 import (
 	goctx "context"
 	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
-	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -41,9 +41,9 @@ func WaitForCassKopCluster(
 	})
 }
 
-// Waits for the TLPStress instance specified by namespace/name to start. Specifically this
-// functions blocks until TLPStress.Status.JobStatus.Active > 0.
-func WaitForTLPStressToStart(t *testing.T,
+// Waits for the Stress instance specified by namespace/name to start. Specifically this
+// functions blocks until Stress.Status.JobStatus.Active > 0.
+func WaitForStressToStart(t *testing.T,
 	f *framework.Framework,
 	namespace string,
 	name string,
@@ -55,27 +55,27 @@ func WaitForTLPStressToStart(t *testing.T,
 		err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, tlpStress)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				t.Logf("Waiting for availability of TLPStress %s\n", name)
+				t.Logf("Waiting for availability of Stress %s\n", name)
 				return false, nil
 			}
-			t.Logf("Failed to get TLPStress (%s): %s", name, err)
+			t.Logf("Failed to get Stress (%s): %s", name, err)
 			return false, err
 		}
 		if tlpStress.Status.JobStatus == nil {
-			t.Log("TLPStress.Status.JobStatus is nil")
+			t.Log("Stress.Status.JobStatus is nil")
 			return false, nil
 		}
 		if tlpStress.Status.JobStatus.Active == 0 {
-			t.Logf("Waiting for TLPStress %s to start\n", name)
+			t.Logf("Waiting for Stress %s to start\n", name)
 			return false, nil
 		}
 		return true, nil
 	})
 }
 
-// Waits for the TLPStress instance specified by namespace/name to finish. Specifically this
+// Waits for the Stress instance specified by namespace/name to finish. Specifically this
 // function blocks until the succeeded + failed job runs equals completions.
-func WaitForTLPStressToFinish(t *testing.T,
+func WaitForStressToFinish(t *testing.T,
 	f *framework.Framework,
 	namespace string,
 	name string,
@@ -88,18 +88,18 @@ func WaitForTLPStressToFinish(t *testing.T,
 		err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, tlpStress)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				t.Logf("Waiting for availability of TLPStress %s\n", name)
+				t.Logf("Waiting for availability of Stress %s\n", name)
 				return false, nil
 			}
 			return false, err
 		}
 		if tlpStress.Status.JobStatus == nil {
-			t.Log("TLPStress.Status.JobStatus is nil")
+			t.Log("Stress.Status.JobStatus is nil")
 			return false, nil
 		}
 
 		if (tlpStress.Status.JobStatus.Succeeded + tlpStress.Status.JobStatus.Failed) != completions {
-			t.Logf("Waiting for TLPStress (%s) to complete (%d). There are: succeeded(%d), failed(%d)\n", name,
+			t.Logf("Waiting for Stress (%s) to complete (%d). There are: succeeded(%d), failed(%d)\n", name,
 				completions, tlpStress.Status.JobStatus.Succeeded, tlpStress.Status.JobStatus.Failed)
 			return false, nil
 		}

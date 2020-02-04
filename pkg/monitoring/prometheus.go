@@ -5,9 +5,9 @@ import (
 	"fmt"
 	prometheus "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
-	api "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
-	"github.com/jsanda/tlp-stress-operator/pkg/k8s"
-	tlp "github.com/jsanda/tlp-stress-operator/pkg/tlpstress"
+	api "github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/stress-operator/pkg/k8s"
+	tlp "github.com/jsanda/stress-operator/pkg/tlpstress"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
@@ -24,21 +24,21 @@ const (
 	ServiceMonitorKind = "ServiceMonitor"
 	PrometheusKind     = "Prometheus"
 
-	PrometheusName     = "tlpstress-prometheus"
-	ServiceMonitorName = "tlpstress"
+	PrometheusName     = "stress-prometheus"
+	ServiceMonitorName = "stress"
 
 	metricsPort        = "metrics"
 )
 
-func GetMetricsService(tlpStress *api.TLPStress, client client.Client) (*corev1.Service, error) {
+func GetMetricsService(stress *api.Stress, client client.Client) (*corev1.Service, error) {
 	metricsService := &corev1.Service{}
-	err := client.Get(context.TODO(), types.NamespacedName{Namespace: tlpStress.Namespace, Name: GetMetricsServiceName(tlpStress)}, metricsService)
+	err := client.Get(context.TODO(), types.NamespacedName{Namespace: stress.Namespace, Name: GetMetricsServiceName(stress)}, metricsService)
 
 	return metricsService, err
 }
 
-func CreateMetricsService(tlpStress *api.TLPStress, client client.Client, log logr.Logger) (reconcile.Result, error) {
-	metricsService := newMetricsService(tlpStress)
+func CreateMetricsService(stress *api.Stress, client client.Client, log logr.Logger) (reconcile.Result, error) {
+	metricsService := newMetricsService(stress)
 	log.Info("Creating metrics service.", "MetricsService.Namespace", metricsService.Namespace,
 		"MetricsService.Name", metricsService.Name)
 	err := client.Create(context.TODO(), metricsService)
@@ -50,18 +50,18 @@ func CreateMetricsService(tlpStress *api.TLPStress, client client.Client, log lo
 	return reconcile.Result{Requeue: true}, nil
 }
 
-func GetMetricsServiceName(tlpStress *api.TLPStress) string {
-	return fmt.Sprintf("%s-metrics", tlpStress.Name)
+func GetMetricsServiceName(stress *api.Stress) string {
+	return fmt.Sprintf("%s-metrics", stress.Name)
 }
 
-func newMetricsService(tlpStress *api.TLPStress) *corev1.Service {
+func newMetricsService(stress *api.Stress) *corev1.Service {
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetMetricsServiceName(tlpStress),
-			Namespace: tlpStress.Namespace,
-			Labels:    tlp.LabelsForTLPStress(tlpStress.Name),
+			Name:      GetMetricsServiceName(stress),
+			Namespace: stress.Namespace,
+			Labels:    tlp.LabelsForStress(stress.Name),
 			OwnerReferences: []metav1.OwnerReference{
-				tlpStress.CreateOwnerReference(),
+				stress.CreateOwnerReference(),
 			},
 		},
 		Spec: corev1.ServiceSpec{
@@ -76,7 +76,7 @@ func newMetricsService(tlpStress *api.TLPStress) *corev1.Service {
 					},
 				},
 			},
-			Selector: tlp.LabelsForTLPStress(tlpStress.Name),
+			Selector: tlp.LabelsForStress(stress.Name),
 		},
 	}
 }
@@ -163,7 +163,7 @@ func newPrometheus(namespace string) *prometheus.Prometheus {
 			{
 				Key: "app",
 				Operator: metav1.LabelSelectorOpIn,
-				Values: []string{"tlpstress"},
+				Values: []string{"stress"},
 			},
 		},
 	}
@@ -212,13 +212,13 @@ func newServiceMonitor(namespace string) *prometheus.ServiceMonitor {
 			Name: ServiceMonitorName,
 			Namespace: namespace,
 			Labels: map[string]string{
-				"app": "tlpstress",
+				"app": "stress",
 			},
 		},
 		Spec: prometheus.ServiceMonitorSpec{
 			Selector: metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app": "tlpstress",
+					"app": "stress",
 				},
 			},
 			Endpoints: []prometheus.Endpoint{

@@ -2,7 +2,7 @@ package tlpstress
 
 import (
 	"fmt"
-	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"strconv"
 	"strings"
 )
@@ -49,7 +49,7 @@ func (c *CommandLineArgs) String() string {
 }
 
 // Generates the arguments that are passed to the tlp-stress executable
-func CreateCommandLineArgs(stressCfg *v1alpha1.TLPStressConfig, cassandraCfg *v1alpha1.CassandraConfig, namespace string) *CommandLineArgs {
+func CreateCommandLineArgs(stressCfg *v1alpha1.StressConfig, cassandraCfg *v1alpha1.CassandraConfig, namespace string) *CommandLineArgs {
 	args:= CommandLineArgs{}
 
 	args.addArg(run, string(stressCfg.Workload))

@@ -1,7 +1,7 @@
 package tlpstress
 
 import (
-	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"reflect"
 	"testing"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -9,7 +9,7 @@ import (
 
 func TestCreateCommandLineArgs(t *testing.T) {
 	type args struct {
-		stressCfg    *v1alpha1.TLPStressConfig
+		stressCfg    *v1alpha1.StressConfig
 		cassandraCfg *v1alpha1.CassandraConfig
 		namespace    string
 	}
@@ -21,7 +21,7 @@ func TestCreateCommandLineArgs(t *testing.T) {
 		{
 			name: "AllOptionsExceptReplicationWithCassandraService",
 			args: args{
-				stressCfg: &v1alpha1.TLPStressConfig{
+				stressCfg: &v1alpha1.StressConfig{
 					Workload: v1alpha1.BasicTimeSeriesWorkload,
 					ConsistencyLevel: v1alpha1.CL_LOCAL_QUORUM,
 					Partitions: stringRef("3m"),
@@ -59,7 +59,7 @@ func TestCreateCommandLineArgs(t *testing.T) {
 		{
 			name: "SimpleStrategyReplicationWithCassandraService",
 			args: args{
-				stressCfg: &v1alpha1.TLPStressConfig{
+				stressCfg: &v1alpha1.StressConfig{
 					Workload: v1alpha1.KeyValueWorkload,
 					Replication: v1alpha1.ReplicationConfig{
 						SimpleStrategy: int32Ref(3),
@@ -81,7 +81,7 @@ func TestCreateCommandLineArgs(t *testing.T) {
 		{
 			name: "NetworkTopologyStrategyReplicationWithCassandraService",
 			args: args{
-				stressCfg: &v1alpha1.TLPStressConfig{
+				stressCfg: &v1alpha1.StressConfig{
 					Workload: v1alpha1.KeyValueWorkload,
 					Replication: v1alpha1.ReplicationConfig{
 						NetworkTopologyStrategy: &map[string]int32 {
@@ -105,7 +105,7 @@ func TestCreateCommandLineArgs(t *testing.T) {
 		{
 			name: "UseCredentialsAndDifferentKeyspace",
 			args: args{
-				stressCfg: &v1alpha1.TLPStressConfig{
+				stressCfg: &v1alpha1.StressConfig{
 					Workload: v1alpha1.KeyValueWorkload,
 					Username: "john",
 					Password: "password",
@@ -129,7 +129,7 @@ func TestCreateCommandLineArgs(t *testing.T) {
 		{
 			name: "SetTTL",
 			args: args{
-				stressCfg: &v1alpha1.TLPStressConfig{
+				stressCfg: &v1alpha1.StressConfig{
 					Workload: v1alpha1.KeyValueWorkload,
 					Ttl: int64Ref(600),
 				},
@@ -149,7 +149,7 @@ func TestCreateCommandLineArgs(t *testing.T) {
 		{
 			name: "SetPageSize",
 			args: args{
-				stressCfg: &v1alpha1.TLPStressConfig{
+				stressCfg: &v1alpha1.StressConfig{
 					Workload: v1alpha1.KeyValueWorkload,
 					Paging: int32Ref(10000),
 				},
@@ -169,7 +169,7 @@ func TestCreateCommandLineArgs(t *testing.T) {
 		{
 			name: "SetDeleteRate",
 			args: args{
-				stressCfg: &v1alpha1.TLPStressConfig{
+				stressCfg: &v1alpha1.StressConfig{
 					Workload: v1alpha1.KeyValueWorkload,
 					DeleteRate: "0.5",
 				},
@@ -189,7 +189,7 @@ func TestCreateCommandLineArgs(t *testing.T) {
 		{
 			name: "WorkloadWithCassandraClusterWithoutNamespace",
 			args: args{
-				stressCfg: &v1alpha1.TLPStressConfig{
+				stressCfg: &v1alpha1.StressConfig{
 					Workload: v1alpha1.MapsWorkload,
 				},
 				cassandraCfg: &v1alpha1.CassandraConfig{
@@ -208,7 +208,7 @@ func TestCreateCommandLineArgs(t *testing.T) {
 		{
 			name: "WorkloadWithCassandraServiceWithNamespace",
 			args: args{
-				stressCfg: &v1alpha1.TLPStressConfig{
+				stressCfg: &v1alpha1.StressConfig{
 					Workload: v1alpha1.CountersWideWorkload,
 				},
 				cassandraCfg: &v1alpha1.CassandraConfig{
@@ -228,7 +228,7 @@ func TestCreateCommandLineArgs(t *testing.T) {
 		{
 			name: "WorkloadWithCassandraClusterTemplateWithoutNamespace",
 			args: args{
-				stressCfg: &v1alpha1.TLPStressConfig{
+				stressCfg: &v1alpha1.StressConfig{
 					Workload: v1alpha1.LWTWorkload,
 				},
 				cassandraCfg: &v1alpha1.CassandraConfig{
@@ -249,7 +249,7 @@ func TestCreateCommandLineArgs(t *testing.T) {
 		{
 			name: "WorkloadWithCassandraClusterTemplateWithNamespace",
 			args: args{
-				stressCfg: &v1alpha1.TLPStressConfig{
+				stressCfg: &v1alpha1.StressConfig{
 					Workload: v1alpha1.UdtTimeSeriesWorkload,
 				},
 				cassandraCfg: &v1alpha1.CassandraConfig{

@@ -53,7 +53,7 @@ type JobConfig struct {
 	Parallelism *int32 `json:"parallelism,omitempty" protobuf:"varint,1,opt,name=parallelism"`
 }
 
-type TLPStressConfig struct {
+type StressConfig struct {
 	Workload Workload `json:"workload,omitempty"`
 
 	ConsistencyLevel ConsistencyLevel `json:"consistencyLevel,omitempty"`
@@ -131,9 +131,9 @@ type CassandraConfig struct {
 	CassandraClusterTemplate *CassandraClusterTemplate `json:"cassandraClusterTemplate,omitempty"`
 }
 
-// TLPStressSpec defines the desired state of TLPStress
+// StressSpec defines the desired state of Stress
 // +k8s:openapi-gen=true
-type TLPStressSpec struct {
+type StressSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
@@ -144,7 +144,7 @@ type TLPStressSpec struct {
 
 	ImagePullPolicy v1.PullPolicy `json:"imagePullPolicy,omitempty"`
 
-	StressConfig TLPStressConfig `json:"stressConfig,omitempty"`
+	StressConfig StressConfig `json:"stressConfig,omitempty"`
 
 	JobConfig JobConfig `json:"jobConfig,omitempty"`
 }
@@ -155,9 +155,9 @@ type ReplicationConfig struct {
 	NetworkTopologyStrategy *map[string]int32 `json:"networkTopologyStrategy,omitempty"`
 }
 
-// TLPStressStatus defines the observed state of TLPStress
+// StressStatus defines the observed state of Stress
 // +k8s:openapi-gen=true
-type TLPStressStatus struct {
+type StressStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
@@ -167,35 +167,35 @@ type TLPStressStatus struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// TLPStress is the Schema for the tlpstresses API
+// Stress is the Schema for the Stresses API
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
-type TLPStress struct {
+type Stress struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   TLPStressSpec   `json:"spec,omitempty"`
-	Status TLPStressStatus `json:"status,omitempty"`
+	Spec   StressSpec   `json:"spec,omitempty"`
+	Status StressStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// TLPStressList contains a list of TLPStress
-type TLPStressList struct {
+// StressList contains a list of Stress
+type StressList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []TLPStress `json:"items"`
+	Items           []Stress `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&TLPStress{}, &TLPStressList{})
+	SchemeBuilder.Register(&Stress{}, &StressList{})
 }
 
-func (tlpStress *TLPStress) CreateOwnerReference() metav1.OwnerReference {
+func (s *Stress) CreateOwnerReference() metav1.OwnerReference {
 	return metav1.OwnerReference{
 		APIVersion: SchemeGroupVersion.String(),
-		Kind:       "TLPStress",
-		Name:       tlpStress.Name,
-		UID:        tlpStress.UID,
+		Kind:       "Stress",
+		Name:       s.Name,
+		UID:        s.UID,
 	}
 }

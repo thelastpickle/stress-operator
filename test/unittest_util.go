@@ -1,9 +1,9 @@
 package test
 
 import (
-	"github.com/jsanda/tlp-stress-operator/pkg/apis"
-	"github.com/jsanda/tlp-stress-operator/pkg/casskop"
-	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"
+	"github.com/jsanda/stress-operator/pkg/apis"
+	"github.com/jsanda/stress-operator/pkg/casskop"
+	"github.com/jsanda/stress-operator/pkg/monitoring"
 	"k8s.io/client-go/kubernetes/scheme"
 	"testing"
 )

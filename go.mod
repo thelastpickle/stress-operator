@@ -1,4 +1,4 @@
-module github.com/jsanda/tlp-stress-operator
+module github.com/jsanda/stress-operator
 
 require (
 	github.com/Orange-OpenSource/cassandra-k8s-operator v0.3.2

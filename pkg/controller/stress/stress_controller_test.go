@@ -1,12 +1,12 @@
-package tlpstress
+package stress
 
 import (
 	"context"
 	i8ly "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
-	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
-	"github.com/jsanda/tlp-stress-operator/pkg/casskop"
-	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"
-	"github.com/jsanda/tlp-stress-operator/test"
+	"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/stress-operator/pkg/casskop"
+	"github.com/jsanda/stress-operator/pkg/monitoring"
+	"github.com/jsanda/stress-operator/test"
 	v1batch "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,9 +29,9 @@ var (
 	}
 )
 
-func setupReconcile(t *testing.T, state ...runtime.Object) (*ReconcileTLPStress, reconcile.Result) {
+func setupReconcile(t *testing.T, state ...runtime.Object) (*ReconcileStress, reconcile.Result) {
 	cl := fake.NewFakeClient(state...)
-	r := &ReconcileTLPStress{client: cl, scheme: scheme.Scheme}
+	r := &ReconcileStress{client: cl, scheme: scheme.Scheme}
 	req := reconcile.Request{
 		NamespacedName: types.NamespacedName{
 			Name:      name,
@@ -46,7 +46,7 @@ func setupReconcile(t *testing.T, state ...runtime.Object) (*ReconcileTLPStress,
 	return r, res
 }
 
-func setupReconcileWithRequeue(t *testing.T, state ...runtime.Object) *ReconcileTLPStress {
+func setupReconcileWithRequeue(t *testing.T, state ...runtime.Object) *ReconcileStress {
 	r, res := setupReconcile(t, state...)
 
 	// Check the result of reconciliation to make sure it has the desired state.
@@ -57,7 +57,7 @@ func setupReconcileWithRequeue(t *testing.T, state ...runtime.Object) *Reconcile
 	return r
 }
 
-func setupReconcileWithoutRequeue(t *testing.T, state ...runtime.Object) *ReconcileTLPStress {
+func setupReconcileWithoutRequeue(t *testing.T, state ...runtime.Object) *ReconcileStress {
 	r, res := setupReconcile(t, state...)
 
 	if res.Requeue {
@@ -84,12 +84,12 @@ func TestReconcile(t *testing.T) {
 }
 
 func testTLPStressControllerDefaultsSet(t *testing.T) {
-	tlpStress := &v1alpha1.TLPStress{
+	tlpStress := &v1alpha1.Stress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Spec: v1alpha1.TLPStressSpec{
+		Spec: v1alpha1.StressSpec{
 			CassandraConfig: v1alpha1.CassandraConfig{
 				CassandraService: "cassandra-service",
 			},
@@ -101,10 +101,10 @@ func testTLPStressControllerDefaultsSet(t *testing.T) {
 	r := setupReconcileWithRequeue(t, objs...)
 
 	// make sure defaults are assigned
-	instance := &v1alpha1.TLPStress{}
+	instance := &v1alpha1.Stress{}
 	err := r.client.Get(context.TODO(), namespaceName, instance)
 	if err != nil {
-		t.Fatalf("get TLPStress: (%v)", err)
+		t.Fatalf("get Stress: (%v)", err)
 	}
 
 	if instance.Spec.StressConfig.Workload != DefaultWorkload {
@@ -121,17 +121,17 @@ func testTLPStressControllerDefaultsSet(t *testing.T) {
 }
 
 func testTLPStressControllerDefaultsNotSet(t *testing.T) {
-	tlpStress := createTLPStress()
+	tlpStress := createStress()
 
 	objs := []runtime.Object{tlpStress}
 
 	r := setupReconcileWithRequeue(t, objs...)
 
 	// make sure defaults are assigned
-	instance := &v1alpha1.TLPStress{}
+	instance := &v1alpha1.Stress{}
 	err := r.client.Get(context.TODO(), namespaceName, instance)
 	if err != nil {
-		t.Fatalf("get TLPStress: (%v)", err)
+		t.Fatalf("get Stress: (%v)", err)
 	}
 
 	if instance.Spec.StressConfig.Workload != tlpStress.Spec.StressConfig.Workload {
@@ -149,7 +149,7 @@ func testTLPStressControllerDefaultsNotSet(t *testing.T) {
 }
 
 func testTLPStressControllerMetricsServiceCreate(t *testing.T) {
-	tlpStress := createTLPStress()
+	tlpStress := createStress()
 
 	objs := []runtime.Object{tlpStress}
 
@@ -162,7 +162,7 @@ func testTLPStressControllerMetricsServiceCreate(t *testing.T) {
 }
 
 func testTLPStressControllerDashboardCreate(t *testing.T) {
-	tlpStress := createTLPStress()
+	tlpStress := createStress()
 
 	metricsService := createMetricsService(tlpStress)
 
@@ -178,7 +178,7 @@ func testTLPStressControllerDashboardCreate(t *testing.T) {
 }
 
 func testTLPStressControllerJobCreate(t *testing.T) {
-	tlpStress := createTLPStress()
+	tlpStress := createStress()
 	metricsService :=createMetricsService(tlpStress)
 	dashboard := createDashboard(tlpStress)
 
@@ -194,7 +194,7 @@ func testTLPStressControllerJobCreate(t *testing.T) {
 }
 
 func testTLPStressControllerSetStatus(t *testing.T) {
-	tlpStress := createTLPStress()
+	tlpStress := createStress()
 	metricsService := createMetricsService(tlpStress)
 	dashboard := createDashboard(tlpStress)
 
@@ -219,7 +219,7 @@ func testTLPStressControllerSetStatus(t *testing.T) {
 
 	r := setupReconcileWithoutRequeue(t, objs...)
 
-	actual := &v1alpha1.TLPStress{}
+	actual := &v1alpha1.Stress{}
 	err := r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, actual)
 	if err != nil {
 		t.Fatalf("get actual: (%v)", err)
@@ -230,17 +230,17 @@ func testTLPStressControllerSetStatus(t *testing.T) {
 	}
 }
 
-func createTLPStress() *v1alpha1.TLPStress {
-	return &v1alpha1.TLPStress{
+func createStress() *v1alpha1.Stress {
+	return &v1alpha1.Stress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Spec: v1alpha1.TLPStressSpec{
+		Spec: v1alpha1.StressSpec{
 			CassandraConfig: v1alpha1.CassandraConfig{
 				CassandraService: "cassandra-service",
 			},
-			StressConfig: v1alpha1.TLPStressConfig{
+			StressConfig: v1alpha1.StressConfig{
 				Workload: v1alpha1.KeyValueWorkload,
 			},
 			Image:           "jsanda/tlp-stress:demo",
@@ -249,7 +249,7 @@ func createTLPStress() *v1alpha1.TLPStress {
 	}
 }
 
-func createMetricsService(tlpStress *v1alpha1.TLPStress)  *corev1.Service {
+func createMetricsService(tlpStress *v1alpha1.Stress)  *corev1.Service {
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -258,7 +258,7 @@ func createMetricsService(tlpStress *v1alpha1.TLPStress)  *corev1.Service {
 	}
 }
 
-func createDashboard(tlpStress *v1alpha1.TLPStress) *i8ly.GrafanaDashboard {
+func createDashboard(tlpStress *v1alpha1.Stress) *i8ly.GrafanaDashboard {
 	return &i8ly.GrafanaDashboard{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,

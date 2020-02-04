@@ -4,10 +4,10 @@ import (
 	goctx "context"
 	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
 	casskopapi "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis"
-	"github.com/jsanda/tlp-stress-operator/pkg/apis"
-	"github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
-	tlp "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
-	"github.com/jsanda/tlp-stress-operator/test/e2eutil"
+	"github.com/jsanda/stress-operator/pkg/apis"
+	"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	tlp "github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/stress-operator/test/e2eutil"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -47,11 +47,11 @@ func e2eTest(fn TestFunc, t *testing.T, f *framework.Framework, ctx *framework.T
 }
 
 // This test actually does create a Cassandra cluster, but it does so independent of the
-// tlp-stress-operator. When each of the subtest runs, there will already be a cluster
+// stress-operator. When each of the subtest runs, there will already be a cluster
 // available.
-func TestTLPStressWithExistingCluster(t *testing.T) {
-	tlpStressList := &tlp.TLPStressList{}
-	err := framework.AddToFrameworkScheme(apis.AddToScheme, tlpStressList)
+func TestStressWithExistingCluster(t *testing.T) {
+	stressList := &tlp.StressList{}
+	err := framework.AddToFrameworkScheme(apis.AddToScheme, stressList)
 	if err != nil {
 		t.Fatalf("failed to add custom resource scheme to framework: %v", err)
 	}
@@ -76,37 +76,37 @@ func TestTLPStressWithExistingCluster(t *testing.T) {
 	}
 
 	// run subtests
-	t.Run("tlpstress-group", func(t *testing.T) {
-		t.Run("RunOneTLPStress", e2eTest(runOneTLPStress, t, f, ctx))
-		t.Run("RunTwoTLPStress", e2eTest(runTwoTLPStress, t, f, ctx))
+	t.Run("stress-group", func(t *testing.T) {
+		t.Run("RunOneStress", e2eTest(runOneStress, t, f, ctx))
+		t.Run("RunTwoStress", e2eTest(runTwoStress, t, f, ctx))
 	})
 }
 
-func runOneTLPStress(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) {
+func runOneStress(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) {
 	namespace, err := ctx.GetNamespace()
 	if err != nil {
 		t.Fatalf("Failed to get namespace: %s", err)
 	}
-	name := "tlpstress-test"
+	name := "stress-test"
 
-	if err := createTLPStress(name, namespace, f, ctx); err != nil {
-		t.Fatalf("Failed to create TLPStress: %s", err)
+	if err := createStress(name, namespace, f, ctx); err != nil {
+		t.Fatalf("Failed to create Stress: %s", err)
 	}
 
-	if err := e2eutil.WaitForTLPStressToStart(t, f, namespace, name, 10 * time.Second, 1 * time.Minute); err != nil {
-		t.Errorf("Failed waiting for TLPStress to start: %s\n", err)
+	if err := e2eutil.WaitForStressToStart(t, f, namespace, name, 10 * time.Second, 1 * time.Minute); err != nil {
+		t.Errorf("Failed waiting for Stress to start: %s\n", err)
 	}
 
-	if err := e2eutil.WaitForTLPStressToFinish(t, f, namespace, name, 1, 10 * time.Second, 3 * time.Minute); err != nil {
-		t.Errorf("Failed waiting for TLPStress to finish: %s\n", err)
+	if err := e2eutil.WaitForStressToFinish(t, f, namespace, name, 1, 10 * time.Second, 3 * time.Minute); err != nil {
+		t.Errorf("Failed waiting for Stress to finish: %s\n", err)
 	}
 
-	tlpStress := &v1alpha1.TLPStress{}
-	if err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, tlpStress); err != nil {
-		t.Fatal("Failed to get TLPStress instance")
+	stress := &v1alpha1.Stress{}
+	if err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, stress); err != nil {
+		t.Fatal("Failed to get Stress instance")
 	}
 
-	jobStatus := tlpStress.Status.JobStatus
+	jobStatus := stress.Status.JobStatus
 	if jobStatus == nil {
 		t.Fatal("job status should not be nil")
 	}
@@ -117,21 +117,21 @@ func runOneTLPStress(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 	}
 }
 
-func runTwoTLPStress(t *testing.T,  f *framework.Framework, ctx *framework.TestCtx) {
-	name := "tlpstress-test-two"
+func runTwoStress(t *testing.T,  f *framework.Framework, ctx *framework.TestCtx) {
+	name := "stress-test-two"
 
 	namespace, err := ctx.GetNamespace()
 	if err != nil {
 		t.Fatalf("Failed to get namespace: %s", err)
 	}
 
-	tlpStress := &v1alpha1.TLPStress{
+	stress := &v1alpha1.Stress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 			Namespace: namespace,
 		},
-		Spec: v1alpha1.TLPStressSpec{
-			StressConfig: v1alpha1.TLPStressConfig{
+		Spec: v1alpha1.StressSpec{
+			StressConfig: v1alpha1.StressConfig{
 				Workload: v1alpha1.KeyValueWorkload,
 				Iterations: stringPtr("50"),
 			},
@@ -145,24 +145,24 @@ func runTwoTLPStress(t *testing.T,  f *framework.Framework, ctx *framework.TestC
 			},
 		},
 	}
-	if err := f.Client.Create(goctx.TODO(), tlpStress, cleanupWithPolling(ctx)); err != nil {
-		t.Fatalf("Failed to create TLPStress (%s): %s", name, err)
+	if err := f.Client.Create(goctx.TODO(), stress, cleanupWithPolling(ctx)); err != nil {
+		t.Fatalf("Failed to create Stress (%s): %s", name, err)
 	}
 
-	if err := e2eutil.WaitForTLPStressToStart(t, f, namespace, name, 10 * time.Second, 1 * time.Minute); err != nil {
-		t.Errorf("Failed waiting for TLPStress (%s) to start: %s\n", name, err)
+	if err := e2eutil.WaitForStressToStart(t, f, namespace, name, 10 * time.Second, 1 * time.Minute); err != nil {
+		t.Errorf("Failed waiting for Stress (%s) to start: %s\n", name, err)
 	}
 
-	if err := e2eutil.WaitForTLPStressToFinish(t, f, namespace, name, 2, 1 * time.Second, 3 * time.Minute); err != nil {
-		t.Errorf("Failed waiting for TLPStress (%s) to finish: %s\n", name, err)
+	if err := e2eutil.WaitForStressToFinish(t, f, namespace, name, 2, 1 * time.Second, 3 * time.Minute); err != nil {
+		t.Errorf("Failed waiting for Stress (%s) to finish: %s\n", name, err)
 	}
 
-	tlpStress = &v1alpha1.TLPStress{}
-	if err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, tlpStress); err != nil {
-		t.Fatalf("Failed to get TLPStress instance (%s): %s", name, err)
+	stress = &v1alpha1.Stress{}
+	if err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, stress); err != nil {
+		t.Fatalf("Failed to get Stress instance (%s): %s", name, err)
 	}
 
-	jobStatus := tlpStress.Status.JobStatus
+	jobStatus := stress.Status.JobStatus
 	if jobStatus == nil {
 		t.Fatal("job status should not be nil")
 	}
@@ -173,14 +173,14 @@ func runTwoTLPStress(t *testing.T,  f *framework.Framework, ctx *framework.TestC
 	}
 }
 
-func createTLPStress(name string, namespace string, f *framework.Framework, ctx *framework.TestCtx) error {
-	tlpStress := v1alpha1.TLPStress{
+func createStress(name string, namespace string, f *framework.Framework, ctx *framework.TestCtx) error {
+	stress := v1alpha1.Stress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 			Namespace: namespace,
 		},
-		Spec: v1alpha1.TLPStressSpec{
-			StressConfig: v1alpha1.TLPStressConfig{
+		Spec: v1alpha1.StressSpec{
+			StressConfig: v1alpha1.StressConfig{
 				Workload: v1alpha1.KeyValueWorkload,
 				Iterations: stringPtr("50"),
 			},
@@ -191,7 +191,7 @@ func createTLPStress(name string, namespace string, f *framework.Framework, ctx 
 			},
 		},
 	}
-	return f.Client.Create(goctx.TODO(), &tlpStress, cleanupWithPolling(ctx))
+	return f.Client.Create(goctx.TODO(), &stress, cleanupWithPolling(ctx))
 }
 
 func createCassandraCluster(name string, namespace string, f *framework.Framework, ctx *framework.TestCtx) error {

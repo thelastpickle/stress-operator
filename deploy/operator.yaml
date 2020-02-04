@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tlp-stress-operator
+  name: stress-operator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: tlp-stress-operator
+      name: stress-operator
   template:
     metadata:
       labels:
-        name: tlp-stress-operator
+        name: stress-operator
     spec:
-      serviceAccountName: tlp-stress-operator
+      serviceAccountName: stress-operator
       containers:
-        - name: tlp-stress-operator
+        - name: stress-operator
           # Replace this with the built image name
-          image: docker.io/jsanda/tlp-stress-operator:latest
+          image: docker.io/jsanda/stress-operator:latest
           command:
-          - tlp-stress-operator
+          - stress-operator
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
@@ -30,4 +30,4 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
-              value: "tlp-stress-operator"
+              value: "stress-operator"

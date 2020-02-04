@@ -1,13 +1,13 @@
-package tlpstress
+package stress
 
 import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
-	api "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
-	casskoputil "github.com/jsanda/tlp-stress-operator/pkg/casskop"
-	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"
-	"github.com/jsanda/tlp-stress-operator/pkg/tlpstress"
+	api "github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	casskoputil "github.com/jsanda/stress-operator/pkg/casskop"
+	"github.com/jsanda/stress-operator/pkg/monitoring"
+	"github.com/jsanda/stress-operator/pkg/tlpstress"
 	v1batch "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -26,7 +26,7 @@ import (
 	"time"
 )
 
-var log = logf.Log.WithName("controller_tlpstress")
+var log = logf.Log.WithName("controller_stress")
 
 const (
 	DefaultImage           = "thelastpickle/tlp-stress:4.0.0"
@@ -39,7 +39,7 @@ const (
 * business logic.  Delete these comments after modifying this file.*
  */
 
-// Add creates a new TLPStress Controller and adds it to the Manager. The Manager will set fields on the Controller
+// Add creates a new Stress Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
 	//if dc, err := k8s.GetDiscoveryClient(); err != nil {
@@ -54,28 +54,28 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileTLPStress{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	return &ReconcileStress{client: mgr.GetClient(), scheme: mgr.GetScheme()}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
-	c, err := controller.New("tlpstress-controller", mgr, controller.Options{Reconciler: r})
+	c, err := controller.New("stress-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
 	}
 
-	// Watch for changes to primary resource TLPStress
-	err = c.Watch(&source.Kind{Type: &api.TLPStress{}}, &handler.EnqueueRequestForObject{})
+	// Watch for changes to primary resource Stress
+	err = c.Watch(&source.Kind{Type: &api.Stress{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
 
 	// TODO(user): Modify this to be the types you create that are owned by the primary resource
-	// Watch for changes to secondary resource Pods and requeue the owner TLPStress
+	// Watch for changes to secondary resource Pods and requeue the owner Stress
 	err = c.Watch(&source.Kind{Type: &v1batch.Job{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
-		OwnerType:    &api.TLPStress{},
+		OwnerType:    &api.Stress{},
 	})
 	if err != nil {
 		return err
@@ -84,30 +84,30 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
-// blank assignment to verify that ReconcileTLPStress implements reconcile.Reconciler
-var _ reconcile.Reconciler = &ReconcileTLPStress{}
+// blank assignment to verify that ReconcileStress implements reconcile.Reconciler
+var _ reconcile.Reconciler = &ReconcileStress{}
 
-// ReconcileTLPStress reconciles a TLPStress object
-type ReconcileTLPStress struct {
+// ReconcileStress reconciles a Stress object
+type ReconcileStress struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
 	client client.Client
 	scheme *runtime.Scheme
 }
 
-// Reconcile reads that state of the cluster for a TLPStress object and makes changes based on the state read
-// and what is in the TLPStress.Spec
+// Reconcile reads that state of the cluster for a Stress object and makes changes based on the state read
+// and what is in the Stress.Spec
 // TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
 // a Pod as an example
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.ReconcileRequeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileStress) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling TLPStress")
+	reqLogger.Info("Reconciling Stress")
 
-	// Fetch the TLPStress tlpStress
-	instance := &api.TLPStress{}
+	// Fetch the Stress instance
+	instance := &api.Stress{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -116,28 +116,28 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 			// Return and don't requeue
 			return reconcile.Result{}, nil
 		}
-		reqLogger.Error(err, "Failed to get TLPStress object")
+		reqLogger.Error(err, "Failed to get Stress object")
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
 
-	tlpStress := instance.DeepCopy()
+	stress := instance.DeepCopy()
 
-	if checkDefaults(tlpStress) {
-		if err = r.client.Update(context.TODO(), tlpStress); err != nil {
+	if checkDefaults(stress) {
+		if err = r.client.Update(context.TODO(), stress); err != nil {
 			return reconcile.Result{}, err
 		}
 		return reconcile.Result{Requeue: true}, nil
 	}
 
-	// If the TLPStress specifies a CassandraCluster reference or a template, then we need to check that the CRD exists
+	// If the Stress specifies a CassandraCluster reference or a template, then we need to check that the CRD exists
 	// on the master. If the CRD does not exist, then we just requeue with an error.
-	if tlpStress.Spec.CassandraConfig.CassandraCluster != nil || tlpStress.Spec.CassandraConfig.CassandraClusterTemplate != nil {
+	if stress.Spec.CassandraConfig.CassandraCluster != nil || stress.Spec.CassandraConfig.CassandraClusterTemplate != nil {
 		if kindExists, err := casskoputil.CassandraClusterKindExists(); !kindExists {
-			reqLogger.Info("Cannot create TLPStress instance. The CassandraCluster kind does not exist.",
-				"TLPStress.Name", tlpStress.Name, "TLPStress.Namespace", tlpStress.Namespace)
-			return reconcile.Result{}, fmt.Errorf("cannot create TLPStress instance %s.%s: CassandraCluster kind does not exist",
-				tlpStress.Namespace, tlpStress.Name)
+			reqLogger.Info("Cannot create Stress instance. The CassandraCluster kind does not exist.",
+				"Stress.Name", stress.Name, "Stress.Namespace", stress.Namespace)
+			return reconcile.Result{}, fmt.Errorf("cannot create Stress instance %s.%s: CassandraCluster kind does not exist",
+				stress.Namespace, stress.Name)
 		} else if err != nil {
 			reqLogger.Error(err,"Check for CassandraCluster kind failed")
 			return reconcile.Result{}, err
@@ -146,8 +146,8 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 			//    1) A CassandraCluster matching the template exists
 			//    2) Create the CassandraCluster if it does not exist
 			//    3) CassandraCluster is ready
-			if tlpStress.Spec.CassandraConfig.CassandraClusterTemplate != nil {
-				template := tlpStress.Spec.CassandraConfig.CassandraClusterTemplate
+			if stress.Spec.CassandraConfig.CassandraClusterTemplate != nil {
+				template := stress.Spec.CassandraConfig.CassandraClusterTemplate
 				if len(template.Namespace) == 0 {
 					template.Namespace = request.Namespace
 				}
@@ -169,23 +169,23 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	// Check if the metrics service already exists, if not create a new one
-	_, err = monitoring.GetMetricsService(tlpStress, r.client)
+	_, err = monitoring.GetMetricsService(stress, r.client)
 	if err != nil && errors.IsNotFound(err) {
-		return monitoring.CreateMetricsService(tlpStress, r.client, reqLogger)
+		return monitoring.CreateMetricsService(stress, r.client, reqLogger)
 	} else if err != nil {
 		reqLogger.Error(err,"Failed to get MetricsService", "MetricsService.Namespace",
-			tlpStress.Namespace, "MetricsService.Name", monitoring.GetMetricsServiceName(tlpStress))
+			stress.Namespace, "MetricsService.Name", monitoring.GetMetricsServiceName(stress))
 		return reconcile.Result{}, err
 	}
 
 	if kindExists, err := monitoring.GrafanaDashboardKindExists(); kindExists {
-		_, err := monitoring.GetDashboard(tlpStress, r.client)
+		_, err := monitoring.GetDashboard(stress, r.client)
 		if err != nil && errors.IsNotFound(err) {
 			// Create the dashboard
-			return monitoring.CreateDashboard(tlpStress, r.client, reqLogger)
+			return monitoring.CreateDashboard(stress, r.client, reqLogger)
 		} else if err != nil {
 			reqLogger.Error(err, "Failed to get dashboard", "GrafanaDashboard.Namespace",
-				tlpStress.Namespace, "GrafanaDashboard.Name", tlpStress.Name)
+				stress.Namespace, "GrafanaDashboard.Name", stress.Name)
 			return reconcile.Result{}, err
 		}
 	} else if err != nil {
@@ -195,10 +195,10 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 
 	// Check if the job already exists, if not create a new one
 	job := &v1batch.Job{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: tlpStress.Name, Namespace: tlpStress.Namespace}, job)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: stress.Name, Namespace: stress.Namespace}, job)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new newJob
-		newJob := r.jobForTLPStress(tlpStress, request.Namespace, reqLogger)
+		newJob := r.jobForStress(stress, request.Namespace, reqLogger)
 		reqLogger.Info("Creating a new Job.", "Job.Namespace", newJob.Namespace, "Job.Name", newJob.Name)
 		err = r.client.Create(context.TODO(), newJob)
 		if err != nil {
@@ -213,9 +213,9 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 
 	// Check the status and update if it has changed
 	jobStatus := job.Status.DeepCopy()
-	if tlpStress.Status.JobStatus == nil || !reflect.DeepEqual(tlpStress.Status.JobStatus, jobStatus) {
-		tlpStress.Status.JobStatus = jobStatus
-		if err = r.client.Status().Update(context.TODO(), tlpStress); err != nil {
+	if stress.Status.JobStatus == nil || !reflect.DeepEqual(stress.Status.JobStatus, jobStatus) {
+		stress.Status.JobStatus = jobStatus
+		if err = r.client.Status().Update(context.TODO(), stress); err != nil {
 			reqLogger.Error(err, "Failed to update status")
 			return reconcile.Result{}, err
 		}
@@ -224,10 +224,9 @@ func (r *ReconcileTLPStress) Reconcile(request reconcile.Request) (reconcile.Res
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *api.TLPStress, namespace string,
-	log logr.Logger) *v1batch.Job {
+func (r *ReconcileStress) jobForStress(stress *api.Stress, namespace string, log logr.Logger) *v1batch.Job {
 
-	ls := tlpstress.LabelsForTLPStress(tlpStress.Name)
+	ls := tlpstress.LabelsForStress(stress.Name)
 
 	job := &v1batch.Job{
 		TypeMeta: metav1.TypeMeta{
@@ -235,13 +234,13 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *api.TLPStress, namespace
 			APIVersion: "batch/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: tlpStress.Name,
-			Namespace: tlpStress.Namespace,
-			Labels: ls,
+			Name:      stress.Name,
+			Namespace: stress.Namespace,
+			Labels:    ls,
 		},
 		Spec: v1batch.JobSpec{
-			BackoffLimit: tlpStress.Spec.JobConfig.BackoffLimit,
-			Parallelism: tlpStress.Spec.JobConfig.Parallelism,
+			BackoffLimit: stress.Spec.JobConfig.BackoffLimit,
+			Parallelism:  stress.Spec.JobConfig.Parallelism,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: ls,
@@ -250,10 +249,10 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *api.TLPStress, namespace
 					RestartPolicy: corev1.RestartPolicyOnFailure,
 					Containers: []corev1.Container{
 						{
-							Name: tlpStress.Name,
-							Image: tlpStress.Spec.Image,
-							ImagePullPolicy: tlpStress.Spec.ImagePullPolicy,
-							Args: *buildCmdLineArgs(tlpStress, namespace, log),
+							Name:            stress.Name,
+							Image:           stress.Spec.Image,
+							ImagePullPolicy: stress.Spec.ImagePullPolicy,
+							Args:            *buildCmdLineArgs(stress, namespace, log),
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "metrics",
@@ -267,8 +266,8 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *api.TLPStress, namespace
 			},
 		},
 	}
-	// Set TLPStress as the owner and controller
-	if err := controllerutil.SetControllerReference(tlpStress, job, r.scheme); err != nil {
+	// Set Stress as the owner and controller
+	if err := controllerutil.SetControllerReference(stress, job, r.scheme); err != nil {
 		// TODO We probably want to return and handle this error
 		log.Error(err, "Failed to set owner for job")
 	}
@@ -276,27 +275,27 @@ func (r *ReconcileTLPStress) jobForTLPStress(tlpStress *api.TLPStress, namespace
 	return job
 }
 
-func buildCmdLineArgs(instance *api.TLPStress, namespace string, log logr.Logger) *[]string {
+func buildCmdLineArgs(instance *api.Stress, namespace string, log logr.Logger) *[]string {
 	cmdLineArgs := tlpstress.CreateCommandLineArgs(&instance.Spec.StressConfig, &instance.Spec.CassandraConfig, namespace)
 	log.Info("Creating tlp-stress arguments", "commandLineArgs", cmdLineArgs)
 	return cmdLineArgs.GetArgs()
 }
 
-func checkDefaults(tlpStress *api.TLPStress) bool {
+func checkDefaults(stress *api.Stress) bool {
 	updated := false
 
-	if len(tlpStress.Spec.Image) == 0 {
-		tlpStress.Spec.Image = DefaultImage
+	if len(stress.Spec.Image) == 0 {
+		stress.Spec.Image = DefaultImage
 		updated = true
 	}
 
-	if len(tlpStress.Spec.ImagePullPolicy) == 0 {
-		tlpStress.Spec.ImagePullPolicy = DefaultImagePullPolicy
+	if len(stress.Spec.ImagePullPolicy) == 0 {
+		stress.Spec.ImagePullPolicy = DefaultImagePullPolicy
 		updated = true
 	}
 
-	if len(tlpStress.Spec.StressConfig.Workload) == 0 {
-		tlpStress.Spec.StressConfig.Workload = DefaultWorkload
+	if len(stress.Spec.StressConfig.Workload) == 0 {
+		stress.Spec.StressConfig.Workload = DefaultWorkload
 		updated = true
 	}
 

@@ -1,9 +1,9 @@
 ORG=jsanda
-PROJECT=tlp-stress-operator
+PROJECT=tstress-operator
 REG=docker.io
 SHELL=/bin/bash
 TAG?=latest
-PKG=github.com/jsanda/tlp-stress-operator
+PKG=github.com/jsanda/tstress-operator
 COMPILE_TARGET=./tmp/_output/bin/$(PROJECT)
 
 BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
@@ -159,10 +159,10 @@ e2e-test: e2e-setup
 .PHONY: e2e-cleanup
 e2e-cleanup:
 	kubectl -n $(E2E_NS) delete cassandracluster --all
-	kubectl -n $(E2E_NS) delete sa tlp-stress-operator
-	kubectl -n $(E2E_NS) delete role tlp-stress-operator
-	kubectl -n $(E2E_NS) delete rolebinding tlp-stress-operator
-	kubectl -n $(E2E_NS) delete deployment tlp-stress-operator
+	kubectl -n $(E2E_NS) delete sa tstress-operator
+	kubectl -n $(E2E_NS) delete role tstress-operator
+	kubectl -n $(E2E_NS) delete rolebinding tstress-operator
+	kubectl -n $(E2E_NS) delete deployment tstress-operator
 
 .PHONY: create-dev-ns
 create-dev-ns:
@@ -170,7 +170,7 @@ create-dev-ns:
 
 .PHONY: deploy
 deploy: create-dev-ns
-	kubectl -n $(DEV_NS) apply -f deploy/crds/thelastpickle_v1alpha1_tlpstress_crd.yaml
+	kubectl -n $(DEV_NS) apply -f deploy/crds/
 	kubectl -n $(DEV_NS) apply -f deploy/service_account.yaml
 	kubectl -n $(DEV_NS) apply -f deploy/role.yaml
 	kubectl -n $(DEV_NS) apply -f deploy/role_binding.yaml

@@ -1,9 +1,9 @@
-package tlpstresscontext
+package stresscontext
 
 import (
 	"context"
-	thelastpicklev1alpha1 "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
-	"github.com/jsanda/tlp-stress-operator/pkg/monitoring"
+	thelastpicklev1alpha1 "github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/stress-operator/pkg/monitoring"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -15,7 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-var log = logf.Log.WithName("controller_tlpstresscontext")
+var log = logf.Log.WithName("controller_stresscontext")
 
 const contextName = "tlpstress"
 
@@ -24,7 +24,7 @@ const contextName = "tlpstress"
 * business logic.  Delete these comments after modifying this file.*
  */
 
-// Add creates a new TLPStressContext Controller and adds it to the Manager. The Manager will set fields on the Controller
+// Add creates a new StressContext Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
 	return add(mgr, newReconciler(mgr))
@@ -32,28 +32,28 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileTLPStressContext{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	return &ReconcileStressContext{client: mgr.GetClient(), scheme: mgr.GetScheme()}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
-	c, err := controller.New("tlpstresscontext-controller", mgr, controller.Options{Reconciler: r})
+	c, err := controller.New("stresscontext-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
 	}
 
-	// Watch for changes to primary resource TLPStressContext
-	err = c.Watch(&source.Kind{Type: &thelastpicklev1alpha1.TLPStressContext{}}, &handler.EnqueueRequestForObject{})
+	// Watch for changes to primary resource StressContext
+	err = c.Watch(&source.Kind{Type: &thelastpicklev1alpha1.StressContext{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
 
 	// TODO(user): Modify this to be the types you create that are owned by the primary resource
-	// Watch for changes to secondary resource Pods and requeue the owner TLPStressContext
+	// Watch for changes to secondary resource Pods and requeue the owner StressContext
 	//err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
 	//	IsController: true,
-	//	OwnerType:    &thelastpicklev1alpha1.TLPStressContext{},
+	//	OwnerType:    &thelastpicklev1alpha1.StressContext{},
 	//})
 	//if err != nil {
 	//	return err
@@ -62,27 +62,27 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
-// blank assignment to verify that ReconcileTLPStressContext implements reconcile.Reconciler
-var _ reconcile.Reconciler = &ReconcileTLPStressContext{}
+// blank assignment to verify that ReconcileStressContext implements reconcile.Reconciler
+var _ reconcile.Reconciler = &ReconcileStressContext{}
 
-// ReconcileTLPStressContext reconciles a TLPStressContext object
-type ReconcileTLPStressContext struct {
+// ReconcileStressContext reconciles a StressContext object
+type ReconcileStressContext struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
 	client client.Client
 	scheme *runtime.Scheme
 }
 
-// Reconcile reads that state of the cluster for a TLPStressContext object and makes changes based on the state read
-// and what is in the TLPStressContext.Spec
+// Reconcile reads that state of the cluster for a StressContext object and makes changes based on the state read
+// and what is in the StressContext.Spec
 // TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
 // a Pod as an example
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileTLPStressContext) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileStressContext) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling TLPStressContext")
+	reqLogger.Info("Reconciling StressContext")
 
 	if request.Name != contextName {
 		reqLogger.Info("Ignoring request", "Request.Namespace", request.Namespace,
@@ -90,8 +90,8 @@ func (r *ReconcileTLPStressContext) Reconcile(request reconcile.Request) (reconc
 		return reconcile.Result{}, nil
 	}
 
-	// Fetch the TLPStressContext instance
-	instance := &thelastpicklev1alpha1.TLPStressContext{}
+	// Fetch the StressContext instance
+	instance := &thelastpicklev1alpha1.StressContext{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {

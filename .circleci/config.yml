@@ -9,7 +9,7 @@ jobs:
       - K8S_VERSION: v1.15.0
       - KIND_VERSION: v0.5.1
       - OPERATOR_SDK_VERSION: 0.14.0
-    working_directory: /home/circleci/tlp-stress-operator
+    working_directory: /home/circleci/stress-operator
     steps:
       - run:
           name: install golang

@@ -8,7 +8,7 @@ spec:
     kind: TLPStressContext
     listKind: TLPStressContextList
     plural: tlpstresscontexts
-    singular: tlpstresscontext
+    singular: stresscontext
   scope: Namespaced
   subresources:
     status: {}

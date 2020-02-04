@@ -7,8 +7,8 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/go-logr/logr"
 	i8ly "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
-	tlp "github.com/jsanda/tlp-stress-operator/pkg/apis/thelastpickle/v1alpha1"
-	"github.com/jsanda/tlp-stress-operator/pkg/k8s"
+	tlp "github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/jsanda/stress-operator/pkg/k8s"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -37,20 +37,20 @@ func GrafanaDashboardKindExists() (bool, error) {
 	return discoveryClient.KindExists(i8ly.SchemeGroupVersion.String(), GrafanaDashboardKind)
 }
 
-func GetDashboard(tlpStress *tlp.TLPStress, client client.Client) (*i8ly.GrafanaDashboard, error) {
+func GetDashboard(stress *tlp.Stress, client client.Client) (*i8ly.GrafanaDashboard, error) {
 	dashboard := &i8ly.GrafanaDashboard{}
-	err := client.Get(context.TODO(), types.NamespacedName{Namespace: tlpStress.Namespace, Name: tlpStress.Name}, dashboard)
+	err := client.Get(context.TODO(), types.NamespacedName{Namespace: stress.Namespace, Name: stress.Name}, dashboard)
 
 	return dashboard, err
 }
 
-func CreateDashboard(tlpStress *tlp.TLPStress, client client.Client, log logr.Logger) (reconcile.Result, error) {
-	dashboard, err := newDashboard(tlpStress.Name, fmt.Sprintf("%s-metrics", tlpStress.Name))
+func CreateDashboard(stress *tlp.Stress, client client.Client, log logr.Logger) (reconcile.Result, error) {
+	dashboard, err := newDashboard(stress.Name, fmt.Sprintf("%s-metrics", stress.Name))
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-	dashboard.Name = tlpStress.Name
-	dashboard.Namespace = tlpStress.Namespace
+	dashboard.Name = stress.Name
+	dashboard.Namespace = stress.Namespace
 	dashboard.ObjectMeta.Labels = map[string]string{
 		"app": "tlpstress",
 	}
