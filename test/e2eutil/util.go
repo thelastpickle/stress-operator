@@ -32,7 +32,7 @@ func InitOperator(t *testing.T) (*framework.TestCtx, *framework.Framework) {
 	// get global framework variables
 	f := framework.Global
 	// wait for tlp-stress-operator to be ready
-	err = WaitForOperatorDeployment(t, f, namespace, "tlp-stress-operator", RetryInterval, Timeout)
+	err = WaitForOperatorDeployment(t, f, namespace, "stress-operator", RetryInterval, Timeout)
 	if err != nil {
 		t.Fatalf("Failed waiting for tlp-stress operator deployment: %s\n", err)
 	}
