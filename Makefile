@@ -1,9 +1,9 @@
 ORG=jsanda
-PROJECT=tstress-operator
+PROJECT=stress-operator
 REG=docker.io
 SHELL=/bin/bash
 TAG?=latest
-PKG=github.com/jsanda/tstress-operator
+PKG=github.com/jsanda/stress-operator
 COMPILE_TARGET=./tmp/_output/bin/$(PROJECT)
 
 BRANCH=$(shell git rev-parse --abbrev-ref HEAD)

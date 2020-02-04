@@ -1,7 +1,7 @@
 # tlp-stress Operator
 A Kubernetes operator for running tlp-stress in Kubernetes.
 
-**Build Status**  [![CircleCI](https://circleci.com/gh/jsanda/tlp-stress-operator/tree/master.svg?style=svg)](https://circleci.com/gh/jsanda/tlp-stress-operator/tree/master)
+**Build Status**  [![CircleCI](https://circleci.com/gh/jsanda/stress-operator/tree/master.svg?style=svg)](https://circleci.com/gh/jsanda/tlp-stress-operator/tree/master)
 
 ## Overview
 tlp-stress is a workload-centric stress tool for Apache Cassandra. It provides a rich feature set for modelling different workloads with Cassandra.
@@ -56,16 +56,16 @@ $ make deploy
 ./scripts/create-ns.sh tlpstress
 Creating namespace tlpstress
 namespace/tlpstress created
-kubectl -n tlpstress apply -f deploy/crds/thelastpickle_v1alpha1_tlpstress_crd.yaml
-customresourcedefinition.apiextensions.k8s.io/tlpstresses.thelastpickle.com created
+kubectl -n tlpstress apply -f deploy/crds/
+customresourcedefinition.apiextensions.k8s.io/stresses.thelastpickle.com created
 kubectl -n tlpstress apply -f deploy/service_account.yaml
-serviceaccount/tlp-stress-operator created
+serviceaccount/stress-operator created
 kubectl -n tlpstress apply -f deploy/role.yaml
-role.rbac.authorization.k8s.io/tlp-stress-operator created
+role.rbac.authorization.k8s.io/stress-operator created
 kubectl -n tlpstress apply -f deploy/role_binding.yaml
-rolebinding.rbac.authorization.k8s.io/tlp-stress-operator created
+rolebinding.rbac.authorization.k8s.io/stress-operator created
 kubectl -n tlpstress apply -f deploy/operator.yaml
-deployment.apps/tlp-stress-operator created
+deployment.apps/stress-operator created
 ```
 
 ### Full, Integrated Installation
@@ -106,16 +106,16 @@ role.rbac.authorization.k8s.io/prometheus created
 rolebinding.rbac.authorization.k8s.io/prometheus created
 prometheus.monitoring.coreos.com/tlpstress created
 service/prometheus-tlpstress created
-kubectl -n tlpstress apply -f deploy/crds/thelastpickle_v1alpha1_tlpstress_crd.yaml
-customresourcedefinition.apiextensions.k8s.io/tlpstresses.thelastpickle.com created
+kubectl -n tlpstress apply -f deploy/crds/
+customresourcedefinition.apiextensions.k8s.io/stresses.thelastpickle.com created
 kubectl -n tlpstress apply -f deploy/service_account.yaml
-serviceaccount/tlp-stress-operator created
+serviceaccount/stress-operator created
 kubectl -n tlpstress apply -f deploy/role.yaml
-role.rbac.authorization.k8s.io/tlp-stress-operator created
+role.rbac.authorization.k8s.io/stress-operator created
 kubectl -n tlpstress apply -f deploy/role_binding.yaml
-rolebinding.rbac.authorization.k8s.io/tlp-stress-operator created
+rolebinding.rbac.authorization.k8s.io/stress-operator created
 kubectl -n tlpstress apply -f deploy/operator.yaml
-deployment.apps/tlp-stress-operator create
+deployment.apps/stress-operator create
 ```
 **Note:** By default the operator is deployed to the `tlpstress` namespace which will be created if it does not already exist.
 
@@ -164,7 +164,7 @@ The spec is divided into three sections - `stressConfig`, `jobConfig`, and `cass
 
 `cassandraConfig` has properties for the Cassandra cluster that tlp-stress will run against, namely how to connect to the cluster.
 
-**Note:** Please see [the documenation](./documentation/tlpstress.md) for a complete overview of the TLPStress custom resource.
+**Note:** Please see [the documenation](documentation/stress.md) for a complete overview of the TLPStress custom resource.
 
 Now let's create the TLPStress instance:
 

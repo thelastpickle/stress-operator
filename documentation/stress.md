@@ -1,6 +1,6 @@
-# TLPStress
+# Stress
 
-The tlp-stress operator manages TLPStress instances. There are a few top-level fields that divide the spec into logical sections. 
+The tlp-stress operator manages Stress instances. There are a few top-level fields that divide the spec into logical sections. 
 
 ## StressConfig
 StressConfig contains properties that map to tlp-stress command line options.

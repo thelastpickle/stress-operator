@@ -1,16 +1,16 @@
 # CassKop Integration
-The tlp-stress operator provides the ability to provision a Cassandra cluster using the [CassKop operator](./casskop.md). CassKop support is built directly into the tlp-stress operator. The CassKop operator however is an optional dependency.
+The stress-operator provides the ability to provision a Cassandra cluster using the [CassKop operator](./casskop.md). CassKop support is built directly into the stress-operator. The CassKop operator however is an optional dependency.
 
 `spec.cassandraConfig` has a couple property that deal directly with CassKop - `cassandraCluster` and `cassandraClusterTemplate`.
 
 ## CassandraCluster
-`spec.cassandraConfig.cassandraCluster` specifies the name of a `CassandraCluster` object that is managed by CassKop. Because the tlp-stress operator has built-in support for CassKop, it can use the cluster name to discover endpoints of the Cassandra pods.
+`spec.cassandraConfig.cassandraCluster` specifies the name of a `CassandraCluster` object that is managed by CassKop. Because the stress-operator has built-in support for CassKop, it can use the cluster name to discover endpoints of the Cassandra pods.
 
 `cassandraCluster` is comprised of the following properties:
 
 **namespace**
 
-*description:* The namespace in which the `CassandraCluster` is running. Defaults to the namespace in which the `TLPStress` instance runs.
+*description:* The namespace in which the `CassandraCluster` is running. Defaults to the namespace in which the `Stress` instance runs.
 
 *type:* string
 
@@ -29,9 +29,9 @@ The tlp-stress operator provides the ability to provision a Cassandra cluster us
 *default:* N/A
 
 ## cassandraClusterTemplate
-`spec.cassandraConfig.cassandraClusterTemplate` describes a `CassandraCluster` that will be created prior to creating and running the `TLPStress` instance.
+`spec.cassandraConfig.cassandraClusterTemplate` describes a `CassandraCluster` that will be created prior to creating and running the `Stress` instance.
 
-The tlp-stress operator will not deploy the underlying job for the `TLPStress` instance until the `CassandraCluster` is fully initialized and ready.
+The stress-operator will not deploy the underlying job for the `Stress` instance until the `CassandraCluster` is fully initialized and ready.
 
 Check out the [CassKop docs](https://github.com/Orange-OpenSource/cassandra-k8s-operator/blob/master/documentation/description.md) for a thorough description of how to configure a `CassandraCluster` object.
 

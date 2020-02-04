@@ -35,12 +35,12 @@ subjects:
 apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
 metadata:
-  name: tlpstress
+  name: stress
 spec:
   serviceAccountName: prometheus
   serviceMonitorSelector:
     matchLabels:
-      app: tlpstress
+      app: stress
   resources:
     requests:
       memory: 400Mi
@@ -49,7 +49,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: prometheus-tlpstress
+  name: prometheus-stress
 spec:
   ports:
     - name: web
@@ -57,4 +57,4 @@ spec:
       protocol: TCP
       targetPort: web
   selector:
-    prometheus: tlpstress
+    prometheus: stress

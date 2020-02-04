@@ -1,12 +1,12 @@
 # Grafana Integration
-The tlp-stress operator provides integration with Grafana through the [Grafana Operator](https://github.com/integr8ly/grafana-operator) in the following ways:
+The stress-operator provides integration with Grafana through the [Grafana Operator](https://github.com/integr8ly/grafana-operator) in the following ways:
 
 * Deploy a Grafana server
 * Deploy a data source for Prometheus
 * Deploy a dashboard for each `TLPStress` instance
 
 ## Grafana Operator
-The tlp-stress operator itself does not yet provision the Grafana server or data source. It is currently done when deploying the operator:
+The stress-operator itself does not yet provision the Grafana server or data source. It is currently done when deploying the operator:
 
 ```
 $ make deploy-all
@@ -23,7 +23,7 @@ The Grafana Operator adds serveral new CRDs including:
 ### Grafana
 The `Grafana` CRD specifies a Grafana server to be provisioned.
 
-The `Grafana` instance is namespace-based deployment with permissions limited to the namespace in which it is deployed. It is deployed in the same namespace as the tlp-stress operator, which defaults to `tlpstress`.
+The `Grafana` instance is namespace-based deployment with permissions limited to the namespace in which it is deployed. It is deployed in the same namespace as the stress-operator, which defaults to `tlpstress`.
 
 The `Grafana` instance looks like:
 
@@ -55,7 +55,7 @@ spec:
         - {key: app, operator: In, values: [grafana]}
 ```
 
-**Note:** The `Grafana` object currently is not configurable through the tlp-stress operator. You will need to directly edit [config/grafana/02_grafana.yaml](../config/grafana/02_grafana.yaml) at deployment time.
+**Note:** The `Grafana` object currently is not configurable through the stress-operator. You will need to directly edit [config/grafana/02_grafana.yaml](../config/grafana/02_grafana.yaml) at deployment time.
 
 #### Accessing the UI
 The Grafana Operator deploys a service to expose the UI:
@@ -97,14 +97,14 @@ spec:
         timeInterval: "5s"
 ```
 
-**Note:** The `GrafanaDataSource` object currently is not configurable through the tlp-stress operator. You will need to directly edit [config/grafana/prometheus-datasource.yaml](../config/grafana/prometheus-datasource.yaml) at deployment time.
+**Note:** The `GrafanaDataSource` object currently is not configurable through the stress-operator. You will need to directly edit [config/grafana/prometheus-datasource.yaml](../config/grafana/prometheus-datasource.yaml) at deployment time.
 
 Here is a screenshot of the data source:
 
 ![tlp-stress dashboard](../images/grafana-datasource.png)
 
 ## GrafanaDashboard
-The `GrafanaDashboard` CRD specifies a dashboard that the tlp-stress operator creates per `TLPStress` instance.
+The `GrafanaDashboard` CRD specifies a dashboard that the stress-operator creates per `Stress` instance.
 
 The `GrafanaDashboard` object looks like:
 

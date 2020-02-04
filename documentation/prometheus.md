@@ -1,8 +1,8 @@
 # Prometheus Integration
-The tlp-stress operator provides Prometheus integration in a couple of ways. First, it exposes metrics for each `TLPStress` instance. Secondly, the operator provisions a Prometheus server using the [Prometheus operator](https://github.com/coreos/prometheus-operator). The Prometheus operator is an optional dependency.
+The tlp-stress operator provides Prometheus integration in a couple of ways. First, it exposes metrics for each `Stress` instance. Secondly, the operator provisions a Prometheus server using the [Prometheus operator](https://github.com/coreos/prometheus-operator). The Prometheus operator is an optional dependency.
 
 ## Exposing Metrics
-A service is created for each TLPStress instance and exposes metrics on port 9500. The name of the service will be of the format `<TLPStress-name>-metrics`. Suppose we have a TLPStress instance named `stress-demo`. The operator will create a service that looks like:
+A service is created for each Stress instance and exposes metrics on port 9500. The name of the service will be of the format `<Stress-name>-metrics`. Suppose we have a TLPStress instance named `stress-demo`. The operator will create a service that looks like:
 
 ```
 apiVersion: v1
@@ -10,13 +10,13 @@ kind: Service
 metadata:
   creationTimestamp: "2019-10-25T20:37:00Z"
   labels:
-    app: tlpstress
-    tlpstress: stress-demo
+    app: stress
+    stress: stress-demo
   name: stress-demo-metrics
   namespace: tlpstress
   ownerReferences:
   - apiVersion: thelastpickle.com/v1alpha1
-    kind: TLPStress
+    kind: Stress
     name: stress-demo
     uid: 10abc800-b6e1-4552-a5ee-4efc1355debc
   resourceVersion: "81734"
@@ -30,16 +30,16 @@ spec:
     protocol: TCP
     targetPort: 9500
   selector:
-    app: tlpstress
-    tlpstress: stress-demo
+    app: stress
+    stress: stress-demo
   sessionAffinity: None
   type: ClusterIP
 status:
   loadBalancer: {}
 ```
-The `labels` and `selector` fields are configured with the TLPStress instance name.
+The `labels` and `selector` fields are configured with the Stress instance name.
 
-There is an owner reference to the TLPStress instance. When the TLPStress instance is deleted, the service will get deleted as well.
+There is an owner reference to the Stress instance. When the Stress instance is deleted, the service will get deleted as well.
 
 Lastly, the port name on which metrics is exposed is `metrics`.
 
@@ -66,13 +66,13 @@ metadata:
   creationTimestamp: "2019-10-25T20:37:00Z"
   generation: 1
   labels:
-    app: tlpstress
-  name: tlpstress-servicemonitor
-  namespace: tlpstress
+    app: stress
+  name: stress-servicemonitor
+  namespace: stress
   ownerReferences:
   - apiVersion: apps/v1    
     kind: Deployment
-    name: tlp-stress-operator-74d5c9c65b
+    name: stress-operator-74d5c9c65b
     uid: 10abc800-b6e1-4552-a5ee-4efc1355debc
   resourceVersion: "81736"
   selfLink: /apis/monitoring.coreos.com/v1/namespaces/tlpstress/servicemonitors/stress-demo-metrics
@@ -83,7 +83,7 @@ spec:
   namespaceSelector: {}
   selector:
     matchLabels:
-      app: tlpstress
+      app: stress
 ``` 
 
 The tlp-stress operator's Deployment is set as an owner reference.
@@ -104,19 +104,19 @@ The `Prometheus` object looks like:
 apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
 metadata:
-  name: tlpstress
+  name: stress
 spec:
   serviceAccountName: prometheus
   serviceMonitorSelector:
     matchLabels:
-      app: tlpstress
+      app: stress
   resources:
     requests:
       memory: 400Mi
   enableAdminAPI: false
 ```
 
-**Note:** The `Prometheus` object currently is not configurable through the tlp-stress operator. You will need to directly edit [config/prometheus/bundle.yaml](../config/prometheus/bundle.yaml) at deployment time.
+**Note:** The `Prometheus` object currently is not configurable through the stress operator. You will need to directly edit [config/prometheus/bundle.yaml](../config/prometheus/bundle.yaml) at deployment time.
 
 #### Accessing Prometheus Console
 A service is deployed to expose the Prometheus web UI. It looks like this:

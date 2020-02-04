@@ -1,6 +1,6 @@
 # tlp-stress Operator Documetation
 
-* [TLPStress custom resource](tlpstress.md)
+* [Stress custom resource](stress.md)
 * [Deploying Cassandra](cassandra.md)
 * [CassKop integration](casskop.md)
 * [Prometheus integration](prometheus.md)

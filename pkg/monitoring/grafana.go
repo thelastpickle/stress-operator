@@ -22,7 +22,7 @@ import (
 const (
 	GrafanaKind          = "Grafana"
 	GrafanaDashboardKind = "GrafanaDashboard"
-	GrafanaName          = "tlpstress-grafana"
+	GrafanaName          = "stress-grafana"
 	DataSourceName       = PrometheusName
 )
 
@@ -52,7 +52,7 @@ func CreateDashboard(stress *tlp.Stress, client client.Client, log logr.Logger) 
 	dashboard.Name = stress.Name
 	dashboard.Namespace = stress.Namespace
 	dashboard.ObjectMeta.Labels = map[string]string{
-		"app": "tlpstress",
+		"app": "stress",
 	}
 
 	// TODO set controller reference
@@ -137,7 +137,7 @@ func newGrafana(namespace string) *i8ly.Grafana {
 			{
 				Key: "app",
 				Operator: metav1.LabelSelectorOpIn,
-				Values: []string{"tlpstress"},
+				Values: []string{"stress"},
 			},
 		},
 	}
@@ -209,7 +209,7 @@ func CreateDataSource(namespace string, client client.Client, log logr.Logger) (
 					Name: PrometheusName,
 					Type: "prometheus",
 					Access: "proxy",
-					Url: "http://tlpstress-prometheus:9090",
+					Url: "http://stress-prometheus:9090",
 					IsDefault: true,
 					Version: 1,
 					JsonData: i8ly.GrafanaDataSourceJsonData{
