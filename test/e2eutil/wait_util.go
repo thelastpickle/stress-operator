@@ -51,8 +51,8 @@ func WaitForStressToStart(t *testing.T,
 	timeout time.Duration,) error {
 
 	return wait.Poll(retryInterval, timeout, func() (bool, error) {
-		tlpStress := &v1alpha1.TLPStress{}
-		err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, tlpStress)
+		stress := &v1alpha1.Stress{}
+		err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, stress)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				t.Logf("Waiting for availability of Stress %s\n", name)
@@ -61,11 +61,11 @@ func WaitForStressToStart(t *testing.T,
 			t.Logf("Failed to get Stress (%s): %s", name, err)
 			return false, err
 		}
-		if tlpStress.Status.JobStatus == nil {
+		if stress.Status.JobStatus == nil {
 			t.Log("Stress.Status.JobStatus is nil")
 			return false, nil
 		}
-		if tlpStress.Status.JobStatus.Active == 0 {
+		if stress.Status.JobStatus.Active == 0 {
 			t.Logf("Waiting for Stress %s to start\n", name)
 			return false, nil
 		}
@@ -84,8 +84,8 @@ func WaitForStressToFinish(t *testing.T,
 	timeout time.Duration,) error {
 
 	return wait.Poll(retryInterval, timeout, func() (bool, error) {
-		tlpStress := &v1alpha1.TLPStress{}
-		err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, tlpStress)
+		stress := &v1alpha1.Stress{}
+		err := f.Client.Get(goctx.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, stress)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				t.Logf("Waiting for availability of Stress %s\n", name)
@@ -93,14 +93,14 @@ func WaitForStressToFinish(t *testing.T,
 			}
 			return false, err
 		}
-		if tlpStress.Status.JobStatus == nil {
+		if stress.Status.JobStatus == nil {
 			t.Log("Stress.Status.JobStatus is nil")
 			return false, nil
 		}
 
-		if (tlpStress.Status.JobStatus.Succeeded + tlpStress.Status.JobStatus.Failed) != completions {
+		if (stress.Status.JobStatus.Succeeded + stress.Status.JobStatus.Failed) != completions {
 			t.Logf("Waiting for Stress (%s) to complete (%d). There are: succeeded(%d), failed(%d)\n", name,
-				completions, tlpStress.Status.JobStatus.Succeeded, tlpStress.Status.JobStatus.Failed)
+				completions, stress.Status.JobStatus.Succeeded, stress.Status.JobStatus.Failed)
 			return false, nil
 		}
 		return true, nil
