@@ -28,25 +28,23 @@ The operator provides a number of features including:
 ## Requirements
 The following libraries/tools need to be installed in order to build and deploy this operator:
 
-* Go >= 1.11
+* Go >= 1.13.0
 * Docker client >= 17
 * kubectl >= 1.13
-* [Operator SDK](https://github.com/operator-framework/operator-sdk) >= 0.9.0
+* [Operator SDK](https://github.com/operator-framework/operator-sdk) = 0.14.0
 
 ## Installation
 You need to clone this git repo. The operator is installed by running the Makefile. 
-
-The project uses Go modules. If you clone the repo under `GOPATH` then make sure the `GO111MODULE` environment variable is set:
-
-```
-$ export GO111MODULE=on
-```
 
 The following sections will cover a couple different installation options.
 
 Both options are namespace-based deployments. The operator is configured with permissions only for the namespace in which it is deployed. 
 
 By default the operator is deployed to the `tlpstress` namespace which will be created if it does not already exist.
+
+Both of the installations options discussed belowed install the latest published version of the operator image. If you want to deploy a different version, for now you need to change the image tag in `deploy/operator.yaml`:
+
+`image: docker.io/thelastpickle/stress-operator:latest`
 
 ### Basic Installation
 To deploy the operator by itself without anything else, such as Prometheus or Grafana, run `make deploy`:   
