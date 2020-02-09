@@ -87,7 +87,7 @@ unit-test:
 
 .PHONY: do-deploy-casskop
 do-deploy-casskop:
-	kubectl -n $(CASSKOP_NS) apply -f config/casskop
+	kubectl -n $(CASSKOP_NS) apply -f config/casskop.yaml
 
 .PHONY: deploy-casskop
 deploy-casskop: CASSKOP_NS ?= $(DEV_NS)
@@ -96,10 +96,7 @@ deploy-casskop: do-deploy-casskop
 .PHONY: do-deploy-grafana-operator
 do-deploy-grafana-operator:
 	@echo GRAFANA_NS = $(GRAFANA_NS)
-	kubectl -n $(GRAFANA_NS) apply -f config/grafana/00_service-account.yaml
-	kubectl -n $(GRAFANA_NS) apply -f config/grafana/00_crd.yaml
-	kubectl -n $(GRAFANA_NS) apply -f config/grafana/00_role.yaml
-	kubectl -n $(GRAFANA_NS) apply -f config/grafana/01_operator-deployment.yaml
+	kubectl -n $(GRAFANA_NS) apply -f config/grafana/grafana-operator.yaml
 
 .PHONY: deploy-grafana-operator
 deploy-grafana-operator: GRAFANA_NS ?= $(DEV_NS)
@@ -123,7 +120,7 @@ deploy-grafana: do-deploy-grafana
 
 .PHONY: deploy-prometheus-operator
 deploy-prometheus-operator:
-	kubectl apply -f config/prometheus-operator/bundle.yaml
+	kubectl apply -f config/prometheus-operator/prometheus-operator.yaml
 
 .PHONY: do-deploy-prometheus
 do-deploy-prometheus: deploy-prometheus-operator
