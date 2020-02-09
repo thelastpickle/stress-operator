@@ -87,7 +87,7 @@ unit-test:
 
 .PHONY: do-deploy-casskop
 do-deploy-casskop:
-	kubectl -n $(CASSKOP_NS) apply -f config/casskop.yaml
+	kubectl -n $(CASSKOP_NS) apply -f config/casskop/casskop.yaml
 
 .PHONY: deploy-casskop
 deploy-casskop: CASSKOP_NS ?= $(DEV_NS)
