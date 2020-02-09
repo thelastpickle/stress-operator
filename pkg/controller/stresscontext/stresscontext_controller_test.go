@@ -2,10 +2,10 @@ package stresscontext
 
 import (
 	"context"
-	"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
-	"github.com/jsanda/stress-operator/pkg/casskop"
-	"github.com/jsanda/stress-operator/pkg/monitoring"
-	"github.com/jsanda/stress-operator/test"
+	"github.com/thelastpickle/stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/thelastpickle/stress-operator/pkg/casskop"
+	"github.com/thelastpickle/stress-operator/pkg/monitoring"
+	"github.com/thelastpickle/stress-operator/test"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"

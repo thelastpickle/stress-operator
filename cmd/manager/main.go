@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/jsanda/stress-operator/pkg/k8s"
+	"github.com/thelastpickle/stress-operator/pkg/k8s"
 	"os"
 	"runtime"
 	"time"
@@ -14,10 +14,10 @@ import (
 
 	"k8s.io/client-go/rest"
 
-	"github.com/jsanda/stress-operator/pkg/apis"
-	"github.com/jsanda/stress-operator/pkg/casskop"
-	"github.com/jsanda/stress-operator/pkg/controller"
-	"github.com/jsanda/stress-operator/pkg/monitoring"
+	"github.com/thelastpickle/stress-operator/pkg/apis"
+	"github.com/thelastpickle/stress-operator/pkg/casskop"
+	"github.com/thelastpickle/stress-operator/pkg/controller"
+	"github.com/thelastpickle/stress-operator/pkg/monitoring"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"

@@ -3,7 +3,7 @@ package e2eutil
 import (
 	goctx "context"
 	casskop "github.com/Orange-OpenSource/cassandra-k8s-operator/pkg/apis/db/v1alpha1"
-	"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/thelastpickle/stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"

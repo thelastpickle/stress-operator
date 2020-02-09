@@ -1,4 +1,4 @@
-module github.com/jsanda/stress-operator
+module github.com/thelastpickle/stress-operator
 
 require (
 	github.com/Orange-OpenSource/cassandra-k8s-operator v0.3.2
@@ -6,9 +6,14 @@ require (
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-logr/logr v0.1.0
 	github.com/go-openapi/spec v0.19.4
+	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/integr8ly/grafana-operator/v3 v3.0.2
 	github.com/operator-framework/operator-sdk v0.14.0
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/pflag v1.0.5
+	golang.org/x/net v0.0.0-20200202094626-16171245cfb2 // indirect
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
+	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v12.0.0+incompatible

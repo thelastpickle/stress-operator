@@ -2,7 +2,7 @@ package tlpstress
 
 import (
 	"fmt"
-	"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/thelastpickle/stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"strconv"
 	"strings"
 )
