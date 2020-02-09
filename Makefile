@@ -131,7 +131,7 @@ do-deploy-prometheus: deploy-prometheus-operator
 	echo "Installing Prometheus"
 	# Temporarily adding a sleep call here due to intermittent failures on CircleCI.
 	sleep 2
-	kubectl -n $(PROMETHEUS_NS) apply -f config/prometheus/bundle.yaml
+	kubectl -n $(PROMETHEUS_NS) apply -f config/prometheus/prometheus.yaml
 
 .PHONY: deploy-prometheus
 deploy-prometheus: PROMETHEUS_NS ?= $(DEV_NS)
