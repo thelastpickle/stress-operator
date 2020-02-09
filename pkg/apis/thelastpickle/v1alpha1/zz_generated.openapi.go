@@ -11,20 +11,20 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.Stress":              schema_pkg_apis_thelastpickle_v1alpha1_TLPStress(ref),
-		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressContext":       schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContext(ref),
-		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressContextSpec":   schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextSpec(ref),
-		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressContextStatus": schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextStatus(ref),
-		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressSpec":          schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref),
-		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressStatus":        schema_pkg_apis_thelastpickle_v1alpha1_TLPStressStatus(ref),
+		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.Stress":              schema_pkg_apis_thelastpickle_v1alpha1_Stress(ref),
+		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressContext":       schema_pkg_apis_thelastpickle_v1alpha1_StressContext(ref),
+		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressContextSpec":   schema_pkg_apis_thelastpickle_v1alpha1_StressContextSpec(ref),
+		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressContextStatus": schema_pkg_apis_thelastpickle_v1alpha1_StressContextStatus(ref),
+		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressSpec":          schema_pkg_apis_thelastpickle_v1alpha1_StressSpec(ref),
+		"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1.StressStatus":        schema_pkg_apis_thelastpickle_v1alpha1_StressStatus(ref),
 	}
 }
 
-func schema_pkg_apis_thelastpickle_v1alpha1_TLPStress(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_thelastpickle_v1alpha1_Stress(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "Stress is the Schema for the tlpstresses API",
+				Description: "Stress is the Schema for the Stresses API",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
@@ -64,11 +64,11 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStress(ref common.ReferenceCallba
 	}
 }
 
-func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContext(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_thelastpickle_v1alpha1_StressContext(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "StressContext is the Schema for the tlpstresscontexts API",
+				Description: "StressContext is the Schema for the stresscontexts API",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
@@ -108,7 +108,7 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContext(ref common.Referenc
 	}
 }
 
-func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_thelastpickle_v1alpha1_StressContextSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -133,7 +133,7 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextSpec(ref common.Refe
 	}
 }
 
-func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_thelastpickle_v1alpha1_StressContextStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -144,7 +144,7 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressContextStatus(ref common.Re
 	}
 }
 
-func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_thelastpickle_v1alpha1_StressSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -186,7 +186,7 @@ func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressSpec(ref common.ReferenceCa
 	}
 }
 
-func schema_pkg_apis_thelastpickle_v1alpha1_TLPStressStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_thelastpickle_v1alpha1_StressStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{

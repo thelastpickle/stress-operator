@@ -14,7 +14,7 @@ spec:
     status: {}
   validation:
     openAPIV3Schema:
-      description: Stress is the Schema for the stresses API
+      description: Stress is the Schema for the Stresses API
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -304,6 +304,11 @@ spec:
                   type: string
                 dataCenter:
                   type: string
+                deleterate:
+                  description: TODO add validation to ensure value is numeric Deletion
+                    Rate, 0-1.  Workloads may have their own defaults.  Default is
+                    dependent on workload.
+                  type: string
                 dropKeyspace:
                   type: boolean
                 duration:
@@ -311,15 +316,26 @@ spec:
                 iterations:
                   pattern: ^(\d+)([BbMmKk]?$)
                   type: string
+                keyspace:
+                  description: Defaults to tlp_stress
+                  type: string
+                paging:
+                  description: Override the driver's default page size
+                  format: int32
+                  type: integer
                 partitionGenerator:
                   type: string
                 partitions:
                   pattern: ^(\d+)([BbMmKk]?$)
                   type: string
+                password:
+                  description: Defaults to cassandra
+                  type: string
                 populate:
                   pattern: ^(\d+)([BbMmKk]?$)
                   type: string
                 readRate:
+                  description: TODO add validation to ensure value is numeric
                   type: string
                 replication:
                   properties:
@@ -332,6 +348,13 @@ spec:
                       format: int32
                       type: integer
                   type: object
+                ttl:
+                  description: Table level TTL. Set to zero to disable.
+                  format: int64
+                  type: integer
+                username:
+                  description: Defaults to cassandra
+                  type: string
                 workload:
                   type: string
               type: object
