@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/jsanda/stress-operator/pkg/controller/stresscontext"
+	"github.com/thelastpickle/stress-operator/pkg/controller/stresscontext"
 )
 
 func init() {

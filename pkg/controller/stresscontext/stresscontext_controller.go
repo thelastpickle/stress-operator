@@ -2,8 +2,8 @@ package stresscontext
 
 import (
 	"context"
-	thelastpicklev1alpha1 "github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
-	"github.com/jsanda/stress-operator/pkg/monitoring"
+	thelastpicklev1alpha1 "github.com/thelastpickle/stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/thelastpickle/stress-operator/pkg/monitoring"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

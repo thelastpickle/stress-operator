@@ -1,7 +1,7 @@
 package tlpstress
 
 import (
-	"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/thelastpickle/stress-operator/pkg/apis/thelastpickle/v1alpha1"
 	"reflect"
 	"testing"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

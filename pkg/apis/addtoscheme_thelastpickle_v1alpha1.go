@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"github.com/jsanda/stress-operator/pkg/apis/thelastpickle/v1alpha1"
+	"github.com/thelastpickle/stress-operator/pkg/apis/thelastpickle/v1alpha1"
 )
 
 func init() {
