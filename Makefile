@@ -22,6 +22,11 @@ ifeq ($(CIRCLE_BRANCH),master)
 	PUSH_LATEST := true
 endif
 
+ifdef CIRCLE_TAG
+	RELEASE_TAG = $(subst v,,$(CIRCLE_TAG))
+	RELEASE_IMAGE = $(REG)/$(ORG)/$(PROJECT):$(RELEASE_TAG)
+endif
+
 DEV_NS ?= tlpstress
 E2E_NS?=tlpstress-e2e
 
@@ -59,6 +64,20 @@ push-e2e-image:
 .PHONY: build-image
 build-image: code-gen openapi-gen
 	@operator-sdk build ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG}
+
+.PHONY: create-release-tag
+create-release-tag:
+	@echo Creating release tag $(RELEASE_IMAGE)
+	docker tag ${REV_IMAGE} ${RELEASE_IMAGE}
+
+.PHONY: push-release-tag
+push-release-tag: create-release-tag
+	@echo pushing $(RELEASE_IMAGE)
+	docker push ${RELEASE_IMAGE}
+
+.PHONY: publish-release
+publish-release:
+	ghr -t {GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${RELEASE_TAG}
 
 .PHONY: push-image
 push-image:
