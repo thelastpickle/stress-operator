@@ -94,7 +94,7 @@ jobs:
           name: publish release
           command: |
             go get github.com/tcnksm/ghr
-            ghr -t {GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${VERSION}
+            make publish-release
 
 workflows:
   version: 2
