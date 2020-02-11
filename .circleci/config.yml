@@ -86,7 +86,7 @@ jobs:
       - image: circleci/golang:1.13
     steps:
       - attach_workspace:
-          at: /home/circleci
+          at: /home/circleci/stress-operator
       - run:
           name: creating image release tag
           command: make push-release-tag
