@@ -116,7 +116,7 @@ spec:
   enableAdminAPI: false
 ```
 
-**Note:** The `Prometheus` object currently is not configurable through the stress operator. You will need to directly edit [config/prometheus/bundle.yaml](../config/prometheus/bundle.yaml) at deployment time.
+**Note:** The `Prometheus` object currently is not configurable through the stress operator. You will need to directly edit [config/prometheus/bundle.yaml](../config/prometheus/prometheus.yaml) at deployment time.
 
 #### Accessing Prometheus Console
 A service is deployed to expose the Prometheus web UI. It looks like this:

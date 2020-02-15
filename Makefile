@@ -22,6 +22,11 @@ ifeq ($(CIRCLE_BRANCH),master)
 	PUSH_LATEST := true
 endif
 
+ifdef CIRCLE_TAG
+	RELEASE_TAG = $(subst v,,$(CIRCLE_TAG))
+	RELEASE_IMAGE = $(REG)/$(ORG)/$(PROJECT):$(RELEASE_TAG)
+endif
+
 DEV_NS ?= tlpstress
 E2E_NS?=tlpstress-e2e
 
@@ -60,6 +65,20 @@ push-e2e-image:
 build-image: code-gen openapi-gen
 	@operator-sdk build ${REG}/${ORG}/${PROJECT}:${POST_TEST_TAG}
 
+.PHONY: create-release-tag
+create-release-tag:
+	@echo Creating release tag $(RELEASE_IMAGE)
+	docker tag ${REV_IMAGE} ${RELEASE_IMAGE}
+
+.PHONY: push-release-tag
+push-release-tag: create-release-tag
+	@echo pushing $(RELEASE_IMAGE)
+	docker push ${RELEASE_IMAGE}
+
+.PHONY: publish-release
+publish-release:
+	ghr -t {GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${RELEASE_TAG} ./deploy
+
 .PHONY: push-image
 push-image:
 	@echo Pushing ${BRANCH_REV_IMAGE}
@@ -87,7 +106,7 @@ unit-test:
 
 .PHONY: do-deploy-casskop
 do-deploy-casskop:
-	kubectl -n $(CASSKOP_NS) apply -f config/casskop
+	kubectl -n $(CASSKOP_NS) apply -f config/casskop/casskop.yaml
 
 .PHONY: deploy-casskop
 deploy-casskop: CASSKOP_NS ?= $(DEV_NS)
@@ -96,10 +115,7 @@ deploy-casskop: do-deploy-casskop
 .PHONY: do-deploy-grafana-operator
 do-deploy-grafana-operator:
 	@echo GRAFANA_NS = $(GRAFANA_NS)
-	kubectl -n $(GRAFANA_NS) apply -f config/grafana/00_service-account.yaml
-	kubectl -n $(GRAFANA_NS) apply -f config/grafana/00_crd.yaml
-	kubectl -n $(GRAFANA_NS) apply -f config/grafana/00_role.yaml
-	kubectl -n $(GRAFANA_NS) apply -f config/grafana/01_operator-deployment.yaml
+	kubectl -n $(GRAFANA_NS) apply -f config/grafana/grafana-operator.yaml
 
 .PHONY: deploy-grafana-operator
 deploy-grafana-operator: GRAFANA_NS ?= $(DEV_NS)
@@ -123,7 +139,7 @@ deploy-grafana: do-deploy-grafana
 
 .PHONY: deploy-prometheus-operator
 deploy-prometheus-operator:
-	kubectl apply -f config/prometheus-operator/bundle.yaml
+	kubectl apply -f config/prometheus-operator/prometheus-operator.yaml
 
 .PHONY: do-deploy-prometheus
 do-deploy-prometheus: deploy-prometheus-operator
@@ -134,7 +150,7 @@ do-deploy-prometheus: deploy-prometheus-operator
 	echo "Installing Prometheus"
 	# Temporarily adding a sleep call here due to intermittent failures on CircleCI.
 	sleep 2
-	kubectl -n $(PROMETHEUS_NS) apply -f config/prometheus/bundle.yaml
+	kubectl -n $(PROMETHEUS_NS) apply -f config/prometheus/prometheus.yaml
 
 .PHONY: deploy-prometheus
 deploy-prometheus: PROMETHEUS_NS ?= $(DEV_NS)
