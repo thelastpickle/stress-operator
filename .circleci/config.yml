@@ -88,9 +88,12 @@ jobs:
   release:
     docker:
       - image: circleci/golang:1.13
+    working_directory: /home/circleci/stress-operator
     steps:
       - attach_workspace:
-          at: stress-operator
+          at: /home/circleci
+      - run:
+          command: ls -R
       - run:
           name: creating image release tag
           command: make push-release-tag
