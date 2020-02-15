@@ -108,6 +108,9 @@ workflows:
   build-and-release:
     jobs:
       - build
+        filters:
+          tags:
+            only: /.*/
       - release:
           requires:
             - build
