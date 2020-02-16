@@ -90,6 +90,7 @@ jobs:
       - image: circleci/golang:1.13
     working_directory: /home/circleci/stress-operator
     steps:
+      - setup_remote_docker
       - attach_workspace:
           at: /home/circleci
       - run:
