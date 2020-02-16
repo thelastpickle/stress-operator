@@ -68,6 +68,8 @@ build-image: code-gen openapi-gen
 .PHONY: create-release-tag
 create-release-tag:
 	@echo Creating release tag $(RELEASE_IMAGE)
+	# temporary hack while trying to get release job working
+	docker pull ${REV_IMAGE}
 	docker tag ${REV_IMAGE} ${RELEASE_IMAGE}
 
 .PHONY: push-release-tag
