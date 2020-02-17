@@ -75,7 +75,7 @@ create-release-tag:
 .PHONY: push-release-tag
 push-release-tag: create-release-tag
 	@echo pushing $(RELEASE_IMAGE)
-	docker login --username $DOCKERHUB_USER --password $DOCKERHUB_PASSWORD
+	docker login --username ${DOCKERHUB_USER} --password ${DOCKERHUB_PASSWORD}
 	docker push ${RELEASE_IMAGE}
 
 .PHONY: publish-release
