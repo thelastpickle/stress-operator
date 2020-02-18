@@ -16,7 +16,7 @@ spec:
       containers:
         - name: stress-operator
           # Replace this with the built image name
-          image: docker.io/jsanda/stress-operator:latest
+          image: docker.io/thelastpickle/stress-operator:latest
           command:
           - stress-operator
           imagePullPolicy: Always

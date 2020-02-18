@@ -78,9 +78,17 @@ push-release-tag: create-release-tag
 	docker login --username ${DOCKERHUB_USER} --password ${DOCKERHUB_PASSWORD}
 	docker push ${RELEASE_IMAGE}
 
+.PHONY:
+prepare-release-artifacts:
+ifdef CIRCLE_TAG
+	./scripts/prepare-artifacts.sh $(RELEASE_IMAGE)
+else
+	./scripts/prepare-artifacts.sh $(REV_IMAGE)
+endif
+
 .PHONY: publish-release
 publish-release:
-	ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -debug -replace ${RELEASE_TAG}  ./deploy
+	ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -debug -replace ${RELEASE_TAG}  ./artifacts
 
 .PHONY: push-image
 push-image:
