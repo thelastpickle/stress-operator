@@ -94,8 +94,6 @@ jobs:
       - attach_workspace:
           at: /home/circleci
       - run:
-          command: ls -R
-      - run:
           name: creating image release tag
           command: make push-release-tag
       - run:

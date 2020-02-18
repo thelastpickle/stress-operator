@@ -80,7 +80,7 @@ push-release-tag: create-release-tag
 
 .PHONY: publish-release
 publish-release:
-	ghr -t {GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${RELEASE_TAG} ./deploy
+	ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -debug -replace ${RELEASE_TAG}  ./deploy
 
 .PHONY: push-image
 push-image:
