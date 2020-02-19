@@ -2,9 +2,20 @@
 
 set -e
 
+
+if [ -z ${1+x} ]; then
+  echo "Usage: prepare-artifacts.sh <stress-operator image>"
+  exit 1
+fi
 image=$1
 
-mkdir artifacts
+mkdir -p artifacts
+
+for f in `ls deploy/crds`
+do
+  cat deploy/crds/$f >> artifacts/stress-operator.yaml
+  echo "---" >> artifacts/stress-operator.yaml
+done
 
 cat deploy/service_account.yaml >> artifacts/stress-operator.yaml
 echo "---" >> artifacts/stress-operator.yaml
