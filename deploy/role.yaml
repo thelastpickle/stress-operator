@@ -14,6 +14,9 @@ rules:
   - events
   - configmaps
   - secrets
+  - serviceaccounts
+  - roles
+  - rolebindings
   verbs:
   - '*'
 - apiGroups:
@@ -28,11 +31,13 @@ rules:
 - apiGroups:
   - monitoring.coreos.com
   resources:
+  - prometheuses
   - servicemonitors
   verbs:
   - get
   - create
   - list
+  - watch
 - apiGroups:
   - apps
   resourceNames:
@@ -53,6 +58,21 @@ rules:
   - replicasets
   verbs:
   - get
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  - rolebindings
+  verbs:
+  - create
+  - escalate
+- apiGroups:
+    - ""
+  resources:
+    - nodes
+  verbs:
+    - list
+    - watch
 - apiGroups:
   - thelastpickle.com
   - db.orange.com

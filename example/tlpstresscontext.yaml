@@ -1,7 +1,7 @@
 apiVersion: thelastpickle.com/v1alpha1
-kind: TLPStressContext
+kind: StressContext
 metadata:
-  # There should only be one TLPStressContext per namespace. It must be named
+  # There should only be one StressContext per namespace. It must be named
   # tlpstress; otherwise, the controller will ignore it.
   name: tlpstress
   labels:
