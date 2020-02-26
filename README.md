@@ -1,6 +1,8 @@
 # tlp-stress Operator
 A Kubernetes operator for running tlp-stress in Kubernetes.
 
+**Note:** The upstream repo has moved to https://github.com/thelastpickle/stress-operator.
+
 **Build Status**  [![CircleCI](https://circleci.com/gh/jsanda/stress-operator/tree/master.svg?style=svg)](https://circleci.com/gh/jsanda/tlp-stress-operator/tree/master)
 
 ## Overview
