@@ -1,9 +1,7 @@
 # tlp-stress Operator
 A Kubernetes operator for running tlp-stress in Kubernetes.
 
-**Note:** The upstream repo has moved to https://github.com/thelastpickle/stress-operator.
-
-**Build Status**  [![CircleCI](https://circleci.com/gh/jsanda/stress-operator/tree/master.svg?style=svg)](https://circleci.com/gh/jsanda/tlp-stress-operator/tree/master)
+**Build Status**  [![CircleCI](https://circleci.com/gh/jsanda/stress-operator/tree/master.svg?style=svg)](https://circleci.com/gh/thelastpickle/stress-operator/tree/master)
 
 ## Overview
 tlp-stress is a workload-centric stress tool for Apache Cassandra. It provides a rich feature set for modelling different workloads with Cassandra.
@@ -23,7 +21,7 @@ The operator provides a number of features including:
 * Integration with Grafana by:
   * Provisioning a Grafana server that is configured to use Prometheus as a data source
   * Adding a dashboard for each tlp-stress job
-* Integration with [CassKop](https://github.com/Orange-OpenSource/cassandra-k8s-operator) to provision Cassandra clusters 
+* Integration with [casskop](https://github.com/Orange-OpenSource/cassandra-k8s-operator) to provision Cassandra clusters 
 
 **Note:** This operator is pre-alpha and subject to breaking changes on a regular basis.
 
@@ -36,108 +34,40 @@ The following libraries/tools need to be installed in order to build and deploy 
 * [Operator SDK](https://github.com/operator-framework/operator-sdk) = 0.14.0
 
 ## Installation
-You need to clone this git repo. The operator is installed by running the Makefile. 
+Go to the [releases](https://github.com/thelastpickle/stress-operator/releases) on GitHub and download `stress-operator.yaml` from the desired version. Then run:
 
-The following sections will cover a couple different installation options.
+`$ kubectl apply -f stress-operator.yaml`
 
-Both options are namespace-based deployments. The operator is configured with permissions only for the namespace in which it is deployed. 
-
-By default the operator is deployed to the `tlpstress` namespace which will be created if it does not already exist.
-
-Both of the installations options discussed belowed install the latest published version of the operator image. If you want to deploy a different version, for now you need to change the image tag in `deploy/operator.yaml`:
-
-`image: docker.io/thelastpickle/stress-operator:latest`
-
-### Basic Installation
-To deploy the operator by itself without anything else, such as Prometheus or Grafana, run `make deploy`:   
+Verify that the operator is running:
 
 ```
-$ make deploy
-./scripts/create-ns.sh tlpstress
-Creating namespace tlpstress
-namespace/tlpstress created
-kubectl -n tlpstress apply -f deploy/crds/
-customresourcedefinition.apiextensions.k8s.io/stresses.thelastpickle.com created
-kubectl -n tlpstress apply -f deploy/service_account.yaml
-serviceaccount/stress-operator created
-kubectl -n tlpstress apply -f deploy/role.yaml
-role.rbac.authorization.k8s.io/stress-operator created
-kubectl -n tlpstress apply -f deploy/role_binding.yaml
-rolebinding.rbac.authorization.k8s.io/stress-operator created
-kubectl -n tlpstress apply -f deploy/operator.yaml
-deployment.apps/stress-operator created
-```
-
-### Full, Integrated Installation
-If you want the integrations with Prometheus, Grafana, and CassKop, then run
-`make deploy-all`:
-
-```
-$ make deploy-all
-./scripts/create-ns.sh tlpstress
-Creating namespace tlpstress
-namespace/tlpstress created
-kubectl -n tlpstress apply -f config/casskop
-customresourcedefinition.apiextensions.k8s.io/cassandraclusters.db.orange.com created
-role.rbac.authorization.k8s.io/cassandra-k8s-operator created
-rolebinding.rbac.authorization.k8s.io/cassandra-k8s-operator created
-serviceaccount/cassandra-k8s-operator created
-deployment.apps/cassandra-k8s-operator created
-kubectl apply -f config/prometheus-operator/bundle.yaml
-namespace/prometheus-operator created
-clusterrolebinding.rbac.authorization.k8s.io/prometheus-operator created
-clusterrole.rbac.authorization.k8s.io/prometheus-operator created
-deployment.apps/prometheus-operator created
-serviceaccount/prometheus-operator created
-service/prometheus-operator created
-until kubectl get crd prometheuses.monitoring.coreos.com > /dev/null 2>&1; do \
-		echo "Waiting for prometheuses.monitoring.coreos.com CRD to be deployed"; \
-		sleep 1; \
-	done;
-Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
-Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
-Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
-Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
-Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
-Waiting for prometheuses.monitoring.coreos.com CRD to be deployed
-kubectl -n tlpstress apply -f config/prometheus/bundle.yaml
-serviceaccount/prometheus created
-role.rbac.authorization.k8s.io/prometheus created
-rolebinding.rbac.authorization.k8s.io/prometheus created
-prometheus.monitoring.coreos.com/tlpstress created
-service/prometheus-tlpstress created
-kubectl -n tlpstress apply -f deploy/crds/
-customresourcedefinition.apiextensions.k8s.io/stresses.thelastpickle.com created
-kubectl -n tlpstress apply -f deploy/service_account.yaml
-serviceaccount/stress-operator created
-kubectl -n tlpstress apply -f deploy/role.yaml
-role.rbac.authorization.k8s.io/stress-operator created
-kubectl -n tlpstress apply -f deploy/role_binding.yaml
-rolebinding.rbac.authorization.k8s.io/stress-operator created
-kubectl -n tlpstress apply -f deploy/operator.yaml
-deployment.apps/stress-operator create
-```
-**Note:** By default the operator is deployed to the `tlpstress` namespace which will be created if it does not already exist.
-
-Please see [the documentation](./documentation/integrated-install.md) for details on everything that gets installed and deployed with `make deploy-all`.
-
-Everything that gets deployed by `make deploy-all` is optional. The tlp-stress operator can and will utilize resources like Prometheus and Grafana if they are deployed; however, they are not required.
-
-**Verify that the operator is running**
-```
-$ kubectl -n tlpstress get pods -l name=tlp-stress-operator
+$ kubectl get pods -l name=stress-operator
 NAME                                   READY   STATUS    RESTARTS   AGE
-tlp-stress-operator-65fbbbd9f8-9tbcl   1/1     Running   0          30s
+stress-operator-65fbbbd9f8-9tbcl       1/1     Running   0          30s
+```
+
+### Provisioning Cassandra
+stres-operator can optionally provision Cassandra cluster using [casskop](https://github.com/Orange-OpenSource/casskop). If you want to enable this feature, download `casskop.yaml` and run:
+
+`$ kubectl apply -f casskop.yaml`
+
+### Monitoring with Prometheus and Grafana
+stress-operator can optionally provision and condfigure Prometheus and Grafana. tlp-stress metrics will be stored in Prometheus and dashboards will get created in Grafana. If you want to enable this feature, download `prometheus-operator.yaml` and `grafana-operator.yaml` and then run:
+
+```
+$ kubectl apply -f prometheus-operator.yaml
+
+$ kubectl apply -f grafana-operator.yaml
 ```
 
 ## Running tlp-stress
-We run tlp-stress by creating a `TLPStress` custom resource. Consider the following example, [example/stress-demo.yaml](./example/stress-demo.yaml):
+We run tlp-stress by creating a `Stress` custom resource. Consider the following example, `stress.yaml`:
 
 ```yaml
 apiVersion: thelastpickle.com/v1alpha1
-kind: TLPStress
+kind: Stress
 metadata:
-  name: tlpstress-demo
+  name: stress-demo
 spec:
   stressConfig:
     workload: KeyValue
@@ -151,9 +81,7 @@ spec:
   jobConfig:
     parallelism: 1
   cassandraConfig:
-    cassandraService: tlpstress-demo
-  image: thelastpickle/tlp-stress:3.0.0
-  imagePullPolicy: IfNotPresent
+    cassandraService: stress-demo
 ```
 
 The spec is divided into three sections - `stressConfig`, `jobConfig`, and `cassandraConfig`.
@@ -164,19 +92,19 @@ The spec is divided into three sections - `stressConfig`, `jobConfig`, and `cass
 
 `cassandraConfig` has properties for the Cassandra cluster that tlp-stress will run against, namely how to connect to the cluster.
 
-**Note:** Please see [the documenation](documentation/stress.md) for a complete overview of the TLPStress custom resource.
+**Note:** Please see [the documenation](documentation/stress.md) for a complete overview of the Stress custom resource.
 
-Now let's create the TLPStress instance:
+Now let's create the Stress instance:
 
 ```
-$ kubectl -n tlpstress apply -f example/stress-demo.yaml
-tlpstress.thelastpickle.com/stress-demo created
+$ kubectl apply -f stress.yaml
+stress.thelastpickle.com/stress-demo created
 ```
 
 Verify that the object was created:
 
 ```
-$ kubectl -n tlpstress get tlpstress
+$ kubectl get stress
 NAME          AGE
 stress-demo   17s
 ```
@@ -184,35 +112,35 @@ stress-demo   17s
 The operator should create a k8s Job:
 
 ```
-$ kubectl -n tlpstress get jobs --selector=tlpstress=tlpstress-demo
+$ kubectl get jobs --selector=stress=stress-demo
 NAME             COMPLETIONS   DURATION   AGE
-tlpstress-demo   1/1           9s         14s
+stress-demo   1/1           9s         14s
 ```
 
 The job completed quickly because there is no Cassandra cluster running. Please see [the documentation](./documentation/cassandra.md) for options on how to deploy Cassandra in Kubernetes.
 
-Now let's delete the TLPStress instance:
+Now let's delete the Stress instance:
 
 ```
-$ kubectl -n tlpstress delete tlpstress tlpstress-demo
-tlpstress.thelastpickle.com "tlpstress-demo" deleted
+$ kubectl delete stress stress-demo
+stress.thelastpickle.com "stress-demo" deleted
 ```
 
 Verify that the object was deleted:
 
 ```
-$ kubectl -n tlpstress get tlpstress
+$ kubectl get stress
 No resources found.
 ```
 
 Verify that the job was also deleted:
 
 ```
-$ kubectl -n tlpstress get jobs --selector=tlpstress=tlpstress-demo
+$ kubectl get jobs --selector=stress=stress-demo
 No resources found.
 ```
 
 ## Documentation
-The operator provides a lot of functionaly for provisioning Cassandra clusters and for monitoring tlp-stress. 
+The operator provides a lot of functionaly for provisioning Cassandra clusters and for monitoring tlp-stress with Grafana and Prometheus.
 
 Please check out [the docs](./documentation/README.md) for a complete overview.
