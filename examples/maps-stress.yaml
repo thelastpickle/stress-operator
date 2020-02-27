@@ -1,0 +1,22 @@
+#
+# This example runs the Maps workload with 25 billion iterations.. tlp-stress 
+# will connect to the cluster via a headless service named stress. For 
+# replication, this example specifies that SimpleStrategy should be used with 
+# RF = 5, which means that the cluster should have at least five nodes.
+#
+apiVersion: thelastpickle.com/v1alpha1
+kind: Stress
+metadata:
+  name: maps
+spec:
+  stressConfig:
+    workload: Maps
+    iterations: 25b
+    duration: 60m
+    readRate: "0.65"
+    consistencyLevel: LOCAL_QUORUM
+    replication:
+        simpleStrategy: 5
+    partitionGenerator: random
+  cassandraConfig:
+    cassandraService: stress

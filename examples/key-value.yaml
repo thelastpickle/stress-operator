@@ -1,0 +1,23 @@
+#
+# This example runs the KeyValue workload for 60 minutes. tlp-stress will 
+# connect to the cluster via a headless service named stress. Since tlp-stress 
+# is configured with RF = 3, the Cassandra cluster should have at least three 
+# nodes.
+#
+apiVersion: thelastpickle.com/v1alpha1
+kind: Stress
+metadata:
+  name: key-value
+spec:
+  stressConfig:
+    workload: KeyValue
+    partitions: 25m
+    duration: 60m
+    readRate: "0.3"
+    consistencyLevel: LOCAL_QUORUM
+    replication:
+      networkTopologyStrategy:
+        dc1: 3
+    partitionGenerator: sequence
+  cassandraConfig:
+    cassandraService: stress

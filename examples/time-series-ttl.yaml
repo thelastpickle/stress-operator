@@ -1,0 +1,24 @@
+# 
+# This example runs the BasicTimeSeries workload with a TTL of five minutes.
+# The workload will run for a duration of 5 hours and 30 minutes. tlp-stress 
+# will connect to the cluster via a headless service named stress. Since 
+# tlp-stress is configured with RF = 3, the Cassandra cluster should have at 
+# least three nodes.
+#
+apiVersion: thelastpickle.com/v1alpha1
+kind: Stress
+metadata:
+  name: time-series-ttl
+spec:
+  stressConfig:
+    workload: BasicTimeSeries
+    partitions: 50m
+    duration: 5h 30m
+    readRate: "0.45"
+    consistencyLevel: LOCAL_QUORUM
+    replication:
+      networkTopologyStrategy:
+        dc1: 3
+    ttl: 300
+  cassandraConfig:
+    cassandraService: stress
