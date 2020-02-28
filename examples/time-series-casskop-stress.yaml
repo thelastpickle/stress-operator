@@ -1,0 +1,52 @@
+#
+# This example runs the KeyValue workload for 60 minutes. Since tlp-stress is 
+# configured with RF = 3, the Cassandra cluster should have at least three
+# nodes.
+#
+# Under cassandraConfig, we do not specify cassandraService. We instead use
+# cassandraClusterTemplate to create a CassandraCluster object. The casskop
+# operator will in turn create the Cassandra cluster based on the 
+# CassandraCluster spec. See https://github.com/Orange-OpenSource/casskop for
+# more info on the CassandraCluster CRD and on casskop.
+#
+apiVersion: thelastpickle.com/v1alpha1
+kind: Stress
+metadata:
+  name: time-series-casskop
+spec:
+  stressConfig:
+    workload: BasicTimeSeries
+    partitions: 50m
+    duration: 60m
+    readRate: "0.45"
+    consistencyLevel: LOCAL_QUORUM
+    replication:
+      networkTopologyStrategy:
+        dc1: 3
+    ttl: 300
+  cassandraConfig:
+    cassandraClusterTemplate:
+      metadata:
+        name: time-series-casskop
+      spec:
+        baseImage: orangeopensource/cassandra-image
+        version: 3.11.4-8u212-0.3.1-cqlsh
+        runAsUser: 1000
+        dataCapacity: 10Gi
+        imagepullpolicy: IfNotPresent
+        deletePVC: true
+        maxPodUnavailable: 0
+        nodesPerRacks: 3
+        resources:
+          requests:
+            cpu: '1'
+            memory: 1Gi
+          limits:
+            cpu: '1'
+            memory: 1Gi
+        topology:
+          dc:
+            - name: dc1
+              rack:
+                - name: rack1       
+```
