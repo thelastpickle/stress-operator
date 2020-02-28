@@ -23,8 +23,9 @@ ifeq ($(CIRCLE_BRANCH),master)
 endif
 
 ifdef CIRCLE_TAG
-	RELEASE_TAG = $(subst v,,$(CIRCLE_TAG))
-	RELEASE_IMAGE = $(REG)/$(ORG)/$(PROJECT):$(RELEASE_TAG)
+	RELEASE_TAG = $(CIRCLE_TAG)
+	IMAGE_RELEASE_TAG = $(subst v,,$(CIRCLE_TAG))
+	RELEASE_IMAGE = $(REG)/$(ORG)/$(PROJECT):$(IMAGE_RELEASE_TAG)
 endif
 
 DEV_NS ?= tlpstress

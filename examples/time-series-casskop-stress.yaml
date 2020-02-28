@@ -49,4 +49,3 @@ spec:
             - name: dc1
               rack:
                 - name: rack1       
-```
